@@ -871,20 +871,6 @@ footer {
         display: flex;
     }
 
-    nav {
-        display: none;
-        position: fixed;
-        top: 0;
-        right: 0;
-        width: 50%;
-        height: 100%;
-        background-color: white;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-    }
-
     nav.active {
         display: flex;
     }
