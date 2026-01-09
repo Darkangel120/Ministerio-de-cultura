@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Cultores - Ministerio del Poder Popular para la Cultura</title>
+    <link rel="icon" href="assets/favicon.jpg">
+    <link rel="stylesheet" href="assets/css/cultores.css">
+</head>
+<body>
+    <div class="cultores-container">
+        <header class="cultores-header">
+            <div class="logo"><img src="assets/favicon.jpg" alt="logo"></div>
+            <h1>Ministerio del Poder Popular para la Cultura</h1>
+            <nav class="cultores-nav">
+                <a href="dashboard.html">Dashboard</a>
+                <a href="calendario.html">Calendario</a>
+                <a href="cultores.html" class="active">Cultores</a>
+                <a href="login.html">Cerrar Sesión</a>
+            </nav>
+        </header>
+        
+        <main class="cultores-main">
+            <div class="cultores-controls">
+                <h2>Gestión de Cultores</h2>
+                <button id="addCultorBtn" class="btn-add">Agregar Cultor</button>
+            </div>
+
+            <div class="cultores-filters">
+                <div class="filter-group">
+                    <label for="filterDisciplina">Filtrar por Disciplina:</label>
+                    <select id="filterDisciplina">
+                        <option value="">Todas las Disciplinas</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filterMunicipio">Filtrar por Municipio:</label>
+                    <select id="filterMunicipio">
+                        <option value="">Todos los Municipios</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="cultores-grid" id="cultoresGrid">
+                <!-- Cultores se cargarán dinámicamente -->
+            </div>
+        </main>
+    </div>
+    
+    <!-- Modal para agregar/editar cultor -->
+    <div id="cultorModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3 id="modalTitle">Agregar Cultor</h3>
+            <form id="cultorForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="cultorNombre">Nombres y Apellidos</label>
+                        <input type="text" id="cultorNombre" name="nombresApellidos" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cultorTelefono">Teléfono</label>
+                        <input type="tel" id="cultorTelefono" name="telefono" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="cultorCedula">Número de Cédula</label>
+                        <input type="text" id="cultorCedula" name="cedula" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cultorCorreo">Correo Electrónico</label>
+                        <input type="email" id="cultorCorreo" name="correo" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="cultorAreaTematica">Área Temática</label>
+                        <select id="cultorAreaTematica" name="areaTematica" required>
+                            <option value="">Seleccionar...</option>
+                            <option value="musica">Música</option>
+                            <option value="danza">Danza</option>
+                            <option value="teatro">Teatro</option>
+                            <option value="artesPlasticas">Artes Plásticas</option>
+                            <option value="literatura">Literatura</option>
+                            <option value="artesanias">Artesanías</option>
+                            <option value="cine">Cine</option>
+                            <option value="fotografia">Fotografía</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="cultorDisciplina">Disciplina</label>
+                        <input type="text" id="cultorDisciplina" name="disciplina" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="cultorComuna">Comuna</label>
+                        <input type="text" id="cultorComuna" name="comuna" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cultorMunicipio">Municipio</label>
+                        <input type="text" id="cultorMunicipio" name="municipio" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cultorParroquia">Parroquia</label>
+                        <input type="text" id="cultorParroquia" name="parroquia" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="cultorCarnetPatria">Código Carnet Patria</label>
+                        <input type="text" id="cultorCarnetPatria" name="carnetPatria" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cultorDireccion">Dirección Exacta de Domicilio</label>
+                        <input type="text" id="cultorDireccion" name="direccion" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="cultorLugarNacimiento">Lugar de Nacimiento</label>
+                        <input type="text" id="cultorLugarNacimiento" name="lugarNacimiento" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cultorFechaNacimiento">Fecha Nacimiento</label>
+                        <input type="date" id="cultorFechaNacimiento" name="fechaNacimiento" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cultorEdad">Edad</label>
+                        <input type="number" id="cultorEdad" name="edad" min="1" max="120" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="cultorTrayectoria">Años de Trayectoria</label>
+                        <input type="number" id="cultorTrayectoria" name="trayectoria" min="0" max="100" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cultorOrganizacion">Organización Social a la que pertenece</label>
+                        <input type="text" id="cultorOrganizacion" name="organizacion" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit">Guardar</button>
+            </form>
+        </div>
+    </div>
+    
+    <script src="assets/js/cultores.js"></script>
+</body>
+</html>
