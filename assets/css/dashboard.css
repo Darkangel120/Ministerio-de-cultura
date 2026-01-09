@@ -1,0 +1,382 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f5f5f5 0%, #e8f4f8 100%);
+    color: #333;
+    min-height: 100vh;
+    position: relative;
+}
+
+body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><pattern id="pattern" width="50" height="50" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(0,56,147,0.05)"/></pattern></defs><rect width="100%" height="100%" fill="url(%23pattern)"/></svg>');
+    pointer-events: none;
+}
+
+.dashboard-container {
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+}
+
+.dashboard-header {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+    padding: 25px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(0, 56, 147, 0.1);
+}
+
+.logo {
+    width: 65px;
+    height: 65px;
+    background: linear-gradient(135deg, #003893, #002366);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 26px;
+    box-shadow: 0 4px 15px rgba(0, 56, 147, 0.3);
+    position: relative;
+}
+
+.logo::after {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    right: -1px;
+    bottom: -1px;
+    background: linear-gradient(135deg, #FFD700, #CF142B);
+    border-radius: 50%;
+    z-index: -1;
+    opacity: 0.7;
+}
+
+.dashboard-header h1 {
+    font-size: 26px;
+    color: #003893;
+    margin: 0 25px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.dashboard-nav {
+    display: flex;
+    gap: 25px;
+}
+
+.dashboard-nav a {
+    text-decoration: none;
+    color: #333;
+    font-weight: 600;
+    padding: 12px 20px;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-nav a::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #003893, #002366);
+    transition: left 0.4s ease;
+    z-index: -1;
+}
+
+.dashboard-nav a:hover::before,
+.dashboard-nav a.active::before {
+    left: 0;
+}
+
+.dashboard-nav a:hover,
+.dashboard-nav a.active {
+    color: white;
+    box-shadow: 0 4px 15px rgba(0, 102, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+.dashboard-main {
+    padding: 50px 30px;
+    max-width: 1300px;
+    margin: 0 auto;
+}
+
+.welcome-section {
+    text-align: center;
+    margin-bottom: 50px;
+    position: relative;
+}
+
+.welcome-section::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(135deg, #FFD700, #003893, #CF142B);
+    border-radius: 2px;
+}
+
+.welcome-section h2 {
+    font-size: 36px;
+    color: #003893;
+    margin-bottom: 15px;
+    font-weight: 800;
+    letter-spacing: -1px;
+}
+
+.welcome-section p {
+    font-size: 20px;
+    color: #666;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 35px;
+    margin-bottom: 50px;
+}
+
+.dashboard-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 35px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.2);
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dashboard-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, #FFD700, #003893, #CF142B);
+}
+
+.dashboard-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 215, 0, 0.2);
+}
+
+.dashboard-card h3 {
+    font-size: 26px;
+    color: #003893;
+    margin-bottom: 18px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.dashboard-card p {
+    color: #666;
+    margin-bottom: 25px;
+    line-height: 1.7;
+    font-size: 16px;
+}
+
+.btn-card {
+    display: inline-block;
+    padding: 14px 28px;
+    background: linear-gradient(135deg, #003893, #002366);
+    color: white;
+    text-decoration: none;
+    border-radius: 25px;
+    font-weight: 700;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 56, 147, 0.3);
+}
+
+.btn-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 56, 147, 0.4);
+}
+
+.btn-card:hover::before {
+    left: 100%;
+}
+
+@media (max-width: 768px) {
+    .dashboard-header {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+        padding: 20px;
+    }
+
+    .dashboard-nav {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .dashboard-main {
+        padding: 30px 20px;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+        gap: 25px;
+    }
+
+    .welcome-section h2 {
+        font-size: 28px;
+    }
+
+    .welcome-section p {
+        font-size: 18px;
+    }
+
+    .dashboard-card {
+        padding: 25px;
+    }
+
+    .dashboard-card h3 {
+        font-size: 22px;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-header {
+        padding: 15px;
+        gap: 15px;
+    }
+
+    .logo {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 20px;
+        margin: 0 15px;
+    }
+
+    .dashboard-nav {
+        gap: 10px;
+    }
+
+    .dashboard-nav a {
+        padding: 10px 15px;
+        font-size: 14px;
+    }
+
+    .dashboard-main {
+        padding: 20px 15px;
+    }
+
+    .welcome-section {
+        margin-bottom: 30px;
+    }
+
+    .welcome-section h2 {
+        font-size: 24px;
+    }
+
+    .welcome-section p {
+        font-size: 16px;
+        max-width: 100%;
+    }
+
+    .dashboard-grid {
+        gap: 20px;
+    }
+
+    .dashboard-card {
+        padding: 20px;
+    }
+
+    .dashboard-card h3 {
+        font-size: 20px;
+        margin-bottom: 15px;
+    }
+
+    .dashboard-card p {
+        font-size: 15px;
+        margin-bottom: 20px;
+    }
+
+    .btn-card {
+        padding: 12px 20px;
+        font-size: 14px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .dashboard-main {
+        padding: 60px 40px;
+        max-width: 1400px;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 40px;
+    }
+
+    .welcome-section h2 {
+        font-size: 42px;
+    }
+
+    .welcome-section p {
+        font-size: 22px;
+        max-width: 700px;
+    }
+
+    .dashboard-card {
+        padding: 40px;
+    }
+
+    .dashboard-card h3 {
+        font-size: 28px;
+    }
+
+    .dashboard-card p {
+        font-size: 17px;
+    }
+}

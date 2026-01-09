@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario de Eventos - Ministerio del Poder Popular para la Cultura</title>
+    <link rel="stylesheet" href="assets/css/calendario.css">
+</head>
+<body>
+    <div class="calendario-container">
+        <header class="calendario-header">
+            <div class="logo">🎭</div>
+            <h1>Ministerio del Poder Popular para la Cultura</h1>
+            <nav class="calendario-nav">
+                <a href="dashboard.html">Dashboard</a>
+                <a href="calendario.html" class="active">Calendario</a>
+                <a href="cultores.html">Cultores</a>
+                <a href="login.html">Cerrar Sesión</a>
+            </nav>
+        </header>
+        
+        <div class="calendario-controls">
+            <h2>Calendario de Eventos Culturales</h2>
+            <div class="filters">
+                <select id="monthFilter">
+                    <option value="1">Enero</option>
+                    <option value="2">Febrero</option>
+                    <option value="3">Marzo</option>
+                    <option value="4">Abril</option>
+                    <option value="5">Mayo</option>
+                    <option value="6">Junio</option>
+                    <option value="7">Julio</option>
+                    <option value="8">Agosto</option>
+                    <option value="9">Septiembre</option>
+                    <option value="10">Octubre</option>
+                    <option value="11">Noviembre</option>
+                    <option value="12">Diciembre</option>
+                </select>
+                <select id="userFilter">
+                    <option value="">Todos los usuarios</option>
+                    <option value="cultor">Cultores</option>
+                    <option value="funcionario">Funcionarios</option>
+                </select>
+            </div>
+        </div>
+
+        <main class="calendario-main">
+            <div class="calendar-section">
+                <div class="calendar-grid" id="calendarGrid">
+                    <!-- Calendario se generará dinámicamente -->
+                </div>
+            </div>
+
+            <div class="eventos-section">
+                <div class="eventos-list" id="eventosList">
+                    <h3>Actividades Pautadas para este Mes</h3>
+                    <div id="eventosContainer">
+                        <!-- Eventos se cargarán dinámicamente -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Modal para detalles del evento -->
+    <div id="eventoModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3 id="eventoTitle">Detalles del Evento</h3>
+            <div id="eventoDetails">
+                <!-- Detalles del evento -->
+            </div>
+        </div>
+    </div>
+    
+    <script src="assets/js/calendario.js"></script>
+</body>
+</html>
