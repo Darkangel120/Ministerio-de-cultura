@@ -4,6 +4,16 @@
     box-sizing: border-box;
 }
 
+:root {
+    --amarillo: #FFD700;
+    --azul: #003893;
+    --rojo: #CF142B;
+    --blanco: #FFFFFF;
+    --gris-claro: #F5F5F5;
+    --gris: #666;
+    --negro: #1a1a1a;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, #FFD700  0%, #003893 50%, #CF142B 100%);
@@ -56,31 +66,23 @@ body::before {
 }
 
 .logo {
-    width: 90px;
-    height: 90px;
-    background: linear-gradient(135deg, #003893, #002366);
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg,var(--amarillo) 0%, var(--azul) 50%, var(--rojo) 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
-    font-size: 40px;
-    margin: 0 auto 20px;
-    box-shadow: 0 8px 25px rgba(0, 56, 147, 0.3);
-    position: relative;
+    color: var(--blanco);
+    font-weight: bold;
+    font-size: 24px;
 }
 
-.logo::after {
-    content: '';
-    position: absolute;
-    top: -2px;
-    left: -2px;
-    right: -2px;
-    bottom: -2px;
-    background: linear-gradient(135deg, #FFD700, #CF142B);
+.logo img {
+    width: 90%;
+    height: 90%;
     border-radius: 50%;
-    z-index: -1;
-    opacity: 0.8;
+    object-fit: cover;
 }
 
 .registro-header h1 {
