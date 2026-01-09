@@ -1,37 +1,6 @@
-// Datos de ejemplo para eventos
+// Variables globales para eventos
 let currentYear = new Date().getFullYear();
-const eventos = [
-    {
-        id: 1,
-        titulo: "Concierto Sinfónico",
-        fecha: `${currentYear}-01-15`,
-        hora: "19:00",
-        lugar: "Teatro Teresa Carreño, Caracas",
-        descripcion: "Gran concierto con la Orquesta Sinfónica de Venezuela",
-        participantes: ["Orquesta Sinfónica", "Director Invitado"],
-        tipoUsuario: "funcionario"
-    },
-    {
-        id: 2,
-        titulo: "Exposición de Arte Contemporáneo",
-        fecha: `${currentYear}-01-20`,
-        hora: "10:00",
-        lugar: "Galería de Arte Nacional",
-        descripcion: "Muestra de artistas venezolanos contemporáneos",
-        participantes: ["Artistas Plásticos", "Curadores"],
-        tipoUsuario: "cultor"
-    },
-    {
-        id: 3,
-        titulo: "Festival de Danza Folklórica",
-        fecha: `${currentYear}-01-25`,
-        hora: "18:00",
-        lugar: "Complejo Cultural, Maracaibo",
-        descripcion: "Celebración de la danza tradicional venezolana",
-        participantes: ["Grupos de Danza", "Músicos Tradicionales"],
-        tipoUsuario: "cultor"
-    }
-];
+let eventos = []; // Se cargarán desde PHP
 
 let currentMonth = new Date().getMonth() + 1;
 
@@ -41,8 +10,9 @@ document.addEventListener('DOMContentLoaded', function() {
     loadEventos();
 
     // Filtros
-    document.getElementById('monthFilter').addEventListener('change', function() {
+    document.getElementById('monthFilter').addEventListener('change', async function() {
         currentMonth = parseInt(this.value);
+        await loadEventosFromPHP(); // Recargar eventos al cambiar mes
         initializeCalendar();
         loadEventos();
     });
@@ -251,4 +221,46 @@ function formatDate(dateString) {
         month: 'long',
         day: 'numeric'
     });
+}
+
+// Función para cargar eventos desde PHP
+async function loadEventosFromPHP() {
+    try {
+        const response = await fetch('calendario.php?action=get_eventos');
+        const data = await response.json();
+        eventos = data.eventos || [];
+    } catch (error) {
+        console.error('Error cargando eventos:', error);
+        // Mantener eventos vacíos si falla la carga
+        eventos = [];
+    }
+}
+
+// Función para agregar nueva actividad (enviar a PHP)
+async function addNewActivity() {
+    const formData = new FormData(document.getElementById('addActivityForm'));
+
+    try {
+        const response = await fetch('calendario.php?action=add_evento', {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            alert('Actividad agregada exitosamente');
+            document.getElementById('addActivityModal').style.display = 'none';
+            document.getElementById('addActivityForm').reset();
+            // Recargar eventos
+            await loadEventosFromPHP();
+            initializeCalendar();
+            loadEventos();
+        } else {
+            alert('Error al agregar actividad: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al procesar la solicitud');
+    }
 }

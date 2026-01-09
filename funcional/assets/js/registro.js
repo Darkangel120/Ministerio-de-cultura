@@ -1,30 +1,53 @@
-document.getElementById('registroForm').addEventListener('submit', function(e) {
+document.getElementById('registroForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    
+
     const nombre = document.getElementById('nombre').value;
     const email = document.getElementById('email').value;
     const telefono = document.getElementById('telefono').value;
     const tipo = document.getElementById('tipo').value;
     const password = document.getElementById('password').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
-    
+
     // Validaciones básicas
     if (password !== confirmPassword) {
         alert('Las contraseñas no coinciden.');
         return;
     }
-    
+
     if (password.length < 6) {
         alert('La contraseña debe tener al menos 6 caracteres.');
         return;
     }
-    
-    // Aquí iría la lógica de registro
-    // Por ahora, simulamos un registro exitoso
-    if (nombre && email && telefono && tipo && password) {
-        alert('Registro exitoso. Redirigiendo al login...');
-        window.location.href = 'login.html';
-    } else {
+
+    if (!nombre || !email || !telefono || !tipo || !password) {
         alert('Por favor, complete todos los campos.');
+        return;
+    }
+
+    // Enviar datos al servidor PHP
+    try {
+        const formData = new FormData();
+        formData.append('nombre', nombre);
+        formData.append('email', email);
+        formData.append('telefono', telefono);
+        formData.append('tipo', tipo);
+        formData.append('password', password);
+
+        const response = await fetch('registro.php', {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            alert('Registro exitoso. Redirigiendo al login...');
+            window.location.href = 'login.php';
+        } else {
+            alert('Error en el registro: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al procesar la solicitud de registro');
     }
 });

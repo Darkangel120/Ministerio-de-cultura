@@ -1,126 +1,38 @@
-// Importar eventos del calendario
-let eventosCalendario = [
-    {
-        id: 1,
-        titulo: "Concierto Sinfónico",
-        titulo: "Danza Tradicional Venezolana",
-        hora: "19:00",
-        categoria: "danza",
-        descripcion: "Gran concierto con la Orquesta Sinfónica de Venezuela",
-        participantes: ["Orquesta Sinfónica", "Director Invitado"],
-        tipoUsuario: "funcionario"
-    },
-    {
-        id: 2,
-        titulo: "Exposición de Arte Contemporáneo",
-        fecha: `${new Date().getFullYear()}-01-20`,
-        hora: "10:00",
-        lugar: "Galería de Arte Nacional",
-        descripcion: "Muestra de artistas venezolanos contemporáneos",
-        participantes: ["Artistas Plásticos", "Curadores"],
-        tipoUsuario: "cultor"
-    },
-    {
-        id: 3,
-        titulo: "Festival de Danza Folklórica",
-        fecha: `${new Date().getFullYear()}-01-25`,
-        hora: "18:00",
-        lugar: "Complejo Cultural, Maracaibo",
-        descripcion: "Presentación de danza folklórica venezolana, mostrando la riqueza de nuestras tradiciones culturales.",
-        archivo: null,
-        tipoUsuario: "cultor"
-    }
-];
-
 // Variables globales
-let publicaciones = JSON.parse(localStorage.getItem('publicaciones')) || [
-    {
-        titulo: "Danza Tradicional Venezolana",
-        categoria: "danza",
-        descripcion: "Presentación de danza folklórica venezolana, mostrando la riqueza de nuestras tradiciones culturales.",
-        archivo: null,
-        archivoTipo: null,
-        autor: "María González",
-        fecha: "2024-01-15T10:00:00.000Z",
-        likes: 12,
-        comentarios: [
-            { autor: "Carlos Ruiz", texto: "¡Hermosa presentación! Me encanta la energía.", fecha: "2024-01-15T11:30:00.000Z" },
-            { autor: "Ana López", texto: "Las danzas tradicionales son el alma de Venezuela.", fecha: "2024-01-15T12:15:00.000Z" }
-        ]
-    },
-    {
-        titulo: "Poesía Contemporánea",
-        categoria: "poesia",
-        descripcion: "Poema original sobre la identidad venezolana y la lucha por la paz.",
-        archivo: null,
-        archivoTipo: null,
-        autor: "José Martínez",
-        fecha: "2024-01-14T15:20:00.000Z",
-        likes: 8,
-        comentarios: [
-            { autor: "Elena Torres", texto: "Palabras profundas que tocan el corazón.", fecha: "2024-01-14T16:45:00.000Z" }
-        ]
-    },
-    {
-        titulo: "Música Llanera",
-        categoria: "musica",
-        descripcion: "Interpretación de música llanera con instrumentos tradicionales venezolanos.",
-        archivo: null,
-        archivoTipo: null,
-        autor: "Pedro Ramírez",
-        fecha: "2024-01-13T18:30:00.000Z",
-        likes: 15,
-        comentarios: [
-            { autor: "Rosa Díaz", texto: "La música llanera siempre me hace sentir en casa.", fecha: "2024-01-13T19:10:00.000Z" },
-            { autor: "Luis Fernández", texto: "¡Excelente ejecución! Los instrumentos suenan perfectos.", fecha: "2024-01-13T20:05:00.000Z" },
-            { autor: "Carmen Vega", texto: "Orgullo venezolano en cada nota.", fecha: "2024-01-13T21:30:00.000Z" }
-        ]
-    },
-    {
-        titulo: "Arte Urbano Contemporáneo",
-        categoria: "artesPlasticas",
-        descripcion: "Mural urbano que representa la diversidad cultural de Venezuela.",
-        archivo: null,
-        archivoTipo: null,
-        autor: "Sofía Morales",
-        fecha: "2024-01-12T14:00:00.000Z",
-        likes: 20,
-        comentarios: [
-            { autor: "Diego Silva", texto: "El arte urbano es una forma poderosa de expresión.", fecha: "2024-01-12T15:20:00.000Z" },
-            { autor: "Valentina Castro", texto: "¡Increíble trabajo! Los colores representan perfectamente nuestra diversidad.", fecha: "2024-01-12T16:40:00.000Z" }
-        ]
-    },
-    {
-        titulo: "Teatro Experimental",
-        categoria: "teatro",
-        descripcion: "Obra de teatro experimental que explora temas sociales actuales en Venezuela.",
-        archivo: null,
-        archivoTipo: null,
-        autor: "Grupo Teatral Libertad",
-        fecha: "2024-01-11T20:00:00.000Z",
-        likes: 18,
-        comentarios: [
-            { autor: "Miguel Ángel", texto: "El teatro experimental abre nuevas perspectivas.", fecha: "2024-01-11T21:15:00.000Z" },
-            { autor: "Isabel Rojas", texto: "Muy reflexivo y actual. ¡Felicitaciones!", fecha: "2024-01-11T22:30:00.000Z" },
-            { autor: "Fernando Gutiérrez", texto: "El mensaje social es muy importante.", fecha: "2024-01-12T08:45:00.000Z" }
-        ]
-    },
-    {
-        titulo: "Fotografía Documental",
-        categoria: "fotografia",
-        descripcion: "Serie fotográfica documentando la vida cotidiana en comunidades indígenas venezolanas.",
-        archivo: null,
-        archivoTipo: null,
-        autor: "Laura Hernández",
-        fecha: "2024-01-10T12:30:00.000Z",
-        likes: 25,
-        comentarios: [
-            { autor: "Roberto Mendoza", texto: "La fotografía documental es esencial para preservar nuestra historia.", fecha: "2024-01-10T13:50:00.000Z" },
-            { autor: "Gabriela Paz", texto: "Imágenes poderosas que cuentan historias reales.", fecha: "2024-01-10T14:20:00.000Z" },
-            { autor: "Andrés Soto", texto: "Hermoso trabajo de documentación cultural.", fecha: "2024-01-10T15:10:00.000Z" }
-        ]
+let publicaciones = []; // Se cargarán desde PHP
+let eventosCalendario = []; // Se cargarán desde PHP
+
+// Función para cargar publicaciones desde PHP
+async function loadPublicacionesFromPHP() {
+    try {
+        const response = await fetch('foro.php?action=get_publicaciones');
+        const result = await response.json();
+
+        if (result.success) {
+            publicaciones = result.data;
+        } else {
+            console.error('Error cargando publicaciones:', result.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
     }
-];
+}
+
+// Función para cargar eventos desde PHP
+async function loadEventosFromPHP() {
+    try {
+        const response = await fetch('calendario.php?action=get_eventos');
+        const result = await response.json();
+
+        if (result.success) {
+            eventosCalendario = result.data;
+        } else {
+            console.error('Error cargando eventos:', result.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
 
 // Función para renderizar publicaciones
 function renderizarPublicaciones() {
@@ -206,37 +118,32 @@ function renderizarComentarios(comentarios) {
 }
 
 // Función para manejar el envío del formulario
-document.getElementById('arteForm').addEventListener('submit', function(e) {
+document.getElementById('arteForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
     const formData = new FormData(this);
-    const archivo = formData.get('archivo');
 
-    let archivoURL = null;
-    let archivoTipo = null;
+    try {
+        const response = await fetch('foro.php?action=add_publicacion', {
+            method: 'POST',
+            body: formData
+        });
 
-    if (archivo && archivo.size > 0) {
-        archivoURL = URL.createObjectURL(archivo);
-        archivoTipo = archivo.type;
+        const result = await response.json();
+
+        if (result.success) {
+            alert('Publicación creada exitosamente');
+            await loadPublicacionesFromPHP();
+            renderizarPublicaciones();
+            this.reset();
+            document.getElementById('filePreview').innerHTML = '';
+        } else {
+            alert('Error: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al procesar la solicitud');
     }
-
-    const nuevaPublicacion = {
-        titulo: formData.get('titulo'),
-        categoria: formData.get('categoria'),
-        descripcion: formData.get('descripcion'),
-        archivo: archivoURL,
-        archivoTipo: archivoTipo,
-        autor: 'Cultor Anónimo', // En un sistema real, esto vendría del login
-        fecha: new Date().toISOString(),
-        likes: 0,
-        comentarios: []
-    };
-
-    publicaciones.unshift(nuevaPublicacion);
-    localStorage.setItem('publicaciones', JSON.stringify(publicaciones));
-
-    renderizarPublicaciones();
-    this.reset();
 });
 
 // Función para manejar likes
@@ -256,44 +163,72 @@ document.addEventListener('click', function(e) {
 });
 
 // Función para manejar comentarios
-document.addEventListener('submit', function(e) {
+document.addEventListener('submit', async function(e) {
     if (e.target.classList.contains('comentario-form')) {
         e.preventDefault();
         const index = e.target.dataset.index;
         const input = e.target.querySelector('input');
+        const publicacionId = publicaciones[index].id;
         const comentario = {
-            autor: 'Usuario Anónimo', // En un sistema real, esto vendría del login
-            texto: input.value,
-            fecha: new Date().toISOString()
+            texto: input.value
         };
 
-        if (!publicaciones[index].comentarios) {
-            publicaciones[index].comentarios = [];
+        try {
+            const response = await fetch('foro.php?action=add_comentario', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ publicacion_id: publicacionId, comentario: comentario })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                await loadPublicacionesFromPHP();
+                renderizarPublicaciones();
+                input.value = '';
+            } else {
+                alert('Error: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al agregar comentario');
         }
-        publicaciones[index].comentarios.push(comentario);
-        localStorage.setItem('publicaciones', JSON.stringify(publicaciones));
-        renderizarPublicaciones();
-        input.value = '';
     }
 });
 
 // Función para agregar comentario desde el botón
-function agregarComentario(index) {
+async function agregarComentario(index) {
     const input = document.querySelector(`input[data-index="${index}"]`);
     if (input.value.trim()) {
+        const publicacionId = publicaciones[index].id;
         const comentario = {
-            autor: 'Usuario Anónimo',
-            texto: input.value.trim(),
-            fecha: new Date().toISOString()
+            texto: input.value.trim()
         };
 
-        if (!publicaciones[index].comentarios) {
-            publicaciones[index].comentarios = [];
+        try {
+            const response = await fetch('foro.php?action=add_comentario', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ publicacion_id: publicacionId, comentario: comentario })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                await loadPublicacionesFromPHP();
+                renderizarPublicaciones();
+                input.value = '';
+            } else {
+                alert('Error: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al agregar comentario');
         }
-        publicaciones[index].comentarios.push(comentario);
-        localStorage.setItem('publicaciones', JSON.stringify(publicaciones));
-        renderizarPublicaciones();
-        input.value = '';
     }
 }
 
@@ -500,7 +435,9 @@ function renderizarEventosModal() {
 }
 
 // Inicializar la página
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    await loadPublicacionesFromPHP();
+    await loadEventosFromPHP();
     renderizarPublicaciones();
     renderizarEventosInvitaciones();
 });

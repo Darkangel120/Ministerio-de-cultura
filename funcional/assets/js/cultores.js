@@ -1,65 +1,8 @@
-// Datos de ejemplo para cultores
-let cultores = [
-    {
-        id: 1,
-        nombresApellidos: "María González Pérez",
-        telefono: "0414-1234567",
-        cedula: "V-12345678",
-        correo: "maria@example.com",
-        areaTematica: "danza",
-        comuna: "Catedral",
-        municipio: "Libertador",
-        parroquia: "Santa Rosalía",
-        disciplina: "Danza Folklórica Venezolana",
-        carnetPatria: "123456789012",
-        direccion: "Av. Universidad, Centro de Caracas",
-        lugarNacimiento: "Caracas, Venezuela",
-        fechaNacimiento: "1985-03-15",
-        edad: 39,
-        trayectoria: 15,
-        organizacion: "Fundación para la Danza Tradicional"
-    },
-    {
-        id: 2,
-        nombresApellidos: "Carlos Rodríguez Silva",
-        telefono: "0424-9876543",
-        cedula: "V-87654321",
-        correo: "carlos@example.com",
-        areaTematica: "musica",
-        comuna: "Bolívar",
-        municipio: "Maracaibo",
-        parroquia: "Santa Lucía",
-        disciplina: "Música Llanera",
-        carnetPatria: "987654321098",
-        direccion: "Calle 5 de Julio, Maracaibo",
-        lugarNacimiento: "Maracaibo, Venezuela",
-        fechaNacimiento: "1978-07-22",
-        edad: 46,
-        trayectoria: 25,
-        organizacion: "Asociación de Músicos Tradicionales"
-    },
-    {
-        id: 3,
-        nombresApellidos: "Ana López Martínez",
-        telefono: "0416-5551234",
-        cedula: "V-11223344",
-        correo: "ana@example.com",
-        areaTematica: "artesanias",
-        comuna: "Milla",
-        municipio: "Campo Elías",
-        parroquia: "Milla",
-        disciplina: "Cerámica Tradicional",
-        carnetPatria: "112233445566",
-        direccion: "Sector La Mucuy, Mérida",
-        lugarNacimiento: "Mérida, Venezuela",
-        fechaNacimiento: "1990-11-08",
-        edad: 34,
-        trayectoria: 12,
-        organizacion: "Cooperativa Artesanal Merideña"
-    }
-];
+// Variables globales para cultores
+let cultores = []; // Se cargarán desde PHP
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    await loadCultoresFromPHP();
     loadCultores();
     populateFilters();
 
@@ -218,13 +161,29 @@ function editCultor(cultorId) {
     showModal(cultorId);
 }
 
-function deleteCultor(cultorId) {
+async function deleteCultor(cultorId) {
     if (confirm('¿Está seguro de que desea eliminar este cultor?')) {
-        cultores = cultores.filter(c => c.id !== cultorId);
-        loadCultores();
-        // Reset filters after deleting
-        document.getElementById('filterDisciplina').value = '';
-        document.getElementById('filterMunicipio').value = '';
+        try {
+            const response = await fetch(`cultores.php?action=delete_cultor&id=${cultorId}`, {
+                method: 'POST'
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert('Cultor eliminado exitosamente');
+                await loadCultoresFromPHP(); // Recargar cultores desde PHP
+                loadCultores();
+                // Reset filters after deleting
+                document.getElementById('filterDisciplina').value = '';
+                document.getElementById('filterMunicipio').value = '';
+            } else {
+                alert('Error: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al procesar la solicitud');
+        }
     }
 }
 
