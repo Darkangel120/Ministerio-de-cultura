@@ -432,6 +432,73 @@ function mostrarDetalleEvento(evento) {
     };
 }
 
+// Función para abrir modal de eventos en móvil
+function openEventosModal() {
+    const modal = document.getElementById('eventosModal');
+    modal.style.display = 'block';
+    renderizarEventosModal();
+}
+
+// Función para cerrar modal de eventos en móvil
+function closeEventosModal() {
+    const modal = document.getElementById('eventosModal');
+    modal.style.display = 'none';
+}
+
+// Función para renderizar eventos en el modal móvil
+function renderizarEventosModal() {
+    const eventosGrid = document.getElementById('eventosModalGrid');
+    eventosGrid.innerHTML = '';
+
+    // Filtrar eventos próximos (próximos 30 días)
+    const hoy = new Date();
+    const treintaDias = new Date();
+    treintaDias.setDate(hoy.getDate() + 30);
+
+    const eventosProximos = eventosCalendario.filter(evento => {
+        const fechaEvento = new Date(evento.fecha);
+        return fechaEvento >= hoy && fechaEvento <= treintaDias;
+    });
+
+    if (eventosProximos.length === 0) {
+        eventosGrid.innerHTML = '<p style="text-align: center; color: #6c757d; padding: 20px;">No hay eventos próximos programados.</p>';
+        return;
+    }
+
+    eventosProximos.forEach(evento => {
+        const eventoCard = document.createElement('div');
+        eventoCard.className = 'evento-card';
+
+        const fechaFormateada = new Date(evento.fecha).toLocaleDateString('es-ES', {
+            weekday: 'short',
+            day: 'numeric',
+            month: 'short'
+        });
+
+        eventoCard.innerHTML = `
+            <div class="evento-titulo">
+                <span><i class="fas fa-theater-masks"></i></span> ${evento.titulo}
+            </div>
+            <div class="evento-fecha">
+                <span><i class="fas fa-calendar-alt"></i></span> ${fechaFormateada} - ${evento.hora}
+            </div>
+            <div class="evento-lugar">
+                <span><i class="fas fa-map-marker-alt"></i></span> ${evento.lugar}
+            </div>
+            <div class="evento-descripcion">
+                ${evento.descripcion}
+            </div>
+            <div class="evento-participantes">
+                <strong>Participantes:</strong> ${evento.participantes.join(', ')}
+            </div>
+            <div class="evento-tipo">${evento.tipoUsuario === 'cultor' ? 'Para Cultores' : 'Para Funcionarios'}</div>
+        `;
+
+        eventoCard.onclick = () => mostrarDetalleEvento(evento);
+        eventosGrid.appendChild(eventoCard);
+    });
+}
+
 // Inicializar la página
 document.addEventListener('DOMContentLoaded', function() {
     renderizarPublicaciones();

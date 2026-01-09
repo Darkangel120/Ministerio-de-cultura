@@ -1,227 +1,4 @@
-/* Estilos generales */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-:root {
-    --amarillo: #FFD700;
-    --azul: #003893;
-    --rojo: #CF142B;
-    --blanco: #FFFFFF;
-    --gris-claro: #F5F5F5;
-    --gris: #666;
-    --negro: #1a1a1a;
-}
-
-body {
-    font-family: 'Arial', sans-serif;
-    line-height: 1.6;
-    color: #333;
-    background-color: #f4f4f4;
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-/* Barra Superior */
-.top-bar {
-    background: var(--azul);
-    color: var(--blanco);
-    padding: 8px 0;
-    font-size: 14px;
-}
-
-.top-bar .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.social-links a {
-    color: var(--blanco);
-    margin-left: 15px;
-    text-decoration: none;
-    transition: color 0.3s;
-}
-/* Header */
-header {
-    background: var(--blanco);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-}
-
-.header-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 15px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.logo-section {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.logo {
-    width: 60px;
-    height: 60px;
-    background: linear-gradient(135deg,var(--amarillo) 0%, var(--azul) 50%, var(--rojo) 100%);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--blanco);
-    font-weight: bold;
-    font-size: 24px;
-}
-
-.logo img {
-    width: 90%;
-    height: 90%;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-.logo-text h1 {
-    font-size: 18px;
-    color: var(--azul);
-    font-weight: 700;
-}
-
-.logo-text p {
-    font-size: 12px;
-    color: var(--gris);
-}
-
-.menu-toggle {
-    display: none;
-    flex-direction: column;
-    cursor: pointer;
-}
-
-.menu-toggle span {
-    width: 25px;
-    height: 3px;
-    background-color: #2c3e50;
-    margin: 3px 0;
-}
-
-/* Navegación */
-nav ul {
-    list-style: none;
-    display: flex;
-    gap: 30px;
-}
-
-nav a {
-    text-decoration: none;
-    color: var(--negro);
-    font-weight: 500;
-    transition: color 0.3s;
-    position: relative;
-}
-
-nav a:hover {
-    color: var(--rojo);
-}
-
-nav a::after {
-    content: '';
-    position: absolute;
-    bottom: -5px;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background: var(--rojo);
-    transition: width 0.3s;
-}
-
-nav a:hover::after {
-    width: 100%;
-}
-
-/* Overlay para menu mobile */
-.overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.5);
-    z-index: 999;
-}
-
-/* Hero Section */
-.hero {
-    position: relative;
-    height: 220px;
-    background: linear-gradient(135deg,var(--amarillo) 0%, var(--azul) 50%, var(--rojo) 100%);
-    display: flex;
-    align-items: center;
-    overflow: hidden;
-}
-
-.hero::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><path d="M0,300 Q300,200 600,300 T1200,300 L1200,600 L0,600 Z" fill="rgba(255,255,255,0.05)"/></svg>') no-repeat bottom;
-    background-size: cover;
-}
-
-.hero-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-    position: relative;
-    z-index: 1;
-    color: var(--blanco);
-}
-
-.hero h2 {
-    font-size: 48px;
-    margin-bottom: 20px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.hero p {
-    font-size: 20px;
-    margin-bottom: 30px;
-    max-width: 600px;
-}
-
-.btn {
-    display: inline-block;
-    padding: 12px 30px;
-    background: var(--amarillo);
-    color: var(--negro);
-    text-decoration: none;
-    border-radius: 5px;
-    font-weight: 600;
-    transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-}
+/* Estilos específicos para la página Foro */
 
 
 /* Feed */
@@ -919,6 +696,92 @@ nav a:hover::after {
     margin-top: 10px;
 }
 
+/* Botón Flotante para Eventos */
+.eventos-float-btn {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--amarillo) 0%, var(--azul) 50%, var(--rojo) 100%);
+    border-radius: 50%;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    z-index: 1000;
+    transition: all 0.3s ease;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+}
+
+.eventos-float-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
+
+.eventos-float-btn i {
+    font-size: 20px;
+}
+
+.eventos-float-btn span {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Modal para Eventos en Móvil */
+.eventos-modal {
+    padding: 20px;
+}
+
+.eventos-modal h3 {
+    background: linear-gradient(135deg, var(--amarillo) 0%, var(--azul) 50%, var(--rojo) 100%);
+    color: white;
+    margin: 0;
+    padding: 20px 25px;
+    font-size: 22px;
+    font-weight: 700;
+    border-radius: 8px 8px 0 0;
+    text-align: center;
+    position: relative;
+}
+
+.eventos-modal .close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 32px;
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+}
+
+.eventos-modal .close:hover {
+    background: rgba(255,255,255,0.3);
+    transform: scale(1.1);
+}
+
+.eventos-modal .sidebar-subtitle {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #6c757d;
+    font-size: 14px;
+}
+
 /* Footer */
 footer {
     background-color: #2c3e50;
@@ -970,15 +833,288 @@ footer {
 }
 
 /* Responsive */
-@media (max-width: 768px) {
-    .header-content {
-        flex-direction: column;
-        text-align: center;
+
+/* Extra Small Devices (phones, < 480px) */
+@media (max-width: 479px) {
+    .container {
+        padding: 0 10px;
+    }
+
+    .top-bar {
+        font-size: 12px;
+        padding: 5px 0;
+    }
+
+    .top-bar .container {
+        padding: 0 10px;
+    }
+
+    .social-links a {
+        margin-left: 10px;
+    }
+
+    .logo {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+    }
+
+    .logo-text h1 {
+        font-size: 16px;
+    }
+
+    .logo-text p {
+        font-size: 11px;
     }
 
     .menu-toggle {
         display: flex;
-        margin-top: 20px;
+    }
+
+    nav {
+        display: none;
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 50%;
+        height: 100%;
+        background-color: white;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    nav.active {
+        display: flex;
+    }
+
+    nav ul {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    nav ul li {
+        margin: 15px 0;
+    }
+
+    .overlay.active {
+        display: block;
+    }
+
+    .hero {
+        height: 180px;
+    }
+
+    .hero-content {
+        padding: 0 10px;
+    }
+
+    .hero h2 {
+        font-size: 32px;
+        margin-bottom: 15px;
+    }
+
+    .hero p {
+        font-size: 16px;
+        margin-bottom: 20px;
+    }
+
+    .feed-layout {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .feed-sidebar {
+        display: none;
+    }
+
+    .feed-main {
+        flex: none;
+        max-width: none;
+        order: 1;
+    }
+
+    .eventos-float-btn {
+        display: flex;
+    }
+
+    .eventos-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .evento-card {
+        padding: 12px;
+    }
+
+    .post-box {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+
+    .post-box-header {
+        margin-bottom: 10px;
+    }
+
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+        margin-right: 10px;
+    }
+
+    .post-input input {
+        padding: 12px 16px;
+        font-size: 14px;
+    }
+
+    .post-card {
+        margin-bottom: 15px;
+    }
+
+    .post-header {
+        padding: 12px 15px;
+    }
+
+    .post-author {
+        font-size: 14px;
+    }
+
+    .post-meta {
+        font-size: 12px;
+    }
+
+    .post-category {
+        font-size: 10px;
+        padding: 3px 8px;
+    }
+
+    .post-content {
+        padding: 0 12px;
+    }
+
+    .post-actions {
+        padding: 10px 15px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .btn-action {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+
+    .post-stats {
+        padding: 10px 15px;
+        font-size: 12px;
+    }
+
+    .comments-section {
+        padding: 0 12px 12px;
+    }
+
+    .modal-content {
+        width: 95%;
+        margin: 10% auto;
+        max-height: 95vh;
+    }
+
+    .post-modal {
+        padding: 15px;
+    }
+
+    .post-modal h3 {
+        margin-bottom: 15px;
+        font-size: 18px;
+    }
+
+    .form-row {
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .form-group label {
+        font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    .btn-submit {
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    .footer-content {
+        flex-direction: column;
+        text-align: center;
+        padding: 20px 10px;
+    }
+
+    .footer-section {
+        min-width: auto;
+        margin-bottom: 15px;
+    }
+
+    .footer-section h3 {
+        margin-bottom: 10px;
+        font-size: 16px;
+    }
+
+    .footer-bottom {
+        padding-top: 15px;
+        font-size: 12px;
+    }
+}
+
+/* Small Devices (phones, 480px - 767px) */
+@media (min-width: 480px) and (max-width: 767px) {
+    .container {
+        padding: 0 15px;
+    }
+
+    .top-bar {
+        font-size: 13px;
+        padding: 6px 0;
+    }
+
+    .top-bar .container {
+        padding: 0 15px;
+    }
+
+    .header-content {
+        padding: 12px 15px;
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .logo-section {
+        gap: 12px;
+    }
+
+    .logo {
+        width: 55px;
+        height: 55px;
+        font-size: 22px;
+    }
+
+    .logo-text h1 {
+        font-size: 17px;
+    }
+
+    .logo-text p {
+        font-size: 12px;
+    }
+
+    .menu-toggle {
+        display: flex;
+        margin-top: 18px;
     }
 
     nav {
@@ -1001,26 +1137,483 @@ footer {
 
     nav ul {
         flex-direction: column;
+        gap: 25px;
     }
 
     nav ul li {
-        margin: 20px 0;
+        margin: 18px 0;
     }
 
     .overlay.active {
         display: block;
     }
 
+    .hero {
+        height: 200px;
+    }
+
+    .hero-content {
+        padding: 0 15px;
+    }
+
+    .hero h2 {
+        font-size: 36px;
+        margin-bottom: 18px;
+    }
+
+    .hero p {
+        font-size: 18px;
+        margin-bottom: 25px;
+    }
+
+    .feed-layout {
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    .feed-sidebar {
+        flex: none;
+        order: 2;
+    }
+
+    .feed-main {
+        flex: none;
+        max-width: none;
+        order: 1;
+    }
+
+    .eventos-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .evento-card {
+        padding: 14px;
+    }
+
+    .post-box {
+        padding: 18px;
+        margin-bottom: 18px;
+    }
+
+    .post-box-header {
+        margin-bottom: 12px;
+    }
+
+    .user-avatar {
+        width: 42px;
+        height: 42px;
+        font-size: 21px;
+        margin-right: 12px;
+    }
+
+    .post-input input {
+        padding: 13px 17px;
+        font-size: 15px;
+    }
+
+    .post-card {
+        margin-bottom: 18px;
+    }
+
+    .post-header {
+        padding: 14px 18px;
+    }
+
+    .post-author {
+        font-size: 15px;
+    }
+
+    .post-meta {
+        font-size: 13px;
+    }
+
+    .post-category {
+        font-size: 10px;
+        padding: 3px 9px;
+    }
+
+    .post-content {
+        padding: 0 14px;
+    }
+
+    .post-actions {
+        padding: 11px 18px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .btn-action {
+        padding: 9px 14px;
+        font-size: 13px;
+    }
+
+    .post-stats {
+        padding: 11px 18px;
+        font-size: 13px;
+    }
+
+    .comments-section {
+        padding: 0 14px 14px;
+    }
+
+    .modal-content {
+        width: 90%;
+        margin: 8% auto;
+        max-height: 92vh;
+    }
+
+    .post-modal {
+        padding: 18px;
+    }
+
+    .post-modal h3 {
+        margin-bottom: 18px;
+        font-size: 20px;
+    }
+
     .form-row {
         flex-direction: column;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .form-group label {
+        font-size: 15px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 11px;
+        font-size: 15px;
+    }
+
+    .btn-submit {
+        padding: 11px;
+        font-size: 15px;
     }
 
     .footer-content {
         flex-direction: column;
         text-align: center;
+        padding: 30px 15px;
     }
 
-    .publicaciones-grid {
-        grid-template-columns: 1fr;
+    .footer-section {
+        min-width: auto;
+        margin-bottom: 18px;
+    }
+
+    .footer-section h3 {
+        margin-bottom: 12px;
+        font-size: 17px;
+    }
+
+    .footer-bottom {
+        padding-top: 18px;
+        font-size: 13px;
+    }
+}
+
+/* Medium Devices (tablets, 768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .container {
+        padding: 0 20px;
+    }
+
+    .top-bar .container {
+        padding: 0 20px;
+    }
+
+    .header-content {
+        padding: 14px 20px;
+    }
+
+    .logo {
+        width: 58px;
+        height: 58px;
+        font-size: 23px;
+    }
+
+    .logo-text h1 {
+        font-size: 17px;
+    }
+
+    .logo-text p {
+        font-size: 12px;
+    }
+
+    nav ul {
+        gap: 25px;
+    }
+
+    .hero {
+        height: 210px;
+    }
+
+    .hero-content {
+        padding: 0 20px;
+    }
+
+    .hero h2 {
+        font-size: 42px;
+        margin-bottom: 19px;
+    }
+
+    .hero p {
+        font-size: 19px;
+        margin-bottom: 28px;
+    }
+
+    .feed-layout {
+        gap: 25px;
+    }
+
+    .feed-sidebar {
+        flex: 0 0 300px;
+    }
+
+    .feed-main {
+        flex: 1;
+        max-width: 600px;
+    }
+
+    .eventos-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 14px;
+    }
+
+    .evento-card {
+        padding: 15px;
+    }
+
+    .post-box {
+        padding: 19px;
+        margin-bottom: 19px;
+    }
+
+    .post-box-header {
+        margin-bottom: 14px;
+    }
+
+    .user-avatar {
+        width: 44px;
+        height: 44px;
+        font-size: 22px;
+        margin-right: 14px;
+    }
+
+    .post-input input {
+        padding: 13px 17px;
+        font-size: 15px;
+    }
+
+    .post-card {
+        margin-bottom: 19px;
+    }
+
+    .post-header {
+        padding: 15px 19px;
+    }
+
+    .post-author {
+        font-size: 15px;
+    }
+
+    .post-meta {
+        font-size: 13px;
+    }
+
+    .post-category {
+        font-size: 11px;
+        padding: 4px 9px;
+    }
+
+    .post-content {
+        padding: 0 15px;
+    }
+
+    .post-actions {
+        padding: 11px 19px;
+    }
+
+    .btn-action {
+        padding: 9px 15px;
+        font-size: 13px;
+    }
+
+    .post-stats {
+        padding: 11px 19px;
+        font-size: 13px;
+    }
+
+    .comments-section {
+        padding: 0 15px 15px;
+    }
+
+    .modal-content {
+        width: 85%;
+        margin: 6% auto;
+        max-height: 88vh;
+    }
+
+    .post-modal {
+        padding: 19px;
+    }
+
+    .post-modal h3 {
+        margin-bottom: 19px;
+        font-size: 21px;
+    }
+
+    .form-row {
+        gap: 14px;
+        margin-bottom: 14px;
+    }
+
+    .form-group label {
+        font-size: 15px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 11px;
+        font-size: 15px;
+    }
+
+    .btn-submit {
+        padding: 11px;
+        font-size: 15px;
+    }
+
+    .footer-content {
+        padding: 35px 20px;
+    }
+
+    .footer-section {
+        margin-bottom: 19px;
+    }
+
+    .footer-section h3 {
+        margin-bottom: 13px;
+        font-size: 17px;
+    }
+
+    .footer-bottom {
+        padding-top: 19px;
+        font-size: 13px;
+    }
+}
+
+/* Large Devices (desktops, 1024px - 1199px) */
+@media (min-width: 1024px) and (max-width: 1199px) {
+    .feed-layout {
+        gap: 28px;
+    }
+
+    .feed-sidebar {
+        flex: 0 0 330px;
+    }
+
+    .feed-main {
+        flex: 1;
+        max-width: 620px;
+    }
+
+    .eventos-grid {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 15px;
+    }
+
+    .hero h2 {
+        font-size: 46px;
+        margin-bottom: 19px;
+    }
+
+    .hero p {
+        font-size: 19px;
+        margin-bottom: 29px;
+    }
+
+    .post-box {
+        padding: 19px;
+        margin-bottom: 19px;
+    }
+
+    .post-card {
+        margin-bottom: 19px;
+    }
+
+    .modal-content {
+        width: 80%;
+        margin: 5% auto;
+        max-height: 85vh;
+    }
+
+    .footer-content {
+        padding: 38px 0;
+    }
+}
+
+/* Extra Large Devices (large desktops, 1200px+) */
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1300px;
+    }
+
+    .top-bar .container {
+        max-width: 1300px;
+    }
+
+    .header-content {
+        max-width: 1300px;
+    }
+
+    .hero-content {
+        max-width: 1300px;
+    }
+
+    .feed-layout {
+        max-width: 1300px;
+        margin: 0 auto;
+        gap: 30px;
+    }
+
+    .feed-sidebar {
+        flex: 0 0 350px;
+    }
+
+    .feed-main {
+        flex: 1;
+        max-width: 650px;
+    }
+
+    .hero h2 {
+        font-size: 48px;
+        margin-bottom: 20px;
+    }
+
+    .hero p {
+        font-size: 20px;
+        margin-bottom: 30px;
+    }
+
+    .eventos-grid {
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 15px;
+    }
+
+    .modal-content {
+        width: 75%;
+        margin: 4% auto;
+        max-height: 80vh;
+    }
+
+    .footer-content {
+        max-width: 1300px;
+        margin: 0 auto;
+        padding: 40px 0 20px;
     }
 }
