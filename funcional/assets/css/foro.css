@@ -1,5 +1,11 @@
 /* Estilos específicos para la página Foro */
 
+:root {
+    --amarillo: #FFD700;
+    --azul: #0033A0;
+    --rojo: #D52B1E;
+}
+
 
 /* Feed */
 #feed {
@@ -46,7 +52,7 @@
     font-weight: 700;
     margin-bottom: 15px;
     text-align: center;
-    border-bottom: 2px solid #667eea;
+    border-bottom: 2px solid var(--azul);
     padding-bottom: 10px;
 }
 
@@ -72,16 +78,6 @@
     border-color: #667eea;
 }
 
-.evento-titulo {
-    font-size: 16px;
-    font-weight: 700;
-    color: #2c3e50;
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
 .evento-fecha {
     font-size: 14px;
     color: #6c757d;
@@ -91,39 +87,15 @@
     gap: 6px;
 }
 
-.evento-lugar {
-    font-size: 14px;
-    color: #6c757d;
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.evento-descripcion {
-    font-size: 13px;
-    color: #495057;
-    line-height: 1.4;
-    margin-bottom: 10px;
-}
-
-.evento-participantes {
-    font-size: 12px;
-    color: #6c757d;
-    font-style: italic;
-}
-
-.evento-tipo {
-    display: inline-block;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.evento-fecha span {
+    background: linear-gradient(135deg, var(--azul) 0%, var(--rojo) 100%);
     color: white;
-    padding: 3px 8px;
-    border-radius: 10px;
-    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 12px;
     font-weight: 600;
+    font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-top: 8px;
 }
 
 /* Caja de Publicación */
@@ -146,7 +118,7 @@
     width: 45px;
     height: 45px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--amarillo) 0%, var(--azul) 50%, var(--rojo) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -182,70 +154,181 @@
 .feed-posts {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 25px;
+    position: relative;
+}
+
+.feed-posts::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(135deg, var(--amarillo) 0%, var(--azul) 50%, var(--rojo) 100%);
+    opacity: 0.1;
+    border-radius: 1px;
 }
 
 .post-card {
-    background-color: white;
-    border-radius: 15px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1), 0 4px 10px rgba(0,0,0,0.05);
     overflow: hidden;
-    border: 1px solid #e9ecef;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid rgba(102, 126, 234, 0.1);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    backdrop-filter: blur(10px);
 }
 
-.post-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+.post-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, var(--amarillo) 0%, var(--azul) 50%, var(--rojo) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
 .post-header {
-    display: flex;
-    align-items: center;
     padding: 16px 20px;
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     border-bottom: 1px solid #dee2e6;
+    align-items: center;
+    position: relative;
 }
 
-.post-user-info {
+.post-user {
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    max-width: calc(50% - 40px);
+}
+
+.post-category {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+}
+
+.user-info {
     flex: 1;
 }
 
-.post-author {
+.user-info h4 {
     font-weight: 700;
     color: #2c3e50;
     margin-bottom: 4px;
     font-size: 16px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.post-meta {
+.user-info span {
     display: flex;
     align-items: center;
     font-size: 14px;
     color: #6c757d;
 }
 
-.post-category {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+.category-badge {
+    display: inline-block;
     padding: 4px 10px;
     border-radius: 12px;
     font-size: 11px;
     font-weight: 600;
-    margin-left: 10px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    text-align: center;
+}
+
+.category-danza {
+    background: linear-gradient(135deg, var(--azul) 0%, var(--rojo) 100%);
+    color: white;
+}
+
+.category-musica {
+    background: linear-gradient(135deg, var(--amarillo) 0%, var(--azul) 100%);
+    color: white;
+}
+
+.category-artesPlasticas {
+    background: linear-gradient(135deg, var(--rojo) 0%, var(--amarillo) 100%);
+    color: white;
+}
+
+.category-poesia {
+    background: linear-gradient(135deg, var(--azul) 0%, var(--amarillo) 100%);
+    color: white;
+}
+
+.category-teatro {
+    background: linear-gradient(135deg, var(--amarillo) 0%, var(--rojo) 100%);
+    color: white;
+}
+
+.category-cine {
+    background: linear-gradient(135deg, var(--rojo) 0%, var(--azul) 100%);
+    color: white;
+}
+
+.category-fotografia {
+    background: linear-gradient(135deg, var(--azul) 0%, var(--rojo) 100%);
+    color: white;
+}
+
+.category-artesanias {
+    background: linear-gradient(135deg, var(--amarillo) 0%, var(--azul) 100%);
+    color: white;
+}
+
+.evento-link {
+    display: inline-block;
+    margin-top: 10px;
+    color: var(--azul);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: color 0.3s ease;
+}
+
+.evento-link:hover {
+    color: var(--rojo);
+}
+
+.alert {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.alert.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
 }
 
 .post-content {
     padding: 0 16px;
     margin-bottom: 12px;
-}
-
-.post-text {
-    color: #050505;
-    line-height: 1.4;
-    margin-bottom: 8px;
 }
 
 .post-media {
@@ -294,7 +377,7 @@
 }
 
 .btn-action:hover {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background:  #cd4238;
     color: white;
     border-color: #667eea;
     transform: translateY(-1px);
@@ -302,9 +385,8 @@
 }
 
 .btn-like.liked {
-    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    background: var(--rojo);
     color: white;
-    border-color: #ff6b6b;
 }
 
 .btn-like.liked .like-icon {
@@ -427,18 +509,20 @@
 .modal {
     display: none;
     position: fixed;
-    z-index: 1000;
+    z-index: 10000;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(0,0,0,0.7);
     backdrop-filter: blur(2px);
+    justify-content: center;
+    align-items: center;
 }
 
 .modal-content {
     background-color: white;
-    margin: 5% auto;
+    margin: 0;
     padding: 0;
     border-radius: 8px;
     width: 90%;
@@ -447,6 +531,116 @@
     overflow-y: auto;
     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     animation: modalFadeIn 0.3s ease-out;
+    position: relative;
+}
+
+/* Comments Modal Specific Styles */
+
+.comments-modal h3 {
+    margin-bottom: 20px;
+    color: #2c3e50;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+#commentsContent {
+    margin-bottom: 20px;
+}
+
+.comment-form {
+    border-top: 1px solid #dee2e6;
+    padding-top: 15px;
+}
+
+.comment-input {
+    display: flex;
+    gap: 10px;
+}
+
+.comment-input textarea {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #dddfe2;
+    border-radius: 20px;
+    resize: vertical;
+    min-height: 60px;
+    font-size: 15px;
+    background-color: #f0f2f5;
+}
+
+.comment-input textarea:focus {
+    outline: none;
+    background-color: white;
+    border-color: #1877f2;
+}
+
+.btn-comment {
+    background: linear-gradient(135deg, var(--amarillo) 0%, var(--azul) 50%, var(--rojo) 100%);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-comment:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #f093fb 100%);
+    transform: translateY(-1px);
+}
+
+/* Comment Display Styles */
+.comment {
+    display: flex;
+    margin-bottom: 12px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.comment-user {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    width: 100%;
+}
+
+.comment-user .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--amarillo) 0%, var(--azul) 50%, var(--rojo) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    color: white;
+}
+
+.comment-content {
+    flex: 1;
+}
+
+.comment-content h5 {
+    font-weight: 600;
+    font-size: 14px;
+    color: #2c3e50;
+    margin-bottom: 4px;
+}
+
+.comment-content p {
+    font-size: 15px;
+    color: #495057;
+    line-height: 1.4;
+    margin-bottom: 6px;
+}
+
+.comment-date {
+    font-size: 12px;
+    color: #6c757d;
 }
 
 @keyframes modalFadeIn {
@@ -479,7 +673,7 @@
     right: 20px;
     font-size: 32px;
     font-weight: bold;
-    color: white;
+    color: black;
     cursor: pointer;
     transition: all 0.3s ease;
     width: 30px;
@@ -489,6 +683,7 @@
     justify-content: center;
     border-radius: 50%;
     background: rgba(255,255,255,0.2);
+    z-index: 1;
 }
 
 .modal .modal-content .close:hover {
@@ -522,7 +717,7 @@
     display: inline-block;
     width: 8px;
     height: 8px;
-    background: linear-gradient(135deg, var(--amarillo) 0%, var(--rojo) 100%);
+    background: linear-gradient(135deg, var(--amarillo) 0%,  var(--rojo) 100%);
     border-radius: 50%;
     margin-right: 8px;
 }
@@ -561,6 +756,109 @@
     font-size: 18px;
     margin-right: 8px;
     color: var(--azul);
+}
+
+/* Eventos Modal Styles */
+.eventos-modal .sidebar-subtitle {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #6c757d;
+    font-size: 14px;
+}
+
+.eventos-modal .eventos-invitaciones {
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border: 1px solid #dee2e6;
+}
+
+.eventos-modal .eventos-invitaciones h3 {
+    color: #2c3e50;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 15px;
+    text-align: center;
+    border-bottom: 2px solid var(--azul);
+    padding-bottom: 10px;
+}
+
+.eventos-modal .eventos-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+}
+
+.eventos-modal .evento-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 12px;
+    padding: 16px;
+    border: 2px solid #dee2e6;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.eventos-modal .evento-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    border-color: #667eea;
+}
+
+.eventos-modal .evento-titulo {
+    font-size: 16px;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.eventos-modal .evento-fecha {
+    font-size: 14px;
+    color: #6c757d;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.eventos-modal .evento-lugar {
+    font-size: 14px;
+    color: #6c757d;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.eventos-modal .evento-descripcion {
+    font-size: 13px;
+    color: #495057;
+    line-height: 1.4;
+    margin-bottom: 10px;
+}
+
+.eventos-modal .evento-participantes {
+    font-size: 12px;
+    color: #6c757d;
+    font-style: italic;
+}
+
+.eventos-modal .evento-tipo {
+    display: inline-block;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 8px;
 }
 
 .post-modal {
@@ -696,91 +994,7 @@
     margin-top: 10px;
 }
 
-/* Botón Flotante para Eventos */
-.eventos-float-btn {
-    display: none;
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 60px;
-    height: 60px;
-    background: linear-gradient(135deg, var(--amarillo) 0%, var(--azul) 50%, var(--rojo) 100%);
-    border-radius: 50%;
-    border: none;
-    color: white;
-    font-size: 24px;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    z-index: 1000;
-    transition: all 0.3s ease;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-}
 
-.eventos-float-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-}
-
-.eventos-float-btn i {
-    font-size: 20px;
-}
-
-.eventos-float-btn span {
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-/* Modal para Eventos en Móvil */
-.eventos-modal {
-    padding: 20px;
-}
-
-.eventos-modal h3 {
-    background: linear-gradient(135deg, var(--amarillo) 0%, var(--azul) 50%, var(--rojo) 100%);
-    color: white;
-    margin: 0;
-    padding: 20px 25px;
-    font-size: 22px;
-    font-weight: 700;
-    border-radius: 8px 8px 0 0;
-    text-align: center;
-    position: relative;
-}
-
-.eventos-modal .close {
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    font-size: 32px;
-    font-weight: bold;
-    color: white;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.2);
-}
-
-.eventos-modal .close:hover {
-    background: rgba(255,255,255,0.3);
-    transform: scale(1.1);
-}
-
-.eventos-modal .sidebar-subtitle {
-    text-align: center;
-    margin-bottom: 20px;
-    color: #6c757d;
-    font-size: 14px;
-}
 
 /* Footer */
 footer {
@@ -834,6 +1048,36 @@ footer {
 
 /* Responsive */
 
+/* Floating Button for Events */
+.eventos-float-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--amarillo) 0%, var(--azul) 50%, var(--rojo) 100%);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.eventos-float-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
+
+.eventos-float-btn:active {
+    transform: scale(0.95);
+}
+
 /* Extra Small Devices (phones, < 480px) */
 @media (max-width: 479px) {
     .container {
@@ -873,11 +1117,6 @@ footer {
 
     nav.active {
         display: flex;
-    }
-
-    nav ul {
-        flex-direction: column;
-        gap: 20px;
     }
 
     nav ul li {
@@ -923,6 +1162,50 @@ footer {
 
     .eventos-float-btn {
         display: flex;
+        width: 55px;
+        height: 55px;
+        font-size: 22px;
+        bottom: 15px;
+        right: 15px;
+    }
+
+    .eventos-modal {
+        padding: 15px;
+    }
+
+    .eventos-modal .eventos-invitaciones {
+        padding: 15px;
+    }
+
+    .eventos-modal .eventos-invitaciones h3 {
+        font-size: 16px;
+        margin-bottom: 12px;
+    }
+
+    .eventos-modal .evento-card {
+        padding: 12px;
+    }
+
+    .eventos-modal .evento-titulo {
+        font-size: 15px;
+    }
+
+    .eventos-modal .evento-fecha,
+    .eventos-modal .evento-lugar {
+        font-size: 13px;
+    }
+
+    .eventos-modal .evento-descripcion {
+        font-size: 12px;
+    }
+
+    .eventos-modal .evento-participantes {
+        font-size: 11px;
+    }
+
+    .eventos-modal .evento-tipo {
+        font-size: 10px;
+        padding: 2px 6px;
     }
 
     .eventos-grid {
@@ -963,8 +1246,9 @@ footer {
         padding: 12px 15px;
     }
 
-    .post-author {
-        font-size: 14px;
+    .post-user {
+        max-width: none;
+        flex: 1;
     }
 
     .post-meta {
@@ -972,8 +1256,9 @@ footer {
     }
 
     .post-category {
+        transform: none;
         font-size: 10px;
-        padding: 3px 8px;
+        padding: 3px 8px 3px 30px;
     }
 
     .post-content {
@@ -1168,6 +1453,54 @@ footer {
         order: 1;
     }
 
+    .eventos-float-btn {
+        display: flex;
+        width: 58px;
+        height: 58px;
+        font-size: 23px;
+        bottom: 18px;
+        right: 18px;
+    }
+
+    .eventos-modal {
+        padding: 18px;
+    }
+
+    .eventos-modal .eventos-invitaciones {
+        padding: 18px;
+    }
+
+    .eventos-modal .eventos-invitaciones h3 {
+        font-size: 17px;
+        margin-bottom: 14px;
+    }
+
+    .eventos-modal .evento-card {
+        padding: 14px;
+    }
+
+    .eventos-modal .evento-titulo {
+        font-size: 16px;
+    }
+
+    .eventos-modal .evento-fecha,
+    .eventos-modal .evento-lugar {
+        font-size: 14px;
+    }
+
+    .eventos-modal .evento-descripcion {
+        font-size: 13px;
+    }
+
+    .eventos-modal .evento-participantes {
+        font-size: 12px;
+    }
+
+    .eventos-modal .evento-tipo {
+        font-size: 11px;
+        padding: 3px 7px;
+    }
+
     .eventos-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 12px;
@@ -1206,8 +1539,9 @@ footer {
         padding: 14px 18px;
     }
 
-    .post-author {
-        font-size: 15px;
+    .post-user {
+        max-width: none;
+        flex: 1;
     }
 
     .post-meta {
@@ -1215,6 +1549,9 @@ footer {
     }
 
     .post-category {
+        position: static;
+        transform: none;
+        margin-top: 8px;
         font-size: 10px;
         padding: 3px 9px;
     }
@@ -1403,8 +1740,9 @@ footer {
         padding: 15px 19px;
     }
 
-    .post-author {
-        font-size: 15px;
+    .post-user {
+        max-width: none;
+        flex: 1;
     }
 
     .post-meta {
@@ -1412,6 +1750,9 @@ footer {
     }
 
     .post-category {
+        position: static;
+        transform: none;
+        margin-top: 8px;
         font-size: 11px;
         padding: 4px 9px;
     }
@@ -1532,6 +1873,19 @@ footer {
         margin-bottom: 19px;
     }
 
+    .post-user {
+        max-width: none;
+        flex: 1;
+    }
+
+    .post-category {
+        position: static;
+        transform: none;
+        margin-top: 8px;
+        font-size: 11px;
+        padding: 4px 9px;
+    }
+
     .modal-content {
         width: 80%;
         margin: 5% auto;
@@ -1589,6 +1943,16 @@ footer {
     .eventos-grid {
         grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
         gap: 15px;
+    }
+
+    .post-user {
+        max-width: none;
+        flex: 1;
+    }
+
+    .post-category {
+        font-size: 11px;
+        padding: 4px 9px;
     }
 
     .modal-content {

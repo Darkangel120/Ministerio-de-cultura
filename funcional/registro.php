@@ -45,10 +45,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             $usuario_id = $pdo->lastInsertId();
 
-            // Registrar en logs
-            $stmt = $pdo->prepare("INSERT INTO logs_sistema (usuario_id, accion, descripcion, ip_address) VALUES (?, 'registro', 'Registro de nuevo usuario', ?)");
-            $stmt->execute([$usuario_id, $_SERVER['REMOTE_ADDR']]);
-
             $success = "Registro exitoso. Ahora puedes iniciar sesión.";
         } catch (Exception $e) {
             $errores[] = "Error al registrar usuario: " . $e->getMessage();

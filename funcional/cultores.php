@@ -2,10 +2,41 @@
 session_start();
 require_once 'config.php';
 
+// Conectar a la base de datos
+$pdo = conectarDB();
+
 // Verificar sesión
 if (!isset($_SESSION['usuario_id'])) {
     header('Location: login.php');
     exit();
+}
+
+// Procesar solicitudes GET (para AJAX)
+if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['action'])) {
+    header('Content-Type: application/json');
+
+    if ($_GET['action'] == 'get_cultores') {
+        // Obtener todos los cultores activos
+        $stmt = $pdo->prepare("SELECT * FROM cultores WHERE activo = 1 ORDER BY nombres_apellidos ASC");
+        $stmt->execute();
+        $cultores = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        echo json_encode(['success' => true, 'cultores' => $cultores]);
+        exit();
+    } elseif ($_GET['action'] == 'delete_cultor' && isset($_GET['id'])) {
+        // Eliminar cultor (marcar como inactivo)
+        $id = (int)$_GET['id'];
+
+        try {
+            $stmt = $pdo->prepare("UPDATE cultores SET activo = 0 WHERE id = ?");
+            $stmt->execute([$id]);
+
+            echo json_encode(['success' => true, 'message' => 'Cultor eliminado exitosamente.']);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Error al eliminar cultor: ' . $e->getMessage()]);
+        }
+        exit();
+    }
 }
 
 // Procesar formulario de cultor
@@ -37,6 +68,46 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $success = "Cultor registrado exitosamente.";
             } catch (Exception $e) {
                 $error = "Error al registrar cultor: " . $e->getMessage();
+            }
+        } elseif ($_POST['action'] == 'edit_cultor') {
+            // Editar cultor existente
+            $id = (int)$_POST['cultor_id'];
+            $nombres_apellidos = sanitizar($_POST['nombres_apellidos']);
+            $telefono = sanitizar($_POST['telefono']);
+            $cedula = sanitizar($_POST['cedula']);
+            $correo = sanitizar($_POST['correo']);
+            $area_tematica = sanitizar($_POST['area_tematica']);
+            $disciplina = sanitizar($_POST['disciplina']);
+            $comuna = sanitizar($_POST['comuna']);
+            $municipio = sanitizar($_POST['municipio']);
+            $parroquia = sanitizar($_POST['parroquia']);
+            $carnet_patria = sanitizar($_POST['carnet_patria']);
+            $direccion = sanitizar($_POST['direccion']);
+            $lugar_nacimiento = sanitizar($_POST['lugar_nacimiento']);
+            $fecha_nacimiento = $_POST['fecha_nacimiento'];
+            $edad = (int)$_POST['edad'];
+            $trayectoria_anios = (int)$_POST['trayectoria_anios'];
+            $organizacion = sanitizar($_POST['organizacion']);
+
+            try {
+                $stmt = $pdo->prepare("UPDATE cultores SET nombres_apellidos = ?, telefono = ?, cedula = ?, correo = ?, area_tematica = ?, disciplina = ?, comuna = ?, municipio = ?, parroquia = ?, carnet_patria = ?, direccion = ?, lugar_nacimiento = ?, fecha_nacimiento = ?, edad = ?, trayectoria_anios = ?, organizacion = ? WHERE id = ?");
+                $stmt->execute([$nombres_apellidos, $telefono, $cedula, $correo, $area_tematica, $disciplina, $comuna, $municipio, $parroquia, $carnet_patria, $direccion, $lugar_nacimiento, $fecha_nacimiento, $edad, $trayectoria_anios, $organizacion, $id]);
+
+                $success = "Cultor actualizado exitosamente.";
+            } catch (Exception $e) {
+                $error = "Error al actualizar cultor: " . $e->getMessage();
+            }
+        } elseif ($_POST['action'] == 'delete_cultor') {
+            // Eliminar cultor (marcar como inactivo)
+            $id = (int)$_POST['cultor_id'];
+
+            try {
+                $stmt = $pdo->prepare("UPDATE cultores SET activo = 0 WHERE id = ?");
+                $stmt->execute([$id]);
+
+                $success = "Cultor eliminado exitosamente.";
+            } catch (Exception $e) {
+                $error = "Error al eliminar cultor: " . $e->getMessage();
             }
         }
     }
@@ -87,17 +158,47 @@ $municipios = $stmt->fetchAll(PDO::FETCH_COLUMN);
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
+    <!-- Barra Superior -->
+    <div class="top-bar">
+        <div class="container">
+            <div><i class="fas fa-phone"></i> 0212-XXX-XXXX | <i class="fas fa-envelope"></i> atencionciudadana@mincultura.gob.ve</div>
+            <div class="social-links">
+                <a href="#" title="Facebook">Facebook</a>
+                <a href="#" title="Twitter">Twitter</a>
+                <a href="#" title="Instagram">Instagram</a>
+                <a href="#" title="YouTube">YouTube</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header Principal -->
     <div class="cultores-container">
-        <header class="cultores-header">
-            <div class="logo"><img src="assets/favicon.jpg" alt="logo"></div>
-            <h1>Ministerio del Poder Popular para la Cultura</h1>
-            <nav class="cultores-nav">
-                <a href="dashboard.php">Dashboard</a>
-                <a href="calendario.php">Calendario</a>
-                <a href="cultores.php" class="active">Cultores</a>
-                <a href="logout.php">Cerrar Sesión</a>
+        <header>
+        <div class="header-content">
+            <div class="logo-section">
+                <div class="logo"><img src="assets/favicon.jpg" alt="logo"></div>
+                <div class="logo-text">
+                    <h1>Ministerio del Poder Popular para la Cultura</h1>
+                    <p>República Bolivariana de Venezuela</p>
+                </div>
+            </div>
+            <div class="menu-toggle" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <nav id="mainNav">
+                <ul>
+                    <ul>
+                    <li><a href="foro.php" onclick="closeMenu()">Foro</a></li>
+                    <li><a href="dashboard.php" onclick="closeMenu()">Dashboard</a></li>
+                    <li><a href="calendario.php">Calendario</a></li>
+                    <li><a href="cultores.php">Cultores</a></li>
+                    <li><a href="logout.php" onclick="closeMenu()">Cerrar Sesión</a></li>
+                </ul>
             </nav>
-        </header>
+        </div>
+    </header>
 
         <main class="cultores-main">
             <div class="cultores-controls">
@@ -206,7 +307,8 @@ $municipios = $stmt->fetchAll(PDO::FETCH_COLUMN);
             <span class="close">&times;</span>
             <h3 id="modalTitle">Agregar Cultor</h3>
             <form id="cultorForm" method="POST" action="cultores.php">
-                <input type="hidden" name="action" value="add_cultor">
+                <input type="hidden" name="action" id="formAction" value="add_cultor">
+                <input type="hidden" name="cultor_id" id="cultorId" value="">
                 <div class="form-row">
                     <div class="form-group">
                         <label for="nombres_apellidos">Nombres y Apellidos *</label>

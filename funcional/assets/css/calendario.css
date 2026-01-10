@@ -161,6 +161,12 @@ body::before {
     gap: 20px;
 }
 
+.filters p {
+    font-weight: 600;
+    color: #333;
+    align-self: center;
+}
+
 .filters select {
     padding: 12px 18px;
     border: 2px solid #e1e1e1;

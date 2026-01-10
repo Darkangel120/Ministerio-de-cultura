@@ -25,10 +25,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_SESSION['usuario_nombre'] = $usuario['NOMBRE_COMPLETO'];
             $_SESSION['usuario_tipo'] = $usuario['TIPO_USUARIO'];
 
-            // Registrar en logs
-            $stmt = $pdo->prepare("INSERT INTO logs_sistema (usuario_id, accion, descripcion, ip_address) VALUES (?, 'login', 'Inicio de sesión exitoso', ?)");
-            $stmt->execute([$usuario['ID'], $_SERVER['REMOTE_ADDR']]);
-
             header('Location: dashboard.php');
             exit();
         } else {
@@ -56,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <h1>Ministerio del Poder Popular para la Cultura</h1>
             <p>Iniciar Sesión</p>
         </div>
-        <form class="login-form" id="loginForm">
+        <form class="login-form" id="loginForm" method="post">
             <div class="form-group">
                 <label for="email">Correo Electrónico</label>
                 <input type="email" id="email" name="email" required>
@@ -66,6 +62,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <input type="password" id="password" name="password" required>
             </div>
             <button type="submit" class="btn-login">Iniciar Sesión</button>
+            <?php if (isset($error)): ?>
+                <p style="color: red;"><?php echo $error; ?></p>
+            <?php endif; ?>
         </form>
         <div class="login-footer">
             <p>¿No tienes cuenta? <a href="registro.php">Regístrate aquí</a></p>

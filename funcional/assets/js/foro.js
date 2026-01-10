@@ -34,63 +34,6 @@ async function loadEventosFromPHP() {
     }
 }
 
-// Función para renderizar publicaciones
-function renderizarPublicaciones() {
-    const feed = document.getElementById('feedPosts');
-    feed.innerHTML = '';
-
-    publicaciones.forEach((pub, index) => {
-        const postCard = document.createElement('div');
-        postCard.className = 'post-card';
-
-        const mediaHTML = renderizarMedia(pub.archivo, pub.archivoTipo);
-        const commentsHTML = renderizarComentarios(pub.comentarios || []);
-
-        postCard.innerHTML = `
-            <div class="post-header">
-                <div class="user-avatar"><i class="fas fa-user"></i></div>
-                <div class="post-user-info">
-                    <div class="post-author">${pub.autor || 'Cultor Anónimo'}</div>
-                    <div class="post-meta">
-                        ${new Date(pub.fecha).toLocaleDateString()}
-                        <span class="post-category">${pub.categoria}</span>
-                    </div>
-                </div>
-            </div>
-            <div class="post-content">
-                <div class="post-text">
-                    <strong>${pub.titulo}</strong><br>
-                    ${pub.descripcion}
-                </div>
-                ${mediaHTML ? `<div class="post-media">${mediaHTML}</div>` : ''}
-            </div>
-            <div class="post-stats">
-                ${pub.likes || 0} Me gusta
-            </div>
-            <div class="post-actions">
-                <button class="btn-action btn-like" data-index="${index}">
-                    <span class="like-icon"><i class="fas fa-thumbs-up"></i></span> Me gusta
-                </button>
-                <button class="btn-action btn-comentar" data-index="${index}">
-                    <span class="comment-icon"><i class="fas fa-comment"></i></span> Comentar
-                </button>
-            </div>
-            <div class="comments-section" id="comments-${index}" style="display: none;">
-                ${commentsHTML}
-                <div class="add-comment">
-                    <div class="add-comment-avatar"><i class="fas fa-user"></i></div>
-                    <div class="comment-input">
-                        <input type="text" placeholder="Comparte tu opinión artística..." data-index="${index}">
-                        <button type="button" onclick="agregarComentario(${index})">Compartir</button>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        feed.appendChild(postCard);
-    });
-}
-
 // Función para renderizar media
 function renderizarMedia(archivo, tipo) {
     if (!archivo) return '<span><i class="fas fa-palette"></i></span>';
@@ -117,83 +60,30 @@ function renderizarComentarios(comentarios) {
     `).join('');
 }
 
-// Función para manejar el envío del formulario
-document.getElementById('arteForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-
-    const formData = new FormData(this);
-
-    try {
-        const response = await fetch('foro.php?action=add_publicacion', {
-            method: 'POST',
-            body: formData
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-            alert('Publicación creada exitosamente');
-            await loadPublicacionesFromPHP();
-            renderizarPublicaciones();
-            this.reset();
-            document.getElementById('filePreview').innerHTML = '';
-        } else {
-            alert('Error: ' + result.message);
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error al procesar la solicitud');
-    }
-});
+// Función para manejar el envío del formulario (se moverá al DOMContentLoaded)
 
 // Función para manejar likes
 document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('btn-like')) {
-        const index = e.target.dataset.index;
-        publicaciones[index].likes = (publicaciones[index].likes || 0) + 1;
-        localStorage.setItem('publicaciones', JSON.stringify(publicaciones));
-        renderizarPublicaciones();
+    console.log('Click detected on:', e.target);
+    if (e.target.classList.contains('btn-like') || e.target.closest('.btn-like')) {
+        const btn = e.target.classList.contains('btn-like') ? e.target : e.target.closest('.btn-like');
+        const publicacionId = btn.getAttribute('data-publicacion-id');
+
+        if (publicacionId) {
+            e.preventDefault();
+            toggleLike(publicacionId);
+        }
     }
 
-    if (e.target.classList.contains('btn-comentar')) {
-        const index = e.target.dataset.index;
-        const commentsDiv = document.getElementById(`comments-${index}`);
-        commentsDiv.style.display = commentsDiv.style.display === 'none' ? 'block' : 'none';
-    }
-});
+    if (e.target.classList.contains('btn-comentar') || e.target.closest('.btn-comentar')) {
+        console.log('Comments button clicked');
+        const btn = e.target.classList.contains('btn-comentar') ? e.target : e.target.closest('.btn-comentar');
+        const publicacionId = btn.getAttribute('data-publicacion-id');
+        console.log('Publicacion ID:', publicacionId);
 
-// Función para manejar comentarios
-document.addEventListener('submit', async function(e) {
-    if (e.target.classList.contains('comentario-form')) {
-        e.preventDefault();
-        const index = e.target.dataset.index;
-        const input = e.target.querySelector('input');
-        const publicacionId = publicaciones[index].id;
-        const comentario = {
-            texto: input.value
-        };
-
-        try {
-            const response = await fetch('foro.php?action=add_comentario', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ publicacion_id: publicacionId, comentario: comentario })
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                await loadPublicacionesFromPHP();
-                renderizarPublicaciones();
-                input.value = '';
-            } else {
-                alert('Error: ' + result.message);
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Error al agregar comentario');
+        if (publicacionId) {
+            e.preventDefault();
+            openCommentsModal(publicacionId);
         }
     }
 });
@@ -220,7 +110,6 @@ async function agregarComentario(index) {
 
             if (result.success) {
                 await loadPublicacionesFromPHP();
-                renderizarPublicaciones();
                 input.value = '';
             } else {
                 alert('Error: ' + result.message);
@@ -264,114 +153,12 @@ document.getElementById('archivo').addEventListener('change', function(e) {
     }
 });
 
-// Función para toggle menu (igual que en otras páginas)
-function toggleMenu() {
-    const nav = document.getElementById('mainNav');
-    const overlay = document.getElementById('overlay');
-    nav.classList.toggle('active');
-    overlay.classList.toggle('active');
-}
 
-function closeMenu() {
-    const nav = document.getElementById('mainNav');
-    const overlay = document.getElementById('overlay');
-    nav.classList.remove('active');
-    overlay.classList.remove('active');
-}
-
-// Función para renderizar invitaciones a eventos
-function renderizarEventosInvitaciones() {
-    const eventosGrid = document.getElementById('eventosInvitaciones');
-    eventosGrid.innerHTML = '';
-
-    // Filtrar eventos próximos (próximos 30 días)
-    const hoy = new Date();
-    const treintaDias = new Date();
-    treintaDias.setDate(hoy.getDate() + 30);
-
-    const eventosProximos = eventosCalendario.filter(evento => {
-        const fechaEvento = new Date(evento.fecha);
-        return fechaEvento >= hoy && fechaEvento <= treintaDias;
-    });
-
-    if (eventosProximos.length === 0) {
-        eventosGrid.innerHTML = '<p style="text-align: center; color: #6c757d; padding: 20px;">No hay eventos próximos programados.</p>';
-        return;
-    }
-
-    eventosProximos.forEach(evento => {
-        const eventoCard = document.createElement('div');
-        eventoCard.className = 'evento-card';
-
-        const fechaFormateada = new Date(evento.fecha).toLocaleDateString('es-ES', {
-            weekday: 'short',
-            day: 'numeric',
-            month: 'short'
-        });
-
-        eventoCard.innerHTML = `
-            <div class="evento-titulo">
-                <span><i class="fas fa-theater-masks"></i></span> ${evento.titulo}
-            </div>
-            <div class="evento-fecha">
-                <span><i class="fas fa-calendar-alt"></i></span> ${fechaFormateada} - ${evento.hora}
-            </div>
-            <div class="evento-lugar">
-                <span><i class="fas fa-map-marker-alt"></i></span> ${evento.lugar}
-            </div>
-            <div class="evento-descripcion">
-                ${evento.descripcion}
-            </div>
-            <div class="evento-participantes">
-                <strong>Participantes:</strong> ${evento.participantes.join(', ')}
-            </div>
-            <div class="evento-tipo">${evento.tipoUsuario === 'cultor' ? 'Para Cultores' : 'Para Funcionarios'}</div>
-        `;
-
-        eventoCard.onclick = () => mostrarDetalleEvento(evento);
-        eventosGrid.appendChild(eventoCard);
-    });
-}
-
-// Función para mostrar detalle del evento
-function mostrarDetalleEvento(evento) {
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.innerHTML = `
-        <div class="modal-content">
-            <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
-            <h3>${evento.titulo}</h3>
-            <div style="margin-top: 20px;">
-                <p><strong><i class="fas fa-calendar-alt"></i> Fecha:</strong> ${new Date(evento.fecha).toLocaleDateString('es-ES', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                })} a las ${evento.hora}</p>
-                <p><strong><i class="fas fa-map-marker-alt"></i> Lugar:</strong> ${evento.lugar}</p>
-                <p><strong><i class="fas fa-edit"></i> Descripción:</strong> ${evento.descripcion}</p>
-                <p><strong><i class="fas fa-users"></i> Participantes:</strong> ${evento.participantes.join(', ')}</p>
-                <p><strong><i class="fas fa-bullseye"></i> Tipo:</strong> ${evento.tipoUsuario === 'cultor' ? 'Evento para Cultores' : 'Evento para Funcionarios'}</p>
-            </div>
-        </div>
-    `;
-
-    document.body.appendChild(modal);
-    modal.style.display = 'block';
-
-    // Cerrar modal al hacer click fuera
-    modal.onclick = function(event) {
-        if (event.target === modal) {
-            modal.remove();
-        }
-    };
-}
 
 // Función para abrir modal de eventos en móvil
 function openEventosModal() {
     const modal = document.getElementById('eventosModal');
     modal.style.display = 'block';
-    renderizarEventosModal();
 }
 
 // Función para cerrar modal de eventos en móvil
@@ -434,10 +221,218 @@ function renderizarEventosModal() {
     });
 }
 
+// Función para abrir modal de comentarios
+function openCommentsModal(publicacionId) {
+    console.log('Opening comments modal for publicacionId:', publicacionId);
+    try {
+        const modal = document.getElementById('commentsModal');
+        const commentsContent = document.getElementById('commentsContent');
+        const commentPublicacionId = document.getElementById('commentPublicacionId');
+
+        console.log('Modal element:', modal);
+        console.log('Comments content element:', commentsContent);
+        console.log('Comment publicacion id element:', commentPublicacionId);
+
+        if (!modal) {
+            console.error('Comments modal not found!');
+            return;
+        }
+
+        if (!commentsContent) {
+            console.error('Comments content div not found!');
+            return;
+        }
+
+        if (!commentPublicacionId) {
+            console.error('Comment publicacion id input not found!');
+            return;
+        }
+
+        // Cargar comentarios
+        loadComments(publicacionId);
+
+        // Setear el ID de la publicación en el formulario
+        commentPublicacionId.value = publicacionId;
+
+        modal.style.display = 'flex';
+        console.log('Modal display set to flex, current style:', modal.style.display);
+
+        // Force visibility check
+        setTimeout(() => {
+            console.log('Modal visibility after timeout:', window.getComputedStyle(modal).display);
+        }, 100);
+
+    } catch (error) {
+        console.error('Error opening comments modal:', error);
+    }
+}
+
+// Función para cerrar modal de comentarios
+function closeCommentsModal() {
+    const modal = document.getElementById('commentsModal');
+    modal.style.display = 'none';
+}
+
+// Función para cargar comentarios
+async function loadComments(publicacionId) {
+    console.log('Loading comments for publicacionId:', publicacionId);
+    try {
+        const response = await fetch(`foro.php?action=get_comentarios&publicacion_id=${publicacionId}`);
+        console.log('Response status:', response.status);
+        const data = await response.json();
+        console.log('Data received:', data);
+
+        const commentsContent = document.getElementById('commentsContent');
+        commentsContent.innerHTML = '';
+
+        if (data.success) {
+            if (data.comentarios && data.comentarios.length > 0) {
+                data.comentarios.forEach(comentario => {
+                    const commentDiv = document.createElement('div');
+                    commentDiv.className = 'comment';
+                    commentDiv.innerHTML = `
+                        <div class="comment-user">
+                            <div class="user-avatar"><i class="fas fa-user"></i></div>
+                            <div class="comment-content">
+                                <h5>${comentario.nombre_completo || 'Usuario Anónimo'}</h5>
+                                <p>${comentario.comentario}</p>
+                                <span class="comment-date">${new Date(comentario.fecha_comentario).toLocaleDateString('es-ES', {
+                                    day: 'numeric',
+                                    month: 'short',
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                })}</span>
+                            </div>
+                        </div>
+                    `;
+                    commentsContent.appendChild(commentDiv);
+                });
+            } else {
+                commentsContent.innerHTML = '<p style="text-align: center; color: #6c757d; padding: 20px;">No hay comentarios aún. ¡Sé el primero en comentar!</p>';
+            }
+        } else {
+            commentsContent.innerHTML = '<p style="text-align: center; color: #dc3545; padding: 20px;">Error: ' + (data.message || 'Error desconocido al cargar comentarios') + '</p>';
+            console.error('Error from server:', data.message);
+        }
+    } catch (error) {
+        console.error('Error cargando comentarios:', error);
+        const commentsContent = document.getElementById('commentsContent');
+        commentsContent.innerHTML = '<p style="text-align: center; color: #dc3545; padding: 20px;">Error de conexión al cargar comentarios.</p>';
+    }
+}
+
+// Función para toggle like
+async function toggleLike(publicacionId) {
+    const likeBtn = document.getElementById(`like-btn-${publicacionId}`);
+    const icon = likeBtn.querySelector('i');
+
+    try {
+        const response = await fetch('foro.php?action=toggle_like', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ publicacion_id: publicacionId })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Update like button appearance
+            if (data.liked) {
+                likeBtn.classList.add('liked');
+                icon.classList.remove('far');
+                icon.classList.add('fas');
+            } else {
+                likeBtn.classList.remove('liked');
+                icon.classList.remove('fas');
+                icon.classList.add('far');
+            }
+
+            // Update the likes count in the button text
+            const textNode = likeBtn.lastChild;
+            textNode.textContent = ` Me gusta (${data.likes_count})`;
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al procesar el like');
+    }
+}
+
+// Función para manejar el envío del formulario de comentarios
+document.addEventListener('submit', async function(e) {
+    if (e.target.id === 'commentForm') {
+        e.preventDefault();
+
+        const formData = new FormData(e.target);
+        const publicacionId = formData.get('publicacion_id');
+        const comentario = formData.get('comentario');
+
+        try {
+            const response = await fetch('foro.php?action=add_comentario', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    publicacion_id: publicacionId,
+                    comentario: comentario
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Recargar comentarios
+                loadComments(publicacionId);
+                // Limpiar el formulario
+                e.target.querySelector('textarea').value = '';
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al agregar comentario');
+        }
+    }
+});
+
 // Inicializar la página
 document.addEventListener('DOMContentLoaded', async function() {
-    await loadPublicacionesFromPHP();
     await loadEventosFromPHP();
-    renderizarPublicaciones();
     renderizarEventosInvitaciones();
+
+    // Función para manejar el envío del formulario
+    const arteForm = document.getElementById('arteForm');
+    if (arteForm) {
+        arteForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+
+            try {
+                const response = await fetch('foro.php?action=add_publicacion', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Publicación creada exitosamente');
+                    await loadPublicacionesFromPHP();
+                    this.reset();
+                    document.getElementById('filePreview').innerHTML = '';
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al procesar la solicitud');
+            }
+        });
+    }
 });

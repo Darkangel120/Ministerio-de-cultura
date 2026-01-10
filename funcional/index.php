@@ -58,7 +58,6 @@ $eventos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <li><a href="#noticias" onclick="closeMenu()">Noticias</a></li>
                     <li><a href="#agenda" onclick="closeMenu()">Agenda</a></li>
                     <li><a href="#ministerio" onclick="closeMenu()">El Ministerio</a></li>
-                    <li><a href="#multimedia" onclick="closeMenu()">Multimedia</a></li>
                     <li><a href="foro.php" onclick="closeMenu()">Foro</a></li>
                     <?php if (isset($_SESSION['usuario_id'])): ?>
                         <li><a href="dashboard.php" onclick="closeMenu()">Dashboard</a></li>

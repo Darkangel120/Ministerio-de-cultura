@@ -91,14 +91,11 @@ if ($usuario['TIPO_USUARIO'] == 'funcionario') {
             </div>
             <nav id="mainNav">
                 <ul>
-                    <li><a href="index.php" onclick="closeMenu()">Inicio</a></li>
-                    <li><a href="index.php#noticias" onclick="closeMenu()">Noticias</a></li>
-                    <li><a href="index.php#agenda" onclick="closeMenu()">Agenda</a></li>
-                    <li><a href="index.php#ministerio" onclick="closeMenu()">El Ministerio</a></li>
-                    <li><a href="index.php#multimedia" onclick="closeMenu()">Multimedia</a></li>
                     <li><a href="foro.php" onclick="closeMenu()">Foro</a></li>
                     <li><a href="dashboard.php" onclick="closeMenu()" class="active">Dashboard</a></li>
-                    <li><a href="logout.php" onclick="closeMenu()">Salir</a></li>
+                    <li><a href="calendario.php">Calendario</a></li>
+                    <li><a href="cultores.php">Cultores</a></li>
+                    <li><a href="logout.php">Cerrar Sesión</a></li>
                 </ul>
             </nav>
         </div>
@@ -112,7 +109,7 @@ if ($usuario['TIPO_USUARIO'] == 'funcionario') {
         <div class="container">
             <div class="dashboard-header">
                 <h2><i class="fas fa-tachometer-alt"></i> Dashboard</h2>
-                <p>Bienvenido, <?php echo htmlspecialchars($usuario['NOMBRE_COMPLETO']); ?> (<?php echo ucfirst($usuario['TIPO_USUARIO']); ?>)</p>
+                <p>Bienvenido, <?php echo htmlspecialchars($usuario['NOMBRE_COMPLETO']); ?></p>
             </div>
 
             <div class="dashboard-grid">
@@ -135,26 +132,6 @@ if ($usuario['TIPO_USUARIO'] == 'funcionario') {
                         <div class="card-content">
                             <h3><?php echo $total_cultores; ?></h3>
                             <p>Cultores Registrados</p>
-                        </div>
-                    </div>
-
-                    <div class="dashboard-card">
-                        <div class="card-icon">
-                            <i class="fas fa-comments"></i>
-                        </div>
-                        <div class="card-content">
-                            <h3><?php echo $total_publicaciones; ?></h3>
-                            <p>Publicaciones en Foro</p>
-                        </div>
-                    </div>
-
-                    <div class="dashboard-card">
-                        <div class="card-icon">
-                            <i class="fas fa-plus-circle"></i>
-                        </div>
-                        <div class="card-content">
-                            <h3>Administrar</h3>
-                            <p>Sistema</p>
                         </div>
                     </div>
 

@@ -36,12 +36,23 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 });
 
+async function loadCultoresFromPHP() {
+    try {
+        const response = await fetch('cultores.php?action=get_cultores');
+        const data = await response.json();
+        cultores = data.cultores || [];
+    } catch (error) {
+        console.error('Error loading cultores:', error);
+        cultores = [];
+    }
+}
+
 function loadCultores(cultoresToShow = cultores) {
     const cultoresGrid = document.getElementById('cultoresGrid');
     cultoresGrid.innerHTML = '';
 
     if (cultoresToShow.length === 0) {
-        cultoresGrid.innerHTML = '<p>No hay cultores registrados.</p>';
+        cultoresGrid.innerHTML = '<div class="no-cultores"><i class="fas fa-users"></i><h3>No se encontraron cultores</h3><p>No hay cultores registrados con los filtros seleccionados.</p></div>';
         return;
     }
 
@@ -49,16 +60,44 @@ function loadCultores(cultoresToShow = cultores) {
         const cultorCard = document.createElement('div');
         cultorCard.className = 'cultor-card';
         cultorCard.innerHTML = `
-            <h4>${cultor.nombresApellidos}</h4>
-            <p><strong>Cédula:</strong> ${cultor.cedula}</p>
-            <p><strong>Teléfono:</strong> ${cultor.telefono}</p>
-            <p><strong>Correo:</strong> ${cultor.correo}</p>
-            <p><strong>Área Temática:</strong> ${getAreaTematicaName(cultor.areaTematica)}</p>
-            <p><strong>Disciplina:</strong> ${cultor.disciplina}</p>
-            <p><strong>Municipio:</strong> ${cultor.municipio}, ${cultor.parroquia}</p>
+            <div class="cultor-header">
+                <div class="cultor-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="cultor-info">
+                    <h3>${cultor.NOMBRES_APELLIDOS}</h3>
+                    <p class="cultor-disciplina">${getAreaTematicaName(cultor.AREA_TEMATICA)} - ${cultor.DISCIPLINA}</p>
+                </div>
+            </div>
+            <div class="cultor-details">
+                <div class="detail-item">
+                    <i class="fas fa-phone"></i>
+                    <span>${cultor.TELEFONO}</span>
+                </div>
+                <div class="detail-item">
+                    <i class="fas fa-envelope"></i>
+                    <span>${cultor.CORREO}</span>
+                </div>
+                <div class="detail-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>${cultor.MUNICIPIO}, ${cultor.PARROQUIA}</span>
+                </div>
+                <div class="detail-item">
+                    <i class="fas fa-building"></i>
+                    <span>${cultor.ORGANIZACION}</span>
+                </div>
+                <div class="detail-item">
+                    <i class="fas fa-calendar"></i>
+                    <span>${cultor.TRAYECTORIA_ANIOS} años de trayectoria</span>
+                </div>
+            </div>
             <div class="cultor-actions">
-                <button onclick="editCultor(${cultor.id})">Editar</button>
-                <button onclick="deleteCultor(${cultor.id})">Eliminar</button>
+                <button class="btn-edit" onclick="editarCultor(${cultor.ID})">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                <button class="btn-delete" onclick="eliminarCultor(${cultor.ID})">
+                    <i class="fas fa-trash"></i> Eliminar
+                </button>
             </div>
         `;
         cultoresGrid.appendChild(cultorCard);
@@ -83,32 +122,36 @@ function showModal(cultorId = null) {
     const modal = document.getElementById('cultorModal');
     const form = document.getElementById('cultorForm');
     const title = document.getElementById('modalTitle');
+    const formAction = document.getElementById('formAction');
+    const cultorIdField = document.getElementById('cultorId');
 
     if (cultorId) {
-        const cultor = cultores.find(c => c.id === cultorId);
+        const cultor = cultores.find(c => c.ID == cultorId);
         if (cultor) {
-            document.getElementById('cultorNombre').value = cultor.nombresApellidos;
-            document.getElementById('cultorTelefono').value = cultor.telefono;
-            document.getElementById('cultorCedula').value = cultor.cedula;
-            document.getElementById('cultorCorreo').value = cultor.correo;
-            document.getElementById('cultorAreaTematica').value = cultor.areaTematica;
-            document.getElementById('cultorComuna').value = cultor.comuna;
-            document.getElementById('cultorMunicipio').value = cultor.municipio;
-            document.getElementById('cultorParroquia').value = cultor.parroquia;
-            document.getElementById('cultorDisciplina').value = cultor.disciplina;
-            document.getElementById('cultorCarnetPatria').value = cultor.carnetPatria;
-            document.getElementById('cultorDireccion').value = cultor.direccion;
-            document.getElementById('cultorLugarNacimiento').value = cultor.lugarNacimiento;
-            document.getElementById('cultorFechaNacimiento').value = cultor.fechaNacimiento;
-            document.getElementById('cultorEdad').value = cultor.edad;
-            document.getElementById('cultorTrayectoria').value = cultor.trayectoria;
-            document.getElementById('cultorOrganizacion').value = cultor.organizacion;
-            form.dataset.cultorId = cultorId;
+            document.getElementById('nombres_apellidos').value = cultor.NOMBRES_APELLIDOS;
+            document.getElementById('telefono').value = cultor.TELEFONO;
+            document.getElementById('cedula').value = cultor.CEDULA;
+            document.getElementById('correo').value = cultor.CORREO;
+            document.getElementById('area_tematica').value = cultor.AREA_TEMATICA;
+            document.getElementById('disciplina').value = cultor.DISCIPLINA;
+            document.getElementById('comuna').value = cultor.COMUNA || '';
+            document.getElementById('municipio').value = cultor.MUNICIPIO;
+            document.getElementById('parroquia').value = cultor.PARROQUIA;
+            document.getElementById('carnet_patria').value = cultor.CARNET_PATRIA;
+            document.getElementById('direccion').value = cultor.DIRECCION;
+            document.getElementById('lugar_nacimiento').value = cultor.LUGAR_NACIMIENTO;
+            document.getElementById('fecha_nacimiento').value = cultor.FECHA_NACIMIENTO;
+            document.getElementById('edad').value = cultor.EDAD;
+            document.getElementById('trayectoria_anios').value = cultor.TRAYECTORIA_ANIOS;
+            document.getElementById('organizacion').value = cultor.ORGANIZACION;
+            formAction.value = 'edit_cultor';
+            cultorIdField.value = cultorId;
             title.textContent = 'Editar Cultor';
         }
     } else {
         form.reset();
-        delete form.dataset.cultorId;
+        formAction.value = 'add_cultor';
+        cultorIdField.value = '';
         title.textContent = 'Agregar Cultor';
     }
 
@@ -116,48 +159,15 @@ function showModal(cultorId = null) {
 }
 
 function saveCultor() {
-    const form = document.getElementById('cultorForm');
-    const cultorId = form.dataset.cultorId;
-
-    const cultorData = {
-        nombresApellidos: document.getElementById('cultorNombre').value,
-        telefono: document.getElementById('cultorTelefono').value,
-        cedula: document.getElementById('cultorCedula').value,
-        correo: document.getElementById('cultorCorreo').value,
-        areaTematica: document.getElementById('cultorAreaTematica').value,
-        comuna: document.getElementById('cultorComuna').value,
-        municipio: document.getElementById('cultorMunicipio').value,
-        parroquia: document.getElementById('cultorParroquia').value,
-        disciplina: document.getElementById('cultorDisciplina').value,
-        carnetPatria: document.getElementById('cultorCarnetPatria').value,
-        direccion: document.getElementById('cultorDireccion').value,
-        lugarNacimiento: document.getElementById('cultorLugarNacimiento').value,
-        fechaNacimiento: document.getElementById('cultorFechaNacimiento').value,
-        edad: parseInt(document.getElementById('cultorEdad').value),
-        trayectoria: parseInt(document.getElementById('cultorTrayectoria').value),
-        organizacion: document.getElementById('cultorOrganizacion').value
-    };
-
-    if (cultorId) {
-        // Editar cultor existente
-        const index = cultores.findIndex(c => c.id == cultorId);
-        if (index !== -1) {
-            cultores[index] = { ...cultores[index], ...cultorData };
-        }
-    } else {
-        // Agregar nuevo cultor
-        const newId = Math.max(...cultores.map(c => c.id), 0) + 1;
-        cultores.push({ id: newId, ...cultorData });
-    }
-
-    loadCultores();
-    // Reset filters after adding/editing
-    document.getElementById('filterDisciplina').value = '';
-    document.getElementById('filterMunicipio').value = '';
-    document.getElementById('cultorModal').style.display = "none";
+    // Submit the form normally to the PHP script
+    document.getElementById('cultorForm').submit();
 }
 
 function editCultor(cultorId) {
+    showModal(cultorId);
+}
+
+function editarCultor(cultorId) {
     showModal(cultorId);
 }
 
@@ -187,21 +197,49 @@ async function deleteCultor(cultorId) {
     }
 }
 
+async function eliminarCultor(cultorId) {
+    if (confirm('¿Está seguro de que desea eliminar este cultor?')) {
+        try {
+            const response = await fetch(`cultores.php?action=delete_cultor&id=${cultorId}`, {
+                method: 'POST'
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert('Cultor eliminado exitosamente');
+                await loadCultoresFromPHP(); // Recargar cultores desde PHP
+                loadCultores();
+                // Reset filters after deleting
+                document.getElementById('filterDisciplina').value = '';
+                document.getElementById('filterMunicipio').value = '';
+            } else {
+                alert('Error: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al procesar la solicitud');
+        }
+    }
+}
+
 function populateFilters() {
     // Populate disciplina filter
     const disciplinaSelect = document.getElementById('filterDisciplina');
-    const disciplinas = [...new Set(cultores.map(c => c.disciplina))].sort();
+    disciplinaSelect.innerHTML = '<option value="">Todas las Áreas</option>';
+    const disciplinas = [...new Set(cultores.map(c => c.AREA_TEMATICA))].sort();
 
     disciplinas.forEach(disciplina => {
         const option = document.createElement('option');
         option.value = disciplina;
-        option.textContent = disciplina;
+        option.textContent = getAreaTematicaName(disciplina);
         disciplinaSelect.appendChild(option);
     });
 
     // Populate municipio filter
     const municipioSelect = document.getElementById('filterMunicipio');
-    const municipios = [...new Set(cultores.map(c => c.municipio))].sort();
+    municipioSelect.innerHTML = '<option value="">Todos los Municipios</option>';
+    const municipios = [...new Set(cultores.map(c => c.MUNICIPIO))].sort();
 
     municipios.forEach(municipio => {
         const option = document.createElement('option');
@@ -218,11 +256,11 @@ function applyFilters() {
     let filteredCultores = cultores;
 
     if (disciplinaFilter) {
-        filteredCultores = filteredCultores.filter(c => c.disciplina === disciplinaFilter);
+        filteredCultores = filteredCultores.filter(c => c.AREA_TEMATICA === disciplinaFilter);
     }
 
     if (municipioFilter) {
-        filteredCultores = filteredCultores.filter(c => c.municipio === municipioFilter);
+        filteredCultores = filteredCultores.filter(c => c.MUNICIPIO === municipioFilter);
     }
 
     loadCultores(filteredCultores);

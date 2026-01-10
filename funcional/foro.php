@@ -4,12 +4,43 @@ require_once 'config.php';
 
 // Obtener publicaciones del foro
 $pdo = conectarDB();
-$stmt = $pdo->prepare("SELECT FIRST 10 fp.*, u.nombre_completo FROM foro_publicaciones fp LEFT JOIN usuarios u ON fp.usuario_id = u.id WHERE fp.activo = 1 ORDER BY fp.fecha_publicacion DESC");
-$stmt->execute();
+
+// Consulta para usuarios logueados (con verificación de like)
+if (isset($_SESSION['usuario_id'])) {
+    $sql = "SELECT FIRST 10 
+                fp.*, 
+                u.nombre_completo, 
+                CASE 
+                    WHEN fl.ID IS NOT NULL THEN 1 
+                    ELSE 0 
+                END as LIKED,
+                (SELECT COUNT(*) FROM foro_likes WHERE publicacion_id = fp.ID) as LIKES_COUNT,
+                (SELECT COUNT(*) FROM foro_comentarios WHERE publicacion_id = fp.ID AND activo = 1) as COMMENTS_COUNT 
+            FROM foro_publicaciones fp 
+            LEFT JOIN usuarios u ON fp.usuario_id = u.id 
+            LEFT JOIN foro_likes fl ON fl.publicacion_id = fp.ID AND fl.usuario_id = ? 
+            WHERE fp.activo = 1 
+            ORDER BY fp.fecha_publicacion DESC";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$_SESSION['usuario_id']]);
+} else {
+    // Consulta para usuarios no logueados
+    $sql = "SELECT FIRST 10 
+                fp.*, 
+                u.nombre_completo,
+                (SELECT COUNT(*) FROM foro_likes WHERE publicacion_id = fp.ID) as LIKES_COUNT,
+                (SELECT COUNT(*) FROM foro_comentarios WHERE publicacion_id = fp.ID AND activo = 1) as COMMENTS_COUNT 
+            FROM foro_publicaciones fp 
+            LEFT JOIN usuarios u ON fp.usuario_id = u.id 
+            WHERE fp.activo = 1 
+            ORDER BY fp.fecha_publicacion DESC";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute();
+}
 $publicaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Obtener eventos próximos para el sidebar
-$stmt = $pdo->prepare("SELECT FIRST 3 * FROM eventos WHERE activo = 1 AND fecha >= CURRENT_DATE ORDER BY fecha ASC");
+$stmt = $pdo->prepare("SELECT FIRST 3 * FROM eventos WHERE activo = 1 ORDER BY fecha DESC");
 $stmt->execute();
 $eventos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -56,10 +87,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['crear_publicacion'])) 
         $stmt = $pdo->prepare("INSERT INTO foro_publicaciones (usuario_id, titulo, categoria, descripcion, archivo_url, tipo_archivo) VALUES (?, ?, ?, ?, ?, ?)");
         $stmt->execute([$usuario_id, $titulo, $categoria, $descripcion, $archivo_url, $tipo_archivo]);
 
-        // Registrar en logs
-        $stmt = $pdo->prepare("INSERT INTO logs_sistema (usuario_id, accion, descripcion, ip_address) VALUES (?, 'crear_publicacion', 'Publicación creada: ' || ?, ?)");
-        $stmt->execute([$usuario_id, $titulo, $_SERVER['REMOTE_ADDR']]);
-
         header('Location: foro.php?success=1');
         exit();
     } catch (Exception $e) {
@@ -79,13 +106,127 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['crear_comentario'])) {
     $usuario_id = $_SESSION['usuario_id'];
 
     try {
-        $stmt = $pdo->prepare("INSERT INTO foro_comentarios (publicacion_id, usuario_id, comentario) VALUES (?, ?, ?)");
+        $stmt = $pdo->prepare("INSERT INTO foro_comentarios (publicacion_id, usuario_id, comentario, activo) VALUES (?, ?, ?, 1)");
         $stmt->execute([$publicacion_id, $usuario_id, $comentario]);
-
         header('Location: foro.php#post-' . $publicacion_id);
         exit();
     } catch (Exception $e) {
         $error = "Error al crear el comentario: " . $e->getMessage();
+    }
+}
+
+// Procesar acciones AJAX
+if (isset($_GET['action'])) {
+    header('Content-Type: application/json');
+
+    if ($_GET['action'] === 'toggle_like' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (!isset($_SESSION['usuario_id'])) {
+            echo json_encode(['success' => false, 'message' => 'Debes iniciar sesión']);
+            exit();
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $publicacion_id = (int)($data['publicacion_id'] ?? 0);
+        $usuario_id = $_SESSION['usuario_id'];
+
+        if ($publicacion_id <= 0) {
+            echo json_encode(['success' => false, 'message' => 'ID de publicación inválido']);
+            exit();
+        }
+
+        try {
+            // Verificar si ya existe un like
+            $stmt = $pdo->prepare("SELECT id FROM foro_likes WHERE publicacion_id = ? AND usuario_id = ?");
+            $stmt->execute([$publicacion_id, $usuario_id]);
+            $existing_like = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($existing_like) {
+                // Remover like
+                $stmt = $pdo->prepare("DELETE FROM foro_likes WHERE id = ?");
+                $stmt->execute([$existing_like['ID']]);
+                $liked = false;
+            } else {
+                // Agregar like
+                $stmt = $pdo->prepare("INSERT INTO foro_likes (publicacion_id, usuario_id) VALUES (?, ?)");
+                $stmt->execute([$publicacion_id, $usuario_id]);
+                $liked = true;
+            }
+
+            // Obtener los nuevos conteos - CORREGIDO para Firebird
+            $stmt = $pdo->prepare("
+                SELECT 
+                    (SELECT COUNT(*) FROM foro_likes WHERE publicacion_id = ?) as likes_count,
+                    (SELECT COUNT(*) FROM foro_comentarios WHERE publicacion_id = ? AND activo = 1) as comments_count
+                FROM RDB\$DATABASE
+            ");
+            $stmt->execute([$publicacion_id, $publicacion_id]);
+            $counts = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            echo json_encode([
+                'success' => true,
+                'liked' => $liked,
+                'likes_count' => (int)($counts['LIKES_COUNT'] ?? 0),
+                'comments_count' => (int)($counts['COMMENTS_COUNT'] ?? 0)
+            ]);
+        } catch (Exception $e) {
+            error_log("Error en toggle_like: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Error al procesar el like: ' . $e->getMessage()]);
+        }
+        exit();
+    }
+
+    if ($_GET['action'] === 'get_comentarios' && isset($_GET['publicacion_id'])) {
+        $publicacion_id = (int)$_GET['publicacion_id'];
+
+        try {
+            $stmt = $pdo->prepare("SELECT fc.*, u.nombre_completo FROM foro_comentarios fc LEFT JOIN usuarios u ON fc.usuario_id = u.id WHERE fc.publicacion_id = ? AND fc.activo = 1 ORDER BY fc.fecha_comentario ASC");
+            $stmt->execute([$publicacion_id]);
+            $comentarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Formatear los datos para JavaScript
+            $comentarios_formateados = array_map(function($comentario) {
+                return [
+                    'id' => $comentario['ID'],
+                    'publicacion_id' => $comentario['PUBLICACION_ID'],
+                    'usuario_id' => $comentario['USUARIO_ID'],
+                    'comentario' => $comentario['COMENTARIO'],
+                    'fecha_comentario' => $comentario['FECHA_COMENTARIO'],
+                    'activo' => $comentario['ACTIVO'],
+                    'nombre_completo' => $comentario['NOMBRE_COMPLETO'] ?? 'Usuario Anónimo'
+                ];
+            }, $comentarios);
+
+            echo json_encode(['success' => true, 'comentarios' => $comentarios_formateados]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Error al cargar comentarios']);
+        }
+        exit();
+    }
+
+    if ($_GET['action'] === 'add_comentario' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (!isset($_SESSION['usuario_id'])) {
+            echo json_encode(['success' => false, 'message' => 'Debes iniciar sesión']);
+            exit();
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $publicacion_id = (int)($data['publicacion_id'] ?? 0);
+        $comentario = sanitizar($data['comentario'] ?? '');
+        $usuario_id = $_SESSION['usuario_id'];
+
+        if ($publicacion_id <= 0 || empty($comentario)) {
+            echo json_encode(['success' => false, 'message' => 'Datos inválidos']);
+            exit();
+        }
+
+        try {
+            $stmt = $pdo->prepare("INSERT INTO foro_comentarios (publicacion_id, usuario_id, comentario, activo) VALUES (?, ?, ?, 1)");
+            $stmt->execute([$publicacion_id, $usuario_id, $comentario]);
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Error al agregar comentario']);
+        }
+        exit();
     }
 }
 ?>
@@ -135,7 +276,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['crear_comentario'])) {
                     <li><a href="index.php#noticias" onclick="closeMenu()">Noticias</a></li>
                     <li><a href="index.php#agenda" onclick="closeMenu()">Agenda</a></li>
                     <li><a href="index.php#ministerio" onclick="closeMenu()">El Ministerio</a></li>
-                    <li><a href="index.php#multimedia" onclick="closeMenu()">Multimedia</a></li>
                     <li><a href="foro.php" onclick="closeMenu()">Foro</a></li>
                     <?php if (isset($_SESSION['usuario_id'])): ?>
                         <li><a href="dashboard.php" onclick="closeMenu()">Dashboard</a></li>
@@ -169,14 +309,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['crear_comentario'])) {
                     <div class="eventos-invitaciones">
                         <h3><i class="fas fa-theater-masks"></i> Eventos Próximos</h3>
                         <p class="sidebar-subtitle">¡Únete a la Comunidad Cultural!</p>
-                        <div class="eventos-grid">
+                        <div class="eventos-grid" id="eventosInvitaciones">
                             <?php foreach ($eventos as $evento): ?>
                             <div class="evento-card">
                                 <div class="evento-fecha">
-                                    <span><?php echo date('d M', strtotime($evento['fecha'])); ?></span>
+                                    <span><?php echo date('d M', strtotime($evento['FECHA'])); ?></span>
                                 </div>
-                                <h4><?php echo htmlspecialchars($evento['nombre_actividad']); ?></h4>
-                                <p><?php echo htmlspecialchars($evento['direccion']); ?></p>
+                                <h4><?php echo htmlspecialchars($evento['NOMBRE_ACTIVIDAD']); ?></h4>
+                                <p><?php echo htmlspecialchars($evento['DIRECCION']); ?></p>
                                 <a href="calendario.php" class="evento-link">Ver más</a>
                             </div>
                             <?php endforeach; ?>
@@ -253,47 +393,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['crear_comentario'])) {
                                 <?php endif; ?>
                             </div>
                             <div class="post-actions">
-                                <button class="btn-action btn-comentar" onclick="toggleComments(<?php echo $pub['ID']; ?>)">
-                                    <i class="fas fa-comment"></i> Comentarios
+                                <button class="btn-action btn-comentar" data-publicacion-id="<?php echo $pub['ID']; ?>">
+                                    <i class="fas fa-comment"></i> Comentarios (<?php echo $pub['COMMENTS_COUNT'] ?? 0; ?>)
                                 </button>
-                                <button class="btn-action btn-like" onclick="likePost(<?php echo $pub['ID']; ?>)">
-                                    <i class="fas fa-heart"></i> Me gusta
+                                <button class="btn-action btn-like <?php echo (isset($pub['LIKED']) && $pub['LIKED'] == 1) ? 'liked' : ''; ?>" id="like-btn-<?php echo $pub['ID']; ?>" data-publicacion-id="<?php echo $pub['ID']; ?>">
+                                    <i class="<?php echo (isset($pub['LIKED']) && $pub['LIKED'] == 1) ? 'fas' : 'far'; ?> fa-heart"></i> Me gusta (<?php echo $pub['LIKES_COUNT'] ?? 0; ?>)
                                 </button>
-                            </div>
-
-                            <!-- Comentarios -->
-                            <div class="comments-section" id="comments-<?php echo $pub['ID']; ?>" style="display: none;">
-                                <?php
-                                $stmt = $pdo->prepare("SELECT fc.*, u.nombre_completo FROM foro_comentarios fc LEFT JOIN usuarios u ON fc.usuario_id = u.id WHERE fc.publicacion_id = ? AND fc.activo = 1 ORDER BY fc.fecha_comentario ASC");
-                                $stmt->execute([$pub['ID']]);
-                                $comentarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                                ?>
-
-                                <?php foreach ($comentarios as $comentario): ?>
-                                <div class="comment">
-                                    <div class="comment-user">
-                                        <div class="user-avatar"><i class="fas fa-user"></i></div>
-                                        <div class="comment-content">
-                                            <h5><?php echo htmlspecialchars($comentario['NOMBRE_COMPLETO'] ?? 'Usuario Anónimo'); ?></h5>
-                                            <p><?php echo nl2br(htmlspecialchars($comentario['COMENTARIO'])); ?></p>
-                                            <span class="comment-date"><?php echo date('d M Y, H:i', strtotime($comentario['FECHA_COMENTARIO'])); ?></span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <?php endforeach; ?>
-
-                                <?php if (isset($_SESSION['usuario_id'])): ?>
-                                <div class="comment-form">
-                                    <form method="POST" action="">
-                                        <input type="hidden" name="publicacion_id" value="<?php echo $pub['ID']; ?>">
-                                        <input type="hidden" name="crear_comentario" value="1">
-                                        <div class="comment-input">
-                                            <textarea name="comentario" placeholder="Escribe un comentario..." required></textarea>
-                                            <button type="submit" class="btn-comment">Comentar</button>
-                                        </div>
-                                    </form>
-                                </div>
-                                <?php endif; ?>
                             </div>
                         </div>
                         <?php endforeach; ?>
@@ -303,12 +408,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['crear_comentario'])) {
         </div>
     </section>
 
+    <!-- Botón flotante para eventos en móvil -->
+    <button class="eventos-float-btn" onclick="openEventosModal()">
+        <i class="fas fa-theater-masks"></i>
+    </button>
+
     <!-- Modal para Crear Publicación -->
     <div id="postModal" class="modal">
         <div class="modal-content post-modal">
             <span class="close" onclick="closePostModal()">&times;</span>
             <h3>Crear Publicación</h3>
-            <form method="POST" action="" enctype="multipart/form-data">
+            <form id="arteForm" method="POST" action="" enctype="multipart/form-data">
                 <input type="hidden" name="crear_publicacion" value="1">
                 <div class="form-row">
                     <div class="form-group">
@@ -349,6 +459,65 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['crear_comentario'])) {
         <div class="modal-content media-modal">
             <span class="close" onclick="closeMediaModal()">&times;</span>
             <img id="mediaContent" src="" alt="Multimedia">
+        </div>
+    </div>
+
+    <!-- Modal para Comentarios -->
+    <div id="commentsModal" class="modal">
+        <div class="modal-content comments-modal">
+            <span class="close" onclick="closeCommentsModal()">&times;</span>
+            <h3>Comentarios</h3>
+            <div id="commentsContent">
+                <!-- Los comentarios se cargarán aquí dinámicamente -->
+            </div>
+            <?php if (isset($_SESSION['usuario_id'])): ?>
+            <div class="comment-form">
+                <form id="commentForm" method="POST" action="">
+                    <input type="hidden" name="publicacion_id" id="commentPublicacionId" value="">
+                    <input type="hidden" name="crear_comentario" value="1">
+                    <div class="comment-input">
+                        <textarea name="comentario" placeholder="Escribe un comentario..." required></textarea>
+                        <button type="submit" class="btn-comment">Comentar</button>
+                    </div>
+                </form>
+            </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- Modal para Eventos -->
+    <div id="eventosModal" class="modal">
+        <div class="modal-content eventos-modal">
+            <span class="close" onclick="closeEventosModal()">&times;</span>
+            <h3><i class="fas fa-theater-masks"></i> Eventos Próximos</h3>
+            <p class="sidebar-subtitle">¡Únete a la Comunidad Cultural!</p>
+            <div class="eventos-invitaciones">
+                <div class="eventos-grid">
+                    <?php foreach ($eventos as $evento): ?>
+                    <div class="evento-card">
+                        <div class="evento-titulo">
+                            <i class="fas fa-calendar-day"></i>
+                            <?php echo htmlspecialchars($evento['NOMBRE_ACTIVIDAD']); ?>
+                        </div>
+                        <div class="evento-fecha">
+                            <i class="fas fa-clock"></i>
+                            <span><?php echo date('d M Y', strtotime($evento['FECHA'])); ?></span>
+                        </div>
+                        <div class="evento-lugar">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <?php echo htmlspecialchars($evento['DIRECCION']); ?>
+                        </div>
+                        <div class="evento-descripcion">
+                            <?php echo htmlspecialchars($evento['DESCRIPCION'] ?? 'Evento cultural'); ?>
+                        </div>
+                        <div class="evento-participantes">
+                            Participantes: <?php echo htmlspecialchars($evento['PARTICIPANTES'] ?? 'Abierto al público'); ?>
+                        </div>
+                        <div class="evento-tipo">Evento Cultural</div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -396,5 +565,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['crear_comentario'])) {
     </footer>
 
     <script src="assets/js/foro.js"></script>
+    <script src="assets/js/script.js"></script>
 </body>
 </html>

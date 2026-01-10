@@ -204,50 +204,114 @@ body {
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
-.cultor-card h4 {
-    font-size: 20px;
-    color: #003893;
-    margin-bottom: 15px;
+.cultor-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(0, 56, 147, 0.1);
 }
 
-.cultor-card p {
+.cultor-avatar {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #003893, #002366);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 20px;
+    color: white;
+    font-size: 24px;
+    box-shadow: 0 4px 15px rgba(0, 56, 147, 0.3);
+}
+
+.cultor-info h3 {
+    font-size: 22px;
+    color: #003893;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.cultor-disciplina {
     color: #666;
-    margin-bottom: 8px;
-    line-height: 1.5;
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0;
+}
+
+.cultor-details {
+    margin-bottom: 25px;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 8px 0;
+}
+
+.detail-item i {
+    width: 20px;
+    color: #003893;
+    margin-right: 12px;
+    font-size: 16px;
+}
+
+.detail-item span {
+    color: #333;
+    font-size: 15px;
+    line-height: 1.4;
 }
 
 .cultor-actions {
-    margin-top: 20px;
+    margin-top: 25px;
     display: flex;
-    gap: 10px;
+    gap: 12px;
+    justify-content: flex-end;
 }
 
-.cultor-actions button {
-    padding: 8px 16px;
+.btn-edit, .btn-delete {
+    padding: 10px 18px;
     border: none;
-    border-radius: 5px;
+    border-radius: 8px;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.cultor-actions button:first-child {
-    background: #003893;
+.btn-edit {
+    background: linear-gradient(135deg, #003893, #002366);
     color: white;
+    box-shadow: 0 4px 15px rgba(0, 56, 147, 0.3);
 }
 
-.cultor-actions button:first-child:hover {
-    background: #002366;
+.btn-edit:hover {
+    background: linear-gradient(135deg, #002366, #001a4d);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 56, 147, 0.4);
 }
 
-.cultor-actions button:last-child {
-    background: #CF142B;
+.btn-delete {
+    background: linear-gradient(135deg, #CF142B, #A01020);
     color: white;
+    box-shadow: 0 4px 15px rgba(207, 20, 43, 0.3);
 }
 
-.cultor-actions button:last-child:hover {
-    background: #A01020;
+.btn-delete:hover {
+    background: linear-gradient(135deg, #A01020, #7a0d17);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(207, 20, 43, 0.4);
+}
+
+.btn-edit i, .btn-delete i {
+    font-size: 12px;
 }
 
 /* Modal */
