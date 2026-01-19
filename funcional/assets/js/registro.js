@@ -1,3 +1,23 @@
+// Función para mostrar/ocultar campos de cultor
+function toggleCultorFields() {
+    const tipoUsuario = document.getElementById('tipo_usuario').value;
+    const cultorFields = document.getElementById('cultorFields');
+
+    if (tipoUsuario === 'cultor') {
+        cultorFields.style.display = 'block';
+    } else {
+        cultorFields.style.display = 'none';
+    }
+}
+
+// Event listener para el cambio de tipo de usuario
+document.getElementById('tipo_usuario').addEventListener('change', toggleCultorFields);
+
+// Inicializar al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    toggleCultorFields();
+});
+
 document.getElementById('registroForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 

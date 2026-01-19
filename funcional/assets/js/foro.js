@@ -153,6 +153,26 @@ document.getElementById('archivo').addEventListener('change', function(e) {
     }
 });
 
+// Función para preview de archivo en edición
+document.getElementById('editArchivo').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const preview = document.getElementById('editFilePreview');
+
+    if (file) {
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+            };
+            reader.readAsDataURL(file);
+        } else {
+            preview.innerHTML = `<p>Archivo seleccionado: ${file.name}</p>`;
+        }
+    } else {
+        preview.innerHTML = '';
+    }
+});
+
 
 
 // Función para abrir modal de eventos en móvil
@@ -400,6 +420,94 @@ document.addEventListener('submit', async function(e) {
     }
 });
 
+// Función para toggle del menú de publicación
+function togglePostMenu(postId) {
+    const menu = document.getElementById(`menu-${postId}`);
+    const allMenus = document.querySelectorAll('.post-menu-dropdown');
+
+    // Cerrar todos los menús primero
+    allMenus.forEach(m => {
+        if (m.id !== `menu-${postId}`) {
+            m.classList.remove('show');
+        }
+    });
+
+    // Toggle el menú actual
+    menu.classList.toggle('show');
+}
+
+// Función para editar publicación
+async function editarPublicacion(postId) {
+    try {
+        const response = await fetch(`foro.php?action=get_publicacion&id=${postId}`);
+        const data = await response.json();
+
+        if (data.success) {
+            // Llenar el modal con los datos de la publicación
+            document.getElementById('editPostId').value = data.publicacion.ID;
+            document.getElementById('editTitulo').value = data.publicacion.TITULO;
+            document.getElementById('editCategoria').value = data.publicacion.CATEGORIA;
+            document.getElementById('editDescripcion').value = data.publicacion.DESCRIPCION;
+
+            // Abrir el modal
+            document.getElementById('editPostModal').style.display = 'block';
+
+            // Cerrar el menú
+            document.getElementById(`menu-${postId}`).classList.remove('show');
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al cargar la publicación');
+    }
+}
+
+// Función para eliminar publicación
+async function eliminarPublicacion(postId) {
+    if (confirm('¿Estás seguro de que deseas eliminar esta publicación? Esta acción no se puede deshacer.')) {
+        try {
+            const response = await fetch('foro.php?action=delete_publicacion', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ publicacion_id: postId })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Remover la publicación del DOM
+                const postElement = document.getElementById(`post-${postId}`);
+                if (postElement) {
+                    postElement.remove();
+                }
+                alert('Publicación eliminada exitosamente');
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al eliminar la publicación');
+        }
+    }
+}
+
+// Función para cerrar modal de edición
+function closeEditPostModal() {
+    document.getElementById('editPostModal').style.display = 'none';
+    document.getElementById('editArteForm').reset();
+}
+
+// Cerrar menús cuando se hace click fuera
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.post-menu')) {
+        const allMenus = document.querySelectorAll('.post-menu-dropdown');
+        allMenus.forEach(menu => menu.classList.remove('show'));
+    }
+});
+
 // Inicializar la página
 document.addEventListener('DOMContentLoaded', async function() {
     await loadEventosFromPHP();
@@ -432,6 +540,52 @@ document.addEventListener('DOMContentLoaded', async function() {
             } catch (error) {
                 console.error('Error:', error);
                 alert('Error al procesar la solicitud');
+            }
+        });
+    }
+
+    // Función para manejar el envío del formulario de edición
+    const editArteForm = document.getElementById('editArteForm');
+    if (editArteForm) {
+        editArteForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const postId = document.getElementById('editPostId').value;
+
+            try {
+                const response = await fetch('foro.php?action=edit_publicacion', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Actualizar la publicación en el DOM
+                    const postElement = document.getElementById(`post-${postId}`);
+                    if (postElement) {
+                        const titleElement = postElement.querySelector('.post-content h3');
+                        const categoryElement = postElement.querySelector('.category-badge');
+                        const descElement = postElement.querySelector('.post-content p');
+
+                        if (titleElement) titleElement.textContent = formData.get('titulo');
+                        if (categoryElement) {
+                            const categoria = formData.get('categoria');
+                            categoryElement.textContent = categoria.charAt(0).toUpperCase() + categoria.slice(1);
+                            categoryElement.className = `category-badge category-${categoria}`;
+                        }
+                        if (descElement) descElement.innerHTML = nl2br(formData.get('descripcion'));
+                    }
+
+                    closeEditPostModal();
+                    alert('Publicación actualizada exitosamente');
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al actualizar la publicación');
             }
         });
     }

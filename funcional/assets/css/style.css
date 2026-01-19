@@ -1078,6 +1078,23 @@ footer {
     }
 }
 
+/* Mensaje de no eventos */
+.no-events-message {
+    text-align: center;
+    padding: 40px 20px;
+    background: var(--blanco);
+    border-radius: 10px;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.1);
+    margin: 20px 0;
+}
+
+.no-events-message p {
+    font-size: 18px;
+    color: var(--gris);
+    margin: 0;
+    line-height: 1.6;
+}
+
 /* Print Styles */
 @media print {
     .top-bar,

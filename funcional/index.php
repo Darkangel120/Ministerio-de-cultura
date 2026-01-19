@@ -2,6 +2,8 @@
 session_start();
 require_once 'config.php';
 
+$usuario = obtenerUsuarioActual();
+
 // Obtener noticias destacadas
 $pdo = conectarDB();
 $stmt = $pdo->prepare("SELECT FIRST 3 * FROM noticias WHERE activo = 1 ORDER BY fecha_publicacion DESC");
@@ -59,8 +61,10 @@ $eventos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <li><a href="#agenda" onclick="closeMenu()">Agenda</a></li>
                     <li><a href="#ministerio" onclick="closeMenu()">El Ministerio</a></li>
                     <li><a href="foro.php" onclick="closeMenu()">Foro</a></li>
+                    <?php if ($usuario && $usuario['TIPO_USUARIO'] == 'funcionario'): ?>
+                        <li><a href="dashboard.php">Dashboard</a></li>
+                    <?php endif; ?>
                     <?php if (isset($_SESSION['usuario_id'])): ?>
-                        <li><a href="dashboard.php" onclick="closeMenu()">Dashboard</a></li>
                         <li><a href="logout.php" onclick="closeMenu()">Salir</a></li>
                     <?php else: ?>
                         <li><a href="login.php" onclick="closeMenu()">Iniciar Sesión</a></li>
@@ -106,6 +110,7 @@ $eventos = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <section class="agenda-section" id="agenda">
         <div class="container">
             <h2 class="section-title">Agenda Cultural</h2>
+            <?php if (!empty($eventos)): ?>
             <div class="eventos-grid">
                 <?php foreach ($eventos as $evento): ?>
                 <div class="evento-card">
@@ -118,6 +123,11 @@ $eventos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </div>
                 <?php endforeach; ?>
             </div>
+            <?php else: ?>
+            <div class="no-events-message">
+                <p>No hay eventos próximos en la agenda cultural. ¡Mantente atento para futuras actividades!</p>
+            </div>
+            <?php endif; ?>
         </div>
     </section>
 
@@ -193,7 +203,7 @@ $eventos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
         <div class="footer-bottom">
             <p>© 2026 Ministerio del Poder Popular para la Cultura - Todos los derechos reservados</p>
-            <p>Desarrollado por OTIC - Oficina de Tecnologías de la Información y la Comunicación</p>
+            
         </div>
     </footer>
 

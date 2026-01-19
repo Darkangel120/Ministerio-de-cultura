@@ -219,7 +219,6 @@ body::before {
 
 @media (max-width: 480px) {
     .registro-container {
-        margin: 20px;
         padding: 40px 30px;
         border-radius: 16px;
     }
@@ -297,4 +296,89 @@ body::before {
         padding: 18px 24px;
         font-size: 17px;
     }
+}
+
+/* Estilos para la sección de datos de cultores */
+#cultorFields {
+    display: none;
+    background: rgba(245, 245, 245, 0.8);
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+#cultorFields h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #2c3e50;
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+    border-bottom: 2px solid #003893;
+    padding-bottom: 10px;
+}
+
+#cultorFields .form-row {
+    margin-bottom: 15px;
+    background: rgba(255, 255, 255, 0.7);
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #e1e1e1;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+#cultorFields .form-group label {
+    color: #003893;
+    font-weight: 700;
+}
+
+#cultorFields .form-group input,
+#cultorFields .form-group select {
+    border-color: #003893;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+/* Estilos para el checkbox de términos */
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 10%;
+}
+
+/* Estilos para alertas de error */
+.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.alert.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.alert.error ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.alert.error ul li {
+    margin-bottom: 5px;
+    font-weight: 500;
 }

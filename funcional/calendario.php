@@ -5,6 +5,12 @@ require_once 'config.php';
 // Verificar sesión
 verificarSesion();
 
+// Verificar permisos - Solo funcionarios pueden acceder al calendario
+if ($_SESSION['usuario_tipo'] !== 'funcionario') {
+    header('Location: dashboard.php');
+    exit();
+}
+
 // Procesar acciones AJAX
 if (isset($_GET['action'])) {
     header('Content-Type: application/json');
@@ -32,11 +38,25 @@ if (isset($_GET['action'])) {
 
         echo json_encode(['success' => true, 'data' => $eventos_formateados]);
         exit();
+    } elseif ($_GET['action'] === 'get_event') {
+        // Obtener datos de un evento específico para editar
+        $pdo = conectarDB();
+        $id = (int)$_GET['id'];
+        $stmt = $pdo->prepare("SELECT * FROM eventos WHERE id = ? AND activo = 1");
+        $stmt->execute([$id]);
+        $evento = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($evento) {
+            echo json_encode(['success' => true, 'data' => $evento]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Evento no encontrado']);
+        }
+        exit();
     }
 }
 
 // Procesar formulario de agregar actividad
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['addActivityForm'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['addActivityForm']) && empty($_POST['editActivityForm'])) {
     try {
         $pdo = conectarDB();
 
@@ -96,6 +116,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['addActivityForm'])) {
         $success_message = "Actividad agregada exitosamente.";
     } catch (Exception $e) {
         $error_message = "Error al agregar la actividad: " . $e->getMessage();
+    }
+}
+
+// Procesar formulario de editar actividad
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['editActivityForm'])) {
+    try {
+        $pdo = conectarDB();
+        $id = (int)$_POST['eventId'];
+
+        // Preparar datos del formulario
+        $correo = sanitizar($_POST['correo']);
+        $estado = sanitizar($_POST['estado']);
+        $municipio = sanitizar($_POST['municipio']);
+        $parroquia = sanitizar($_POST['parroquia']);
+        $organizacion = sanitizar($_POST['organizacion']);
+        $tipoOrganizacion = sanitizar($_POST['tipoOrganizacion']);
+        $direccion = sanitizar($_POST['direccion']);
+        $ubicacionExacta = sanitizar($_POST['ubicacionExacta']);
+        $consejoComunal = sanitizar($_POST['consejoComunal']);
+        $nombreConsejo = sanitizar($_POST['nombreConsejo']);
+        $nombreComuna = sanitizar($_POST['nombreComuna']);
+        $voceroNombre = sanitizar($_POST['voceroNombre']);
+        $voceroCedula = sanitizar($_POST['voceroCedula']);
+        $voceroTelefono = sanitizar($_POST['voceroTelefono']);
+        $responsableNombre = sanitizar($_POST['responsableNombre']);
+        $responsableCedula = sanitizar($_POST['responsableCedula']);
+        $responsableTelefono = sanitizar($_POST['responsableTelefono']);
+        $responsableCargo = sanitizar($_POST['responsableCargo']);
+        $tipoActividad = sanitizar($_POST['tipoActividad']);
+        $disciplina = sanitizar($_POST['disciplina']);
+        $nombreActividad = sanitizar($_POST['nombreActividad']);
+        $objetivo = sanitizar($_POST['objetivo']);
+        $mes = (int)$_POST['mes'];
+        $fecha = $_POST['fecha'];
+        $hora = $_POST['hora'];
+        $duracion = (int)$_POST['duracion'];
+        $ninos = (int)$_POST['ninos'];
+        $ninas = (int)$_POST['ninas'];
+        $jovenesMasculinos = (int)$_POST['jovenesMasculinos'];
+        $jovenesFemeninas = (int)$_POST['jovenesFemeninas'];
+        $adultosMasculinos = (int)$_POST['adultosMasculinos'];
+        $adultosFemeninas = (int)$_POST['adultosFemeninas'];
+
+        // Actualizar en la base de datos
+        $stmt = $pdo->prepare("UPDATE eventos SET
+            correo_usuario = ?, estado = ?, municipio = ?, parroquia = ?, organizacion = ?, tipo_organizacion = ?,
+            direccion = ?, ubicacion_exacta = ?, consejo_comunal = ?, nombre_consejo = ?, nombre_comuna = ?,
+            vocero_nombre = ?, vocero_cedula = ?, vocero_telefono = ?, responsable_nombre = ?, responsable_cedula = ?,
+            responsable_telefono = ?, responsable_cargo = ?, tipo_actividad = ?, disciplina = ?, nombre_actividad = ?,
+            objetivo = ?, mes = ?, fecha = ?, hora = ?, duracion = ?, ninos = ?, ninas = ?, jovenes_masculinos = ?,
+            jovenes_femeninas = ?, adultos_masculinos = ?, adultos_femeninas = ?
+            WHERE id = ? AND activo = 1");
+
+        $stmt->execute([
+            $correo, $estado, $municipio, $parroquia, $organizacion, $tipoOrganizacion,
+            $direccion, $ubicacionExacta, $consejoComunal, $nombreConsejo, $nombreComuna,
+            $voceroNombre, $voceroCedula, $voceroTelefono, $responsableNombre, $responsableCedula,
+            $responsableTelefono, $responsableCargo, $tipoActividad, $disciplina, $nombreActividad,
+            $objetivo, $mes, $fecha, $hora, $duracion, $ninos, $ninas, $jovenesMasculinos,
+            $jovenesFemeninas, $adultosMasculinos, $adultosFemeninas, $id
+        ]);
+
+        $success_message = "Actividad actualizada exitosamente.";
+    } catch (Exception $e) {
+        $error_message = "Error al actualizar la actividad: " . $e->getMessage();
     }
 }
 
@@ -224,7 +309,7 @@ $usuario_json = json_encode([
     <!-- Modal para detalles del evento -->
     <div id="eventoModal" class="modal">
         <div class="modal-content">
-            <span class="close">&times;</span>
+            <button type="button" class="close">&times;</button>
             <h3 id="eventoTitle">Detalles del Evento</h3>
             <div id="eventoDetails">
                 <!-- Detalles del evento -->
@@ -235,7 +320,7 @@ $usuario_json = json_encode([
     <!-- Modal para agregar actividad -->
     <div id="addActivityModal" class="modal">
         <div class="modal-content add-activity-modal">
-            <span class="close" id="closeAddActivityModal">&times;</span>
+            <button type="button" class="close" id="closeAddActivityModal">&times;</button>
             <h3>Agregar Nueva Actividad</h3>
             <?php if (isset($success_message)): ?>
                 <div class="alert alert-success"><?php echo $success_message; ?></div>
@@ -245,6 +330,8 @@ $usuario_json = json_encode([
             <?php endif; ?>
             <form id="addActivityForm" method="POST" action="calendario.php">
                 <input type="hidden" name="addActivityForm" value="1">
+                <input type="hidden" name="editActivityForm" id="editActivityForm" value="">
+                <input type="hidden" name="eventId" id="eventId" value="">
                 <div class="form-section">
                     <h4>Información General</h4>
                     <div class="form-group">
@@ -483,7 +570,7 @@ $usuario_json = json_encode([
                     </div>
                 </div>
 
-                <button type="submit" class="submit-btn">Agregar Actividad</button>
+                <button type="submit" id="submitBtn" class="submit-btn">Agregar Actividad</button>
             </form>
         </div>
     </div>
@@ -527,7 +614,7 @@ $usuario_json = json_encode([
         </div>
         <div class="footer-bottom">
             <p>© 2026 Ministerio del Poder Popular para la Cultura - Todos los derechos reservados</p>
-            <p>Desarrollado por OTIC - Oficina de Tecnologías de la Información y la Comunicación</p>
+            
         </div>
     </footer>
 

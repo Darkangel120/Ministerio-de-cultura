@@ -92,9 +92,11 @@ if ($usuario['TIPO_USUARIO'] == 'funcionario') {
             <nav id="mainNav">
                 <ul>
                     <li><a href="foro.php" onclick="closeMenu()">Foro</a></li>
-                    <li><a href="dashboard.php" onclick="closeMenu()" class="active">Dashboard</a></li>
-                    <li><a href="calendario.php">Calendario</a></li>
-                    <li><a href="cultores.php">Cultores</a></li>
+                    <?php if ($usuario['TIPO_USUARIO'] == 'funcionario'): ?>
+                        <li><a href="dashboard.php">Dashboard</a></li>
+                        <li><a href="calendario.php">Calendario</a></li>
+                        <li><a href="cultores.php">Cultores</a></li>
+                    <?php endif; ?>
                     <li><a href="logout.php">Cerrar Sesión</a></li>
                 </ul>
             </nav>
@@ -272,7 +274,7 @@ if ($usuario['TIPO_USUARIO'] == 'funcionario') {
         </div>
         <div class="footer-bottom">
             <p>© 2026 Ministerio del Poder Popular para la Cultura - Todos los derechos reservados</p>
-            <p>Desarrollado por OTIC - Oficina de Tecnologías de la Información y la Comunicación</p>
+            
         </div>
     </footer>
 

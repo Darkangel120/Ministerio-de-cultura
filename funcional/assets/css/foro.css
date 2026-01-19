@@ -6,6 +6,79 @@
     --rojo: #D52B1E;
 }
 
+/* Estilos para el menú de opciones de publicación */
+.post-header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.post-menu {
+    position: absolute;
+    top: 15px;
+    right: 0;
+}
+
+.btn-menu {
+    background: none;
+    border: none;
+    color: #6c757d;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.btn-menu:hover {
+    background-color: #f8f9fa;
+    color: #495057;
+}
+
+.post-menu-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 120px;
+    z-index: 1000;
+    display: none;
+}
+
+.post-menu-dropdown button {
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 10px 15px;
+    text-align: left;
+    cursor: pointer;
+    color: #495057;
+    font-size: 14px;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.post-menu-dropdown button:hover {
+    background-color: #f8f9fa;
+}
+
+.post-menu-dropdown button:first-child:hover {
+    color: #007bff;
+}
+
+.post-menu-dropdown button:last-child:hover {
+    color: #dc3545;
+}
+
+.post-menu-dropdown.show {
+    display: block;
+}
+
 
 /* Feed */
 #feed {
@@ -202,6 +275,13 @@
     position: relative;
 }
 
+.post-header-right {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    z-index: 1001;
+}
+
 .post-user {
     display: flex;
     align-items: center;
@@ -211,8 +291,8 @@
 
 .post-category {
     position: absolute;
-    left: 50%;
-    top: 50%;
+    top: 27px;
+    right: -28px;
     transform: translate(-50%, -50%);
     display: flex;
     align-items: center;

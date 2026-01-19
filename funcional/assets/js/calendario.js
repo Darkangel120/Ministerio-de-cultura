@@ -19,48 +19,70 @@ document.addEventListener('DOMContentLoaded', function() {
         loadEventos();
     });
 
-    document.getElementById('userFilter').addEventListener('change', loadEventos);
-
     // Modal de eventos
-    const modal = document.getElementById('eventoModal');
-    const closeBtn = document.getElementsByClassName('close')[0];
+    const eventoModal = document.getElementById('eventoModal');
+    const eventoCloseBtn = eventoModal ? eventoModal.querySelector('.close') : null;
 
-    closeBtn.onclick = function() {
-        modal.style.display = "none";
-    }
+    console.log('eventoModal:', eventoModal);
+    console.log('eventoCloseBtn:', eventoCloseBtn);
 
-    window.onclick = function(event) {
-        if (event.target == modal) {
-            modal.style.display = "none";
-        }
+    if (eventoCloseBtn) {
+        eventoCloseBtn.addEventListener('click', function() {
+            console.log('Close button clicked for eventoModal');
+            eventoModal.style.display = "none";
+        });
+    } else {
+        console.error('eventoCloseBtn not found');
     }
 
     // Modal de agregar actividad
     const addActivityBtn = document.getElementById('addActivityBtn');
     const addActivityModal = document.getElementById('addActivityModal');
-    const closeAddActivityBtn = document.getElementById('closeAddActivityModal');
+    const addActivityCloseBtn = addActivityModal ? addActivityModal.querySelector('.close') : null;
     const addActivityForm = document.getElementById('addActivityForm');
 
-    addActivityBtn.onclick = function() {
-        addActivityModal.style.display = "block";
-        // Auto-fill email field with current user's email
-        if (currentUser && currentUser.correo) {
-            document.getElementById('correo').value = currentUser.correo;
-        }
+    console.log('addActivityBtn:', addActivityBtn);
+    console.log('addActivityModal:', addActivityModal);
+    console.log('addActivityCloseBtn:', addActivityCloseBtn);
+
+    if (addActivityBtn) {
+        addActivityBtn.addEventListener('click', function() {
+            console.log('Add activity button clicked');
+            if (addActivityModal) {
+                addActivityModal.style.display = "block";
+                // Auto-fill email field with current user's email
+                if (currentUser && currentUser.correo) {
+                    document.getElementById('correo').value = currentUser.correo;
+                }
+            }
+        });
+    } else {
+        console.error('addActivityBtn not found');
     }
 
-    closeAddActivityBtn.onclick = function() {
-        addActivityModal.style.display = "none";
+    if (addActivityCloseBtn) {
+        addActivityCloseBtn.addEventListener('click', function() {
+            console.log('Close button clicked for addActivityModal');
+            if (addActivityModal) {
+                addActivityModal.style.display = "none";
+            }
+        });
+    } else {
+        console.error('addActivityCloseBtn not found');
     }
 
-    window.onclick = function(event) {
-        if (event.target == modal) {
-            modal.style.display = "none";
+    // Window click to close modals
+    window.addEventListener('click', function(event) {
+        console.log('Window click event:', event.target);
+        if (event.target === eventoModal) {
+            console.log('Closing eventoModal via window click');
+            eventoModal.style.display = "none";
         }
-        if (event.target == addActivityModal) {
+        if (event.target === addActivityModal) {
+            console.log('Closing addActivityModal via window click');
             addActivityModal.style.display = "none";
         }
-    }
+    });
 
     addActivityForm.addEventListener('submit', function(e) {
         e.preventDefault();
@@ -252,10 +274,16 @@ function addNewActivity() {
     const form = document.getElementById('addActivityForm');
     const formData = new FormData(form);
 
+    // Determinar si es agregar o editar
+    const isEdit = document.getElementById('editActivityForm').value === '1';
+    const actionText = isEdit ? 'Actualizando...' : 'Agregando...';
+    const successText = isEdit ? 'Actividad actualizada exitosamente.' : 'Actividad agregada exitosamente.';
+    const errorText = isEdit ? 'Error al actualizar la actividad. Por favor, inténtelo de nuevo.' : 'Error al agregar la actividad. Por favor, inténtelo de nuevo.';
+
     // Mostrar indicador de carga
     const submitBtn = form.querySelector('.submit-btn');
     const originalText = submitBtn.textContent;
-    submitBtn.textContent = 'Agregando...';
+    submitBtn.textContent = actionText;
     submitBtn.disabled = true;
 
     // Enviar formulario via AJAX
@@ -266,21 +294,24 @@ function addNewActivity() {
     .then(response => response.text())
     .then(data => {
         // Verificar si la respuesta contiene mensaje de éxito
-        if (data.includes('Actividad agregada exitosamente')) {
+        if (data.includes(successText)) {
             // Cerrar modal
             document.getElementById('addActivityModal').style.display = "none";
 
-            // Limpiar formulario
+            // Limpiar formulario y resetear a modo agregar
             form.reset();
+            document.getElementById('editActivityForm').value = '';
+            document.getElementById('eventId').value = '';
+            document.getElementById('submitBtn').textContent = 'Agregar Actividad';
 
             // Mostrar mensaje de éxito
-            alert('Actividad agregada exitosamente.');
+            alert(successText);
 
             // Recargar la página para actualizar el calendario
             location.reload();
-        } else if (data.includes('Error al agregar la actividad')) {
+        } else if (data.includes(errorText)) {
             // Mostrar mensaje de error
-            alert('Error al agregar la actividad. Por favor, inténtelo de nuevo.');
+            alert(errorText);
         } else {
             // Si no podemos determinar el resultado, recargar la página
             location.reload();
@@ -298,8 +329,64 @@ function addNewActivity() {
 }
 
 function editEvent(eventId) {
-    // For now, just show an alert. In a real implementation, this would open an edit modal
-    alert('Funcionalidad de edición próximamente disponible. Evento ID: ' + eventId);
+    // Fetch event data
+    fetch('calendario.php?action=get_event&id=' + eventId)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Populate form with event data
+                populateEditForm(data.data);
+                // Show modal
+                document.getElementById('addActivityModal').style.display = "block";
+            } else {
+                alert('Error al cargar los datos del evento: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al cargar los datos del evento.');
+        });
+}
+
+function populateEditForm(eventData) {
+    // Set form to edit mode
+    document.getElementById('addActivityForm').querySelector('input[name="editActivityForm"]').value = '1';
+    document.getElementById('eventId').value = eventData.ID;
+    document.getElementById('submitBtn').textContent = 'Actualizar Actividad';
+
+    // Populate form fields
+    document.getElementById('correo').value = eventData.CORREO_USUARIO;
+    document.getElementById('estado').value = eventData.ESTADO;
+    document.getElementById('municipio').value = eventData.MUNICIPIO;
+    document.getElementById('parroquia').value = eventData.PARROQUIA;
+    document.getElementById('organizacion').value = eventData.ORGANIZACION;
+    document.getElementById('tipoOrganizacion').value = eventData.TIPO_ORGANIZACION;
+    document.getElementById('direccion').value = eventData.DIRECCION;
+    document.getElementById('ubicacionExacta').value = eventData.UBICACION_EXACTA;
+    document.getElementById('consejoComunal').value = eventData.CONSEJO_COMUNAL;
+    document.getElementById('nombreConsejo').value = eventData.NOMBRE_CONSEJO;
+    document.getElementById('nombreComuna').value = eventData.NOMBRE_COMUNA;
+    document.getElementById('voceroNombre').value = eventData.VOCERO_NOMBRE;
+    document.getElementById('voceroCedula').value = eventData.VOCERO_CEDULA;
+    document.getElementById('voceroTelefono').value = eventData.VOCERO_TELEFONO;
+    document.getElementById('responsableNombre').value = eventData.RESPONSABLE_NOMBRE;
+    document.getElementById('responsableCedula').value = eventData.RESPONSABLE_CEDULA;
+    document.getElementById('responsableTelefono').value = eventData.RESPONSABLE_TELEFONO;
+    document.getElementById('responsableCargo').value = eventData.RESPONSABLE_CARGO;
+    document.getElementById('tipoActividad').value = eventData.TIPO_ACTIVIDAD;
+    document.getElementById('disciplina').value = eventData.DISCIPLINA;
+    document.getElementById('nombreActividad').value = eventData.NOMBRE_ACTIVIDAD;
+    document.getElementById('objetivo').value = eventData.OBJETIVO;
+    document.getElementById('mes').value = eventData.MES;
+    document.getElementById('fecha').value = eventData.FECHA;
+    document.getElementById('hora').value = eventData.HORA;
+    document.getElementById('duracion').value = eventData.DURACION;
+    document.getElementById('ninos').value = eventData.NINOS;
+    document.getElementById('ninas').value = eventData.NINAS;
+    document.getElementById('jovenesMasculinos').value = eventData.JOVENES_MASCULINOS;
+    document.getElementById('jovenesFemeninas').value = eventData.JOVENES_FEMENINAS;
+    document.getElementById('adultosMasculinos').value = eventData.ADULTOS_MASCULINOS;
+    document.getElementById('adultosFemeninas').value = eventData.ADULTOS_FEMENINAS;
 }
 
 function deleteEvent(eventId) {

@@ -5,6 +5,8 @@ require_once 'config.php';
 // Obtener publicaciones del foro
 $pdo = conectarDB();
 
+$usuario = obtenerUsuarioActual();
+
 // Consulta para usuarios logueados (con verificación de like)
 if (isset($_SESSION['usuario_id'])) {
     $sql = "SELECT FIRST 10 
@@ -40,7 +42,7 @@ if (isset($_SESSION['usuario_id'])) {
 $publicaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Obtener eventos próximos para el sidebar
-$stmt = $pdo->prepare("SELECT FIRST 3 * FROM eventos WHERE activo = 1 ORDER BY fecha DESC");
+$stmt = $pdo->prepare("SELECT FIRST 3 * FROM eventos WHERE activo = 1 AND fecha >= CURRENT_DATE ORDER BY fecha ASC");
 $stmt->execute();
 $eventos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -228,6 +230,132 @@ if (isset($_GET['action'])) {
         }
         exit();
     }
+
+    if ($_GET['action'] === 'edit_publicacion' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (!isset($_SESSION['usuario_id'])) {
+            echo json_encode(['success' => false, 'message' => 'Debes iniciar sesión']);
+            exit();
+        }
+
+        $publicacion_id = (int)($_POST['editPostId'] ?? 0);
+        $titulo = sanitizar($_POST['titulo'] ?? '');
+        $categoria = sanitizar($_POST['categoria'] ?? '');
+        $descripcion = sanitizar($_POST['descripcion'] ?? '');
+        $usuario_id = $_SESSION['usuario_id'];
+
+        if ($publicacion_id <= 0 || empty($titulo) || empty($categoria) || empty($descripcion)) {
+            echo json_encode(['success' => false, 'message' => 'Datos inválidos']);
+            exit();
+        }
+
+        try {
+            // Verificar que la publicación pertenece al usuario
+            $stmt = $pdo->prepare("SELECT usuario_id FROM foro_publicaciones WHERE id = ? AND activo = 1");
+            $stmt->execute([$publicacion_id]);
+            $publicacion = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$publicacion || $publicacion['USUARIO_ID'] != $usuario_id) {
+                echo json_encode(['success' => false, 'message' => 'No tienes permisos para editar esta publicación']);
+                exit();
+            }
+
+            // Manejar archivo multimedia si se subió uno nuevo
+            $archivo_url = null;
+            $tipo_archivo = null;
+            if (isset($_FILES['archivo']) && $_FILES['archivo']['error'] == 0) {
+                $upload_dir = 'assets/uploads/';
+                if (!is_dir($upload_dir)) {
+                    mkdir($upload_dir, 0755, true);
+                }
+
+                $file_name = uniqid() . '_' . basename($_FILES['archivo']['name']);
+                $file_path = $upload_dir . $file_name;
+
+                if (move_uploaded_file($_FILES['archivo']['tmp_name'], $file_path)) {
+                    $archivo_url = $file_path;
+
+                    // Determinar tipo de archivo
+                    $file_type = $_FILES['archivo']['type'];
+                    if (strpos($file_type, 'image/') === 0) {
+                        $tipo_archivo = 'imagen';
+                    } elseif (strpos($file_type, 'video/') === 0) {
+                        $tipo_archivo = 'video';
+                    } elseif (strpos($file_type, 'audio/') === 0) {
+                        $tipo_archivo = 'audio';
+                    }
+                }
+            }
+
+            // Actualizar la publicación
+            if ($archivo_url) {
+                $stmt = $pdo->prepare("UPDATE foro_publicaciones SET titulo = ?, categoria = ?, descripcion = ?, archivo_url = ?, tipo_archivo = ? WHERE id = ?");
+                $stmt->execute([$titulo, $categoria, $descripcion, $archivo_url, $tipo_archivo, $publicacion_id]);
+            } else {
+                $stmt = $pdo->prepare("UPDATE foro_publicaciones SET titulo = ?, categoria = ?, descripcion = ? WHERE id = ?");
+                $stmt->execute([$titulo, $categoria, $descripcion, $publicacion_id]);
+            }
+
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Error al editar publicación']);
+        }
+        exit();
+    }
+
+    if ($_GET['action'] === 'delete_publicacion' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (!isset($_SESSION['usuario_id'])) {
+            echo json_encode(['success' => false, 'message' => 'Debes iniciar sesión']);
+            exit();
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $publicacion_id = (int)($data['publicacion_id'] ?? 0);
+        $usuario_id = $_SESSION['usuario_id'];
+
+        if ($publicacion_id <= 0) {
+            echo json_encode(['success' => false, 'message' => 'ID de publicación inválido']);
+            exit();
+        }
+
+        try {
+            // Verificar que la publicación pertenece al usuario
+            $stmt = $pdo->prepare("SELECT usuario_id FROM foro_publicaciones WHERE id = ? AND activo = 1");
+            $stmt->execute([$publicacion_id]);
+            $publicacion = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$publicacion || $publicacion['USUARIO_ID'] != $usuario_id) {
+                echo json_encode(['success' => false, 'message' => 'No tienes permisos para eliminar esta publicación']);
+                exit();
+            }
+
+            $stmt = $pdo->prepare("UPDATE foro_publicaciones SET activo = 0 WHERE id = ?");
+            $stmt->execute([$publicacion_id]);
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Error al eliminar publicación']);
+        }
+        exit();
+    }
+
+    if ($_GET['action'] === 'get_publicacion' && isset($_GET['id'])) {
+        $publicacion_id = (int)$_GET['id'];
+        $usuario_id = $_SESSION['usuario_id'];
+
+        try {
+            $stmt = $pdo->prepare("SELECT * FROM foro_publicaciones WHERE id = ? AND usuario_id = ? AND activo = 1");
+            $stmt->execute([$publicacion_id, $usuario_id]);
+            $publicacion = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($publicacion) {
+                echo json_encode(['success' => true, 'publicacion' => $publicacion]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Publicación no encontrada']);
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Error al cargar publicación']);
+        }
+        exit();
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -277,8 +405,9 @@ if (isset($_GET['action'])) {
                     <li><a href="index.php#agenda" onclick="closeMenu()">Agenda</a></li>
                     <li><a href="index.php#ministerio" onclick="closeMenu()">El Ministerio</a></li>
                     <li><a href="foro.php" onclick="closeMenu()">Foro</a></li>
-                    <?php if (isset($_SESSION['usuario_id'])): ?>
-                        <li><a href="dashboard.php" onclick="closeMenu()">Dashboard</a></li>
+                    <?php if ($usuario && $usuario['TIPO_USUARIO'] == 'funcionario'): ?>
+                        <li><a href="dashboard.php">Dashboard</a></li>
+                    <?php endif; ?>                    <?php if (isset($_SESSION['usuario_id'])): ?>
                         <li><a href="logout.php" onclick="closeMenu()">Salir</a></li>
                     <?php else: ?>
                         <li><a href="login.php" onclick="closeMenu()">Iniciar Sesión</a></li>
@@ -367,8 +496,25 @@ if (isset($_GET['action'])) {
                                         <span><?php echo date('d M Y, H:i', strtotime($pub['FECHA_PUBLICACION'])); ?></span>
                                     </div>
                                 </div>
-                                <div class="post-category">
-                                    <span class="category-badge category-<?php echo $pub['CATEGORIA']; ?>"><?php echo ucfirst($pub['CATEGORIA']); ?></span>
+                                <div class="post-header-right">
+                                    <div class="post-category">
+                                        <span class="category-badge category-<?php echo $pub['CATEGORIA']; ?>"><?php echo ucfirst($pub['CATEGORIA']); ?></span>
+                                    </div>
+                                    <?php if (isset($_SESSION['usuario_id']) && $pub['USUARIO_ID'] == $_SESSION['usuario_id']): ?>
+                                    <div class="post-menu">
+                                        <button class="btn-menu" onclick="togglePostMenu(<?php echo $pub['ID']; ?>)">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <div class="post-menu-dropdown" id="menu-<?php echo $pub['ID']; ?>">
+                                            <button onclick="editarPublicacion(<?php echo $pub['ID']; ?>)">
+                                                <i class="fas fa-edit"></i> Editar
+                                            </button>
+                                            <button onclick="eliminarPublicacion(<?php echo $pub['ID']; ?>)">
+                                                <i class="fas fa-trash"></i> Eliminar
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                             <div class="post-content">
@@ -521,6 +667,47 @@ if (isset($_GET['action'])) {
         </div>
     </div>
 
+    <!-- Modal para Editar Publicación -->
+    <div id="editPostModal" class="modal">
+        <div class="modal-content post-modal">
+            <span class="close" onclick="closeEditPostModal()">&times;</span>
+            <h3>Editar Publicación</h3>
+            <form id="editArteForm">
+                <input type="hidden" id="editPostId" value="">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editTitulo">Título</label>
+                        <input type="text" id="editTitulo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editCategoria">Categoría</label>
+                        <select id="editCategoria" required>
+                            <option value="">Seleccionar...</option>
+                            <option value="danza">Danza</option>
+                            <option value="musica">Música</option>
+                            <option value="artesPlasticas">Artes Plásticas</option>
+                            <option value="poesia">Poesía</option>
+                            <option value="teatro">Teatro</option>
+                            <option value="cine">Cine</option>
+                            <option value="fotografia">Fotografía</option>
+                            <option value="artesanias">Artesanías</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editDescripcion">¿Qué quieres compartir?</label>
+                    <textarea id="editDescripcion" rows="4" placeholder="Describe tu arte, comparte tus pensamientos..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="editArchivo">Cambiar Imagen (opcional)</label>
+                    <input type="file" id="editArchivo" name="archivo" accept="image/*,video/*,audio/*">
+                    <div id="editFilePreview"></div>
+                </div>
+                <button type="submit" class="btn-submit">Actualizar</button>
+            </form>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer>
         <div class="footer-content">
@@ -560,7 +747,7 @@ if (isset($_GET['action'])) {
         </div>
         <div class="footer-bottom">
             <p>© 2026 Ministerio del Poder Popular para la Cultura - Todos los derechos reservados</p>
-            <p>Desarrollado por OTIC - Oficina de Tecnologías de la Información y la Comunicación</p>
+            
         </div>
     </footer>
 

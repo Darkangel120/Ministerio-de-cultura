@@ -11,6 +11,12 @@ if (!isset($_SESSION['usuario_id'])) {
     exit();
 }
 
+// Verificar permisos - Solo funcionarios pueden acceder a la gestión de cultores
+if ($_SESSION['usuario_tipo'] !== 'funcionario') {
+    header('Location: dashboard.php');
+    exit();
+}
+
 // Procesar solicitudes GET (para AJAX)
 if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['action'])) {
     header('Content-Type: application/json');

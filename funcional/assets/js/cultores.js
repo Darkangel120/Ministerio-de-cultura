@@ -175,7 +175,7 @@ async function deleteCultor(cultorId) {
     if (confirm('¿Está seguro de que desea eliminar este cultor?')) {
         try {
             const response = await fetch(`cultores.php?action=delete_cultor&id=${cultorId}`, {
-                method: 'POST'
+                method: 'GET'
             });
 
             const result = await response.json();
@@ -201,7 +201,7 @@ async function eliminarCultor(cultorId) {
     if (confirm('¿Está seguro de que desea eliminar este cultor?')) {
         try {
             const response = await fetch(`cultores.php?action=delete_cultor&id=${cultorId}`, {
-                method: 'POST'
+                method: 'GET'
             });
 
             const result = await response.json();
