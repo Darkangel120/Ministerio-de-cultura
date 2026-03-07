@@ -8,7 +8,7 @@ CREATE TABLE usuarios (
     nombre_completo VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     telefono VARCHAR(20),
-    tipo_usuario VARCHAR(20) NOT NULL CHECK (tipo_usuario IN ('cultor', 'funcionario', 'publico')),
+    tipo_usuario VARCHAR(20) NOT NULL CHECK (tipo_usuario IN ('admin', 'director_general', 'director_operativo', 'funcionario','cultor', 'publico')),
     password_hash VARCHAR(255) NOT NULL,
     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     activo SMALLINT DEFAULT 1 CHECK (activo IN (0, 1))
@@ -92,6 +92,7 @@ CREATE TABLE eventos (
     adultos_femeninas INTEGER DEFAULT 0,
 
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    estado_ejecucion VARCHAR(20) DEFAULT 'registrado' CHECK (estado_ejecucion IN ('registrado', 'ejecutado', 'reportada')),
     activo SMALLINT DEFAULT 1 CHECK (activo IN (0, 1))
 );
 
@@ -149,19 +150,19 @@ CREATE INDEX idx_foro_likes_fecha ON foro_likes (fecha_like);
 
 -- Usuario administrador de ejemplo
 INSERT INTO usuarios (nombre_completo, email, telefono, tipo_usuario, password_hash) VALUES
-('Administrador Sistema', 'admin@mincultura.gob.ve', '02121234567', 'funcionario', '$2b$10$example.hash.here');
+('Administrador Sistema', 'admin@mincultura.gob.ve', '02121234567', 'admin', '$2b$10$example.hash.here');
 
 -- Cultor de ejemplo
 INSERT INTO cultores (nombres_apellidos, telefono, cedula, correo, area_tematica, disciplina, comuna, municipio, parroquia, carnet_patria, direccion, lugar_nacimiento, fecha_nacimiento, edad, trayectoria_anios, organizacion) VALUES
 ('María González', '04141234567', 'V-12345678', 'maria.gonzalez@email.com', 'musica', 'Cuatro venezolano', 'Comuna 1', 'Libertador', 'Catedral', '123456789012', 'Av. Principal 123', 'Caracas', '1985-03-15', 39, 15, 'Fundación Música Venezolana');
 
 -- Evento de ejemplo
-INSERT INTO eventos (correo_usuario, estado, municipio, parroquia, organizacion, direccion, consejo_comunal, nombre_comuna, vocero_nombre, vocero_cedula, vocero_telefono, responsable_nombre, responsable_cedula, responsable_telefono, responsable_cargo, tipo_actividad, disciplina, nombre_actividad, objetivo, mes, fecha, hora, duracion, ninos, ninas, jovenes_masculinos, jovenes_femeninas, adultos_masculinos, adultos_femeninas) VALUES
-('admin@mincultura.gob.ve', 'Distrito Capital', 'Libertador', 'Catedral', 'Fundación Música Venezolana', 'Teatro Nacional', 'Consejo Comunal Catedral', 'Comuna Catedral', 'Juan Pérez', 'V-87654321', '04149876543', 'Ana López', 'V-11223344', '04145566778', 'Coordinador', 'Presentación artística', 'música', 'Concierto de Música Tradicional', 'PROMOCIÓN DE LA PARTICIPACIÓN POPULAR', 1, '2024-01-15', '19:00:00', 2, 10, 15, 8, 12, 25, 30);
+INSERT INTO eventos (correo_usuario, estado, municipio, parroquia, organizacion, direccion, consejo_comunal, nombre_comuna, vocero_nombre, vocero_cedula, vocero_telefono, responsable_nombre, responsable_cedula, responsable_telefono, responsable_cargo, tipo_actividad, disciplina, nombre_actividad, objetivo, mes, fecha, hora, duracion, ninos, ninas, jovenes_masculinos, jovenes_femeninas, adultos_masculinos, adultos_femeninas, estado_ejecucion) VALUES
+('admin@mincultura.gob.ve', 'Distrito Capital', 'Libertador', 'Catedral', 'Fundación Música Venezolana', 'Teatro Nacional', 'Consejo Comunal Catedral', 'Comuna Catedral', 'Juan Pérez', 'V-87654321', '04149876543', 'Ana López', 'V-11223344', '04145566778', 'Coordinador', 'Presentación artística', 'música', 'Concierto de Música Tradicional', 'PROMOCIÓN DE LA PARTICIPACIÓN POPULAR', 1, '2024-01-15', '19:00:00', 2, 10, 15, 8, 12, 25, 30, 'registrado');
 
 -- Publicación de foro de ejemplo
-INSERT INTO foro_publicaciones (titulo, categoria, descripcion) VALUES
-('Compartiendo mi última composición', 'musica', 'He estado trabajando en una nueva pieza inspirada en la música tradicional venezolana. ¡Me gustaría compartirla con la comunidad!');
+INSERT INTO foro_publicaciones (usuario_id, titulo, categoria, descripcion, archivo_url, tipo_archivo) VALUES
+(1, 'Compartiendo mi última composición', 'musica', 'He estado trabajando en una nueva pieza inspirada en la música tradicional venezolana. ¡Me gustaría compartirla con la comunidad!', 'funcional/assets/uploads/696f7f052de89_images.jpg', 'imagen');
 
 -- Tabla de noticias
 CREATE TABLE noticias (

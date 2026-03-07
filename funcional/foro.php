@@ -2,6 +2,10 @@
 session_start();
 require_once 'config.php';
 
+// Configurar sesiones seguras y headers de seguridad
+configurarSesionSegura();
+configurarHeadersSeguridad();
+
 // Obtener publicaciones del foro
 $pdo = conectarDB();
 
@@ -48,39 +52,76 @@ $eventos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Procesar nueva publicación
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['crear_publicacion'])) {
-    if (!isset($_SESSION['usuario_id'])) {
+    // Validar token CSRF
+    if (!validarTokenCSRF($_POST['csrf_token'] ?? '')) {
+        $error = "Token de seguridad inválido.";
+    } elseif (!isset($_SESSION['usuario_id'])) {
         header('Location: login.php');
         exit();
-    }
+    } else {
 
     $titulo = sanitizar($_POST['titulo']);
     $categoria = sanitizar($_POST['categoria']);
     $descripcion = sanitizar($_POST['descripcion']);
     $usuario_id = $_SESSION['usuario_id'];
 
-    // Manejar archivo multimedia
+    // Manejar archivo multimedia con validación segura
     $archivo_url = null;
     $tipo_archivo = null;
     if (isset($_FILES['archivo']) && $_FILES['archivo']['error'] == 0) {
-        $upload_dir = 'assets/uploads/';
-        if (!is_dir($upload_dir)) {
-            mkdir($upload_dir, 0755, true);
-        }
+        $file = $_FILES['archivo'];
 
-        $file_name = uniqid() . '_' . basename($_FILES['archivo']['name']);
-        $file_path = $upload_dir . $file_name;
+        // Validar tamaño del archivo (5MB máximo)
+        $max_size = env('MAX_FILE_SIZE', 5242880); // 5MB por defecto
+        if ($file['size'] > $max_size) {
+            $error = "El archivo es demasiado grande. Máximo permitido: " . ($max_size / 1024 / 1024) . "MB";
+        } else {
+            // Validar tipo MIME real (no solo extensión)
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mime_type = finfo_file($finfo, $file['tmp_name']);
+            finfo_close($finfo);
 
-        if (move_uploaded_file($_FILES['archivo']['tmp_name'], $file_path)) {
-            $archivo_url = $file_path;
+            $allowed_types = [
+                'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+                'video/mp4', 'video/webm', 'video/ogg',
+                'audio/mpeg', 'audio/wav', 'audio/ogg'
+            ];
 
-            // Determinar tipo de archivo
-            $file_type = $_FILES['archivo']['type'];
-            if (strpos($file_type, 'image/') === 0) {
-                $tipo_archivo = 'imagen';
-            } elseif (strpos($file_type, 'video/') === 0) {
-                $tipo_archivo = 'video';
-            } elseif (strpos($file_type, 'audio/') === 0) {
-                $tipo_archivo = 'audio';
+            if (!in_array($mime_type, $allowed_types)) {
+                $error = "Tipo de archivo no permitido. Solo se permiten imágenes, videos y audio.";
+            } else {
+                // Validar extensión del archivo
+                $allowed_extensions = explode(',', env('ALLOWED_EXTENSIONS', 'jpg,jpeg,png,gif,mp4,mp3,wav'));
+                $file_extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+
+                if (!in_array($file_extension, $allowed_extensions)) {
+                    $error = "Extensión de archivo no permitida.";
+                } else {
+                    // Crear directorio si no existe
+                    $upload_dir = env('UPLOAD_PATH', 'assets/uploads/');
+                    if (!is_dir($upload_dir)) {
+                        mkdir($upload_dir, 0755, true);
+                    }
+
+                    // Generar nombre seguro para el archivo
+                    $file_name = uniqid('file_', true) . '_' . bin2hex(random_bytes(8)) . '.' . $file_extension;
+                    $file_path = $upload_dir . $file_name;
+
+                    if (move_uploaded_file($file['tmp_name'], $file_path)) {
+                        $archivo_url = $file_path;
+
+                        // Determinar tipo de archivo basado en MIME type
+                        if (strpos($mime_type, 'image/') === 0) {
+                            $tipo_archivo = 'imagen';
+                        } elseif (strpos($mime_type, 'video/') === 0) {
+                            $tipo_archivo = 'video';
+                        } elseif (strpos($mime_type, 'audio/') === 0) {
+                            $tipo_archivo = 'audio';
+                        }
+                    } else {
+                        $error = "Error al subir el archivo.";
+                    }
+                }
             }
         }
     }
@@ -94,6 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['crear_publicacion'])) 
     } catch (Exception $e) {
         $error = "Error al crear la publicación: " . $e->getMessage();
     }
+}
 }
 
 // Procesar nuevo comentario
@@ -373,7 +415,7 @@ if (isset($_GET['action'])) {
     <!-- Barra Superior -->
     <div class="top-bar">
         <div class="container">
-            <div><i class="fas fa-phone"></i> 0212-XXX-XXXX | <i class="fas fa-envelope"></i> atencionciudadana@mincultura.gob.ve</div>
+            <div><i class="fas fa-phone"></i> 0426-6574301| <i class="fas fa-envelope"></i> atencionciudadana@mincultura.gob.ve</div>
             <div class="social-links">
                 <a href="#" title="Facebook">Facebook</a>
                 <a href="#" title="Twitter">Twitter</a>
@@ -405,9 +447,17 @@ if (isset($_GET['action'])) {
                     <li><a href="index.php#agenda" onclick="closeMenu()">Agenda</a></li>
                     <li><a href="index.php#ministerio" onclick="closeMenu()">El Ministerio</a></li>
                     <li><a href="foro.php" onclick="closeMenu()">Foro</a></li>
-                    <?php if ($usuario && $usuario['TIPO_USUARIO'] == 'funcionario'): ?>
-                        <li><a href="dashboard.php">Dashboard</a></li>
-                    <?php endif; ?>                    <?php if (isset($_SESSION['usuario_id'])): ?>
+                    <?php if (isset($_SESSION['usuario_id'])): ?>
+                        <li><a href="perfil.php" onclick="closeMenu()">Mi Perfil</a></li>
+                        <?php
+                        $roles_crear_usuario = ['admin', 'director_general', 'director_operativo'];
+                        if ($usuario && in_array(strtolower($usuario['TIPO_USUARIO']), $roles_crear_usuario)):
+                        ?>
+                            <li><a href="crear_usuario.php" onclick="closeMenu()">Crear Usuario</a></li>
+                        <?php endif; ?>
+                        <?php if ($usuario && $usuario['TIPO_USUARIO'] == 'funcionario'): ?>
+                            <li><a href="dashboard.php">Menu Principal</a></li>
+                        <?php endif; ?>
                         <li><a href="logout.php" onclick="closeMenu()">Salir</a></li>
                     <?php else: ?>
                         <li><a href="login.php" onclick="closeMenu()">Iniciar Sesión</a></li>
@@ -492,7 +542,7 @@ if (isset($_GET['action'])) {
                                 <div class="post-user">
                                     <div class="user-avatar"><i class="fas fa-user"></i></div>
                                     <div class="user-info">
-                                        <h4><?php echo htmlspecialchars($pub['NOMBRE_COMPLETO'] ?? 'Usuario Anónimo'); ?></h4>
+                                        <h4><a href="perfil.php?id=<?php echo $pub['USUARIO_ID']; ?>" style="color: inherit; text-decoration: none;"><?php echo htmlspecialchars($pub['NOMBRE_COMPLETO'] ?? 'Usuario Anónimo'); ?></a></h4>
                                         <span><?php echo date('d M Y, H:i', strtotime($pub['FECHA_PUBLICACION'])); ?></span>
                                     </div>
                                 </div>
@@ -522,16 +572,20 @@ if (isset($_GET['action'])) {
                                 <p><?php echo nl2br(htmlspecialchars($pub['DESCRIPCION'])); ?></p>
                                 <?php if ($pub['ARCHIVO_URL']): ?>
                                 <div class="post-media">
+                                    <?php
+                                    // Corregir la ruta del archivo eliminando 'funcional/' si existe
+                                    $archivo_url = str_replace('funcional/', '', $pub['ARCHIVO_URL']);
+                                    ?>
                                     <?php if ($pub['TIPO_ARCHIVO'] == 'imagen'): ?>
-                                        <img src="<?php echo htmlspecialchars($pub['ARCHIVO_URL']); ?>" alt="Imagen de la publicación" onclick="openMediaModal(this.src)">
+                                        <img src="<?php echo htmlspecialchars($archivo_url); ?>" alt="Imagen de la publicación" onclick="openMediaModal(this.src)">
                                     <?php elseif ($pub['TIPO_ARCHIVO'] == 'video'): ?>
                                         <video controls>
-                                            <source src="<?php echo htmlspecialchars($pub['ARCHIVO_URL']); ?>" type="video/mp4">
+                                            <source src="<?php echo htmlspecialchars($archivo_url); ?>" type="video/mp4">
                                             Tu navegador no soporta el elemento de video.
                                         </video>
                                     <?php elseif ($pub['TIPO_ARCHIVO'] == 'audio'): ?>
                                         <audio controls>
-                                            <source src="<?php echo htmlspecialchars($pub['ARCHIVO_URL']); ?>" type="audio/mpeg">
+                                            <source src="<?php echo htmlspecialchars($archivo_url); ?>" type="audio/mpeg">
                                             Tu navegador no soporta el elemento de audio.
                                         </audio>
                                     <?php endif; ?>
@@ -747,7 +801,7 @@ if (isset($_GET['action'])) {
         </div>
         <div class="footer-bottom">
             <p>© 2026 Ministerio del Poder Popular para la Cultura - Todos los derechos reservados</p>
-            
+            <p>Realizado por Rodolfo Gómez</p>
         </div>
     </footer>
 

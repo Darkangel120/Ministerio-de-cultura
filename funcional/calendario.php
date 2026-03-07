@@ -5,11 +5,17 @@ require_once 'config.php';
 // Verificar sesión
 verificarSesion();
 
-// Verificar permisos - Solo funcionarios pueden acceder al calendario
-if ($_SESSION['usuario_tipo'] !== 'funcionario') {
+// Verificar permisos - Funcionarios, Admin y Directores pueden acceder al calendario
+$roles_permitidos = ['funcionario', 'admin', 'director_general', 'director_operativo'];
+if (!in_array($_SESSION['usuario_tipo'], $roles_permitidos)) {
     header('Location: dashboard.php');
     exit();
 }
+
+// Obtener datos del usuario
+$usuario = obtenerUsuarioActual();
+$roles_crear_usuario = ['admin', 'director_general', 'director_operativo'];
+$puede_crear_usuario = $usuario && in_array(strtolower($usuario['TIPO_USUARIO']), $roles_crear_usuario);
 
 // Procesar acciones AJAX
 if (isset($_GET['action'])) {
@@ -50,6 +56,20 @@ if (isset($_GET['action'])) {
             echo json_encode(['success' => true, 'data' => $evento]);
         } else {
             echo json_encode(['success' => false, 'message' => 'Evento no encontrado']);
+        }
+        exit();
+    } elseif ($_GET['action'] === 'execute_event') {
+        // Ejecutar actividad - cambiar estado a 'reportada'
+        $pdo = conectarDB();
+        $id = (int)$_GET['id'];
+
+        $stmt = $pdo->prepare("UPDATE eventos SET estado_ejecucion = 'reportada' WHERE id = ? AND activo = 1");
+        $result = $stmt->execute([$id]);
+
+        if ($result) {
+            echo json_encode(['success' => true, 'message' => 'Actividad ejecutada y reportada exitosamente']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Error al ejecutar la actividad']);
         }
         exit();
     }
@@ -221,7 +241,7 @@ $usuario_json = json_encode([
     <!-- Barra Superior -->
     <div class="top-bar">
         <div class="container">
-            <div><i class="fas fa-phone"></i> 0212-XXX-XXXX | <i class="fas fa-envelope"></i> atencionciudadana@mincultura.gob.ve</div>
+            <div><i class="fas fa-phone"></i> 0426-6574301| <i class="fas fa-envelope"></i> atencionciudadana@mincultura.gob.ve</div>
             <div class="social-links">
                 <a href="#" title="Facebook">Facebook</a>
                 <a href="#" title="Twitter">Twitter</a>
@@ -248,11 +268,13 @@ $usuario_json = json_encode([
             </div>
             <nav id="mainNav">
                 <ul>
-                    <ul>
                     <li><a href="foro.php" onclick="closeMenu()">Foro</a></li>
-                    <li><a href="dashboard.php" onclick="closeMenu()">Dashboard</a></li>
-                    <li><a href="calendario.php">Calendario</a></li>
+                    <li><a href="dashboard.php" onclick="closeMenu()">Menu Principal</a></li>
                     <li><a href="cultores.php">Cultores</a></li>
+                    <li><a href="reportes.php">Reportes</a></li>
+                    <?php if ($puede_crear_usuario): ?>
+                        <li><a href="crear_usuario.php">Crear Usuario</a></li>
+                    <?php endif; ?>
                     <li><a href="logout.php" onclick="closeMenu()">Cerrar Sesión</a></li>
                 </ul>
             </nav>
@@ -282,6 +304,9 @@ $usuario_json = json_encode([
                     <option value="11">Noviembre</option>
                     <option value="12">Diciembre</option>
                 </select>
+                <label style="margin-left: 20px;">
+                    <input type="checkbox" id="filterMyEvents"> Mis Actividades
+                </label>
             </div>
         </div>
 
@@ -614,7 +639,7 @@ $usuario_json = json_encode([
         </div>
         <div class="footer-bottom">
             <p>© 2026 Ministerio del Poder Popular para la Cultura - Todos los derechos reservados</p>
-            
+            <p>Realizado por Rodolfo Gómez</p>
         </div>
     </footer>
 

@@ -4,8 +4,59 @@ require_once 'config.php';
 
 // Verificar sesión
 if (!isset($_SESSION['usuario_id'])) {
+    if (php_sapi_name() === 'cli' || !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'No autorizado']);
+        exit();
+    }
     header('Location: login.php');
     exit();
+}
+
+// Manejar peticiones AJAX
+if (isset($_GET['action']) && $_GET['action'] == 'get_stats') {
+    header('Content-Type: application/json');
+    try {
+        $pdo = conectarDB();
+        $usuario = obtenerUsuarioActual();
+        
+        $stats = [];
+        
+        $tipos_con_stats = ['funcionario', 'admin', 'director_general', 'director_operativo'];
+        
+        if (in_array($usuario['TIPO_USUARIO'], $tipos_con_stats)) {
+            $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM eventos WHERE activo = 1");
+            $stmt->execute();
+            $stats['eventosProximos'] = $stmt->fetch()['TOTAL'];
+            
+            $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM cultores WHERE activo = 1");
+            $stmt->execute();
+            $stats['cultoresRegistrados'] = $stmt->fetch()['TOTAL'];
+            
+            $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM foro_publicaciones WHERE activo = 1");
+            $stmt->execute();
+            $stats['reportesGenerados'] = $stmt->fetch()['TOTAL'];
+            
+        } elseif ($usuario['TIPO_USUARIO'] == 'cultor') {
+            $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM foro_publicaciones WHERE usuario_id = ? AND activo = 1");
+            $stmt->execute([$_SESSION['usuario_id']]);
+            $stats['eventosProximos'] = $stmt->fetch()['TOTAL'];
+            
+            $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM foro_comentarios WHERE usuario_id = ? AND activo = 1");
+            $stmt->execute([$_SESSION['usuario_id']]);
+            $stats['cultoresRegistrados'] = $stmt->fetch()['TOTAL'];
+            
+            $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM eventos WHERE activo = 1");
+            $stmt->execute();
+            $stats['reportesGenerados'] = $stmt->fetch()['TOTAL'];
+        }
+        
+        echo json_encode(['success' => true, 'stats' => $stats]);
+        exit();
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        exit();
+    }
 }
 
 // Obtener datos del usuario
@@ -14,8 +65,10 @@ $usuario = obtenerUsuarioActual();
 // Obtener estadísticas según el tipo de usuario
 $pdo = conectarDB();
 
-if ($usuario['TIPO_USUARIO'] == 'funcionario') {
-    // Estadísticas para funcionarios
+$tipos_con_stats = ['funcionario', 'admin', 'director_general', 'director_operativo'];
+
+if (in_array($usuario['TIPO_USUARIO'], $tipos_con_stats)) {
+    // Estadísticas para funcionarios, admin y directores
     $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM eventos WHERE activo = 1");
     $stmt->execute();
     $total_eventos = $stmt->fetch()['TOTAL'];
@@ -64,7 +117,7 @@ if ($usuario['TIPO_USUARIO'] == 'funcionario') {
     <!-- Barra Superior -->
     <div class="top-bar">
         <div class="container">
-            <div><i class="fas fa-phone"></i> 0212-XXX-XXXX | <i class="fas fa-envelope"></i> atencionciudadana@mincultura.gob.ve</div>
+            <div><i class="fas fa-phone"></i> 0426-6574301| <i class="fas fa-envelope"></i> atencionciudadana@mincultura.gob.ve</div>
             <div class="social-links">
                 <a href="#" title="Facebook">Facebook</a>
                 <a href="#" title="Twitter">Twitter</a>
@@ -93,9 +146,12 @@ if ($usuario['TIPO_USUARIO'] == 'funcionario') {
                 <ul>
                     <li><a href="foro.php" onclick="closeMenu()">Foro</a></li>
                     <?php if ($usuario['TIPO_USUARIO'] == 'funcionario'): ?>
-                        <li><a href="dashboard.php">Dashboard</a></li>
                         <li><a href="calendario.php">Calendario</a></li>
                         <li><a href="cultores.php">Cultores</a></li>
+                        <li><a href="reportes.php">Reportes</a></li>
+                    <?php endif; ?>
+                    <?php if ($usuario['TIPO_USUARIO'] == 'admin' || $usuario['TIPO_USUARIO'] == 'director_general' || $usuario['TIPO_USUARIO'] == 'director_operativo'): ?>
+                        <li><a href="crear_usuario.php">Crear Usuario</a></li>
                     <?php endif; ?>
                     <li><a href="logout.php">Cerrar Sesión</a></li>
                 </ul>
@@ -110,19 +166,18 @@ if ($usuario['TIPO_USUARIO'] == 'funcionario') {
     <section class="dashboard-section">
         <div class="container">
             <div class="dashboard-header">
-                <h2><i class="fas fa-tachometer-alt"></i> Dashboard</h2>
                 <p>Bienvenido, <?php echo htmlspecialchars($usuario['NOMBRE_COMPLETO']); ?></p>
             </div>
 
             <div class="dashboard-grid">
-                <?php if ($usuario['TIPO_USUARIO'] == 'funcionario'): ?>
+                <?php if ($usuario['TIPO_USUARIO'] == 'funcionario' || $usuario['TIPO_USUARIO'] == 'admin' || $usuario['TIPO_USUARIO'] == 'director_general' || $usuario['TIPO_USUARIO'] == 'director_operativo'): ?>
                     <!-- Estadísticas para funcionarios -->
                     <div class="dashboard-card">
                         <div class="card-icon">
                             <i class="fas fa-calendar-alt"></i>
                         </div>
                         <div class="card-content">
-                            <h3><?php echo $total_eventos; ?></h3>
+                            <h3 id="eventos-counter"><?php echo $total_eventos; ?></h3>
                             <p>Eventos Registrados</p>
                         </div>
                     </div>
@@ -132,8 +187,18 @@ if ($usuario['TIPO_USUARIO'] == 'funcionario') {
                             <i class="fas fa-users"></i>
                         </div>
                         <div class="card-content">
-                            <h3><?php echo $total_cultores; ?></h3>
+                            <h3 id="cultores-counter"><?php echo $total_cultores; ?></h3>
                             <p>Cultores Registrados</p>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3 id="reportes-counter"><?php echo $total_publicaciones; ?></h3>
+                            <p>Publicaciones</p>
                         </div>
                     </div>
 
@@ -144,7 +209,7 @@ if ($usuario['TIPO_USUARIO'] == 'funcionario') {
                             <i class="fas fa-edit"></i>
                         </div>
                         <div class="card-content">
-                            <h3><?php echo $mis_publicaciones; ?></h3>
+                            <h3 id="eventos-counter"><?php echo $mis_publicaciones; ?></h3>
                             <p>Mis Publicaciones</p>
                         </div>
                     </div>
@@ -154,7 +219,7 @@ if ($usuario['TIPO_USUARIO'] == 'funcionario') {
                             <i class="fas fa-comment"></i>
                         </div>
                         <div class="card-content">
-                            <h3><?php echo $mis_comentarios; ?></h3>
+                            <h3 id="cultores-counter"><?php echo $mis_comentarios; ?></h3>
                             <p>Mis Comentarios</p>
                         </div>
                     </div>
@@ -164,7 +229,7 @@ if ($usuario['TIPO_USUARIO'] == 'funcionario') {
                             <i class="fas fa-calendar-check"></i>
                         </div>
                         <div class="card-content">
-                            <h3>0</h3>
+                            <h3 id="reportes-counter">0</h3>
                             <p>Eventos Inscritos</p>
                         </div>
                     </div>
@@ -220,14 +285,18 @@ if ($usuario['TIPO_USUARIO'] == 'funcionario') {
                         <i class="fas fa-calendar-plus"></i>
                         <span>Ver Eventos</span>
                     </a>
-                    <?php if ($usuario['TIPO_USUARIO'] == 'funcionario'): ?>
+                    <?php if ($usuario['TIPO_USUARIO'] == 'funcionario' || $usuario['TIPO_USUARIO'] == 'admin' || $usuario['TIPO_USUARIO'] == 'director_general' || $usuario['TIPO_USUARIO'] == 'director_operativo'): ?>
                         <a href="cultores.php" class="action-btn">
                             <i class="fas fa-users-cog"></i>
                             <span>Gestionar Cultores</span>
                         </a>
-                        <a href="#" class="action-btn">
+                        <a href="reportes.php" class="action-btn">
                             <i class="fas fa-chart-bar"></i>
                             <span>Reportes</span>
+                        </a>
+                        <a href="crear_usuario.php" class="action-btn">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Crear Usuario</span>
                         </a>
                     <?php endif; ?>
                 </div>
@@ -274,7 +343,7 @@ if ($usuario['TIPO_USUARIO'] == 'funcionario') {
         </div>
         <div class="footer-bottom">
             <p>© 2026 Ministerio del Poder Popular para la Cultura - Todos los derechos reservados</p>
-            
+            <p>Realizado por Rodolfo Gómez</p>
         </div>
     </footer>
 

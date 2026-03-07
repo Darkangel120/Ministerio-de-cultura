@@ -29,7 +29,7 @@ $eventos = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <!-- Barra Superior -->
     <div class="top-bar">
         <div class="container">
-            <div><i class="fas fa-phone"></i> 0212-XXX-XXXX | <i class="fas fa-envelope"></i> atencionciudadana@mincultura.gob.ve</div>
+            <div><i class="fas fa-phone"></i> 0426-6574301| <i class="fas fa-envelope"></i> atencionciudadana@mincultura.gob.ve</div>
             <div class="social-links">
                 <a href="#" title="Facebook">Facebook</a>
                 <a href="#" title="Twitter">Twitter</a>
@@ -56,16 +56,15 @@ $eventos = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
             <nav id="mainNav">
                 <ul>
-                    <li><a href="#inicio" onclick="closeMenu()">Inicio</a></li>
                     <li><a href="#noticias" onclick="closeMenu()">Noticias</a></li>
                     <li><a href="#agenda" onclick="closeMenu()">Agenda</a></li>
                     <li><a href="#ministerio" onclick="closeMenu()">El Ministerio</a></li>
                     <li><a href="foro.php" onclick="closeMenu()">Foro</a></li>
                     <?php if ($usuario && $usuario['TIPO_USUARIO'] == 'funcionario'): ?>
-                        <li><a href="dashboard.php">Dashboard</a></li>
+                        <li><a href="dashboard.php">Menu Principal</a></li>
                     <?php endif; ?>
                     <?php if (isset($_SESSION['usuario_id'])): ?>
-                        <li><a href="logout.php" onclick="closeMenu()">Salir</a></li>
+                        <li><a href="logout.php" onclick="closeMenu()">cerrar</a></li>
                     <?php else: ?>
                         <li><a href="login.php" onclick="closeMenu()">Iniciar Sesión</a></li>
                     <?php endif; ?>
@@ -203,7 +202,7 @@ $eventos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
         <div class="footer-bottom">
             <p>© 2026 Ministerio del Poder Popular para la Cultura - Todos los derechos reservados</p>
-            
+            <p>Realizado por Rodolfo Gómez</p>
         </div>
     </footer>
 

@@ -1,17 +1,32 @@
 <?php
-session_start();
 require_once 'config.php';
 
-// Si ya está logueado, redirigir al dashboard
+// Configurar sesiones seguras antes de iniciar la sesión
+configurarSesionSegura();
+session_start();
+
+// Configurar headers de seguridad
+configurarHeadersSeguridad();
+
+// Si ya está logueado, redirigir según tipo de usuario
 if (isset($_SESSION['usuario_id'])) {
-    header('Location: dashboard.php');
+    $usuario_actual = obtenerUsuarioActual();
+    if ($usuario_actual && $usuario_actual['TIPO_USUARIO'] == 'funcionario') {
+        header('Location: dashboard.php');
+    } else {
+        header('Location: foro.php');
+    }
     exit();
 }
 
 // Procesar login
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $email = sanitizar($_POST['email']);
-    $password = $_POST['password'];
+    // Validar token CSRF
+    if (!validarTokenCSRF($_POST['csrf_token'] ?? '')) {
+        $error = "Token de seguridad inválido.";
+    } else {
+        $email = sanitizar($_POST['email']);
+        $password = $_POST['password'];
 
     $pdo = conectarDB();
     $stmt = $pdo->prepare("SELECT id, nombre_completo, tipo_usuario, password_hash, activo FROM usuarios WHERE email = ?");
@@ -25,13 +40,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_SESSION['usuario_nombre'] = $usuario['NOMBRE_COMPLETO'];
             $_SESSION['usuario_tipo'] = $usuario['TIPO_USUARIO'];
 
-            header('Location: dashboard.php');
+            // Redirigir según tipo de usuario
+            if ($usuario['TIPO_USUARIO'] == 'funcionario') {
+                header('Location: dashboard.php');
+            } else {
+                header('Location: foro.php');
+            }
             exit();
         } else {
             $error = "Cuenta desactivada. Contacte al administrador.";
         }
     } else {
         $error = "Correo electrónico o contraseña incorrectos.";
+    }
     }
 }
 ?>
@@ -53,6 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <p>Iniciar Sesión</p>
         </div>
         <form class="login-form" id="loginForm" method="post">
+            <input type="hidden" name="csrf_token" value="<?php echo generarTokenCSRF(); ?>">
             <div class="form-group">
                 <label for="email">Correo Electrónico</label>
                 <input type="email" id="email" name="email" required>
@@ -69,6 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <div class="login-footer">
             <p>¿No tienes cuenta? <a href="registro.php">Regístrate aquí</a></p>
             <p><a href="index.php">Volver al Inicio</a></p>
+            <p>Realizado por Rodolfo Gómez</p>
         </div>
     </div>
     <script src="assets/js/login.js"></script>

@@ -145,16 +145,9 @@ nav a {
     text-decoration: none;
     color: var(--azul);
     font-weight: 600;
-    padding: 10px 15px;
     border-radius: 20px;
     transition: all 0.3s;
     position: relative;
-}
-
-nav a:hover,
-nav a.active {
-    background: var(--azul);
-    color: var(--blanco);
 }
 
 /* Overlay */
@@ -551,5 +544,146 @@ footer {
 
     .footer-section h3 {
         font-size: 16px;
+    }
+}
+
+/* Estilos para el formulario de crear usuario */
+.form-container {
+    background: var(--blanco);
+    border-radius: 15px;
+    padding: 40px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.crear-usuario-form .form-row {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 25px;
+}
+
+.crear-usuario-form .form-group {
+    flex: 1;
+}
+
+.crear-usuario-form .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--azul);
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.crear-usuario-form .form-group input,
+.crear-usuario-form .form-group select {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 15px;
+    transition: all 0.3s;
+    background: var(--blanco);
+}
+
+.crear-usuario-form .form-group input:focus,
+.crear-usuario-form .form-group select:focus {
+    outline: none;
+    border-color: var(--azul);
+    box-shadow: 0 0 0 3px rgba(0, 56, 147, 0.1);
+}
+
+.crear-usuario-form .form-group input::placeholder {
+    color: #999;
+}
+
+.form-actions {
+    display: flex;
+    gap: 20px;
+    margin-top: 30px;
+    justify-content: center;
+}
+
+.form-actions .btn {
+    padding: 14px 30px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: none;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.form-actions .btn-primary {
+    background: linear-gradient(135deg, var(--azul), #002366);
+    color: var(--blanco);
+}
+
+.form-actions .btn-primary:hover {
+    background: linear-gradient(135deg, #002366, #001a4d);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 56, 147, 0.3);
+}
+
+.form-actions .btn-secondary {
+    background: var(--gris-claro);
+    color: var(--azul);
+}
+
+.form-actions .btn-secondary:hover {
+    background: #e0e0e0;
+    transform: translateY(-2px);
+}
+
+/* Alertas */
+.alert {
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.alert i {
+    font-size: 20px;
+}
+
+.alert.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Responsive para formulario */
+@media (max-width: 768px) {
+    .form-container {
+        padding: 25px;
+        margin: 0 15px;
+    }
+
+    .crear-usuario-form .form-row {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .form-actions {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .form-actions .btn {
+        width: 100%;
+        justify-content: center;
     }
 }

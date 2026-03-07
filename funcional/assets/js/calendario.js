@@ -19,6 +19,11 @@ document.addEventListener('DOMContentLoaded', function() {
         loadEventos();
     });
 
+    // Filtro de "Mis Actividades"
+    document.getElementById('filterMyEvents').addEventListener('change', function() {
+        loadEventos();
+    });
+
     // Modal de eventos
     const eventoModal = document.getElementById('eventoModal');
     const eventoCloseBtn = eventoModal ? eventoModal.querySelector('.close') : null;
@@ -161,24 +166,50 @@ function loadEventos() {
 
     eventosContainer.innerHTML = '';
 
+    // Check if "Mis Actividades" filter is active
+    const showOnlyMyEvents = document.getElementById('filterMyEvents')?.checked || false;
+
     let filteredEventos = eventos.filter(evento => {
         const eventoDate = new Date(evento.FECHA + 'T00:00:00');
-        return eventoDate.getMonth() + 1 === currentMonth && eventoDate.getFullYear() === currentYear;
+        const monthMatch = eventoDate.getMonth() + 1 === currentMonth && eventoDate.getFullYear() === currentYear;
+
+        if (showOnlyMyEvents && currentUser) {
+            return monthMatch && evento.CORREO_USUARIO === currentUser.correo;
+        }
+
+        return monthMatch;
     });
 
     if (filteredEventos.length === 0) {
-        eventosContainer.innerHTML = '<p>No hay eventos programados para este mes.</p>';
+        const message = showOnlyMyEvents ?
+            '<p>No tienes actividades registradas para este mes.</p>' :
+            '<p>No hay eventos programados para este mes.</p>';
+        eventosContainer.innerHTML = message;
         return;
     }
 
     filteredEventos.forEach(evento => {
         const eventoDiv = document.createElement('div');
         eventoDiv.className = 'evento-item';
+
+        let actionsHtml = '';
+
+        // Add execute button if event can be executed and belongs to current user
+        if (evento.ESTADO_EJECUCION !== 'reportada' && currentUser && evento.CORREO_USUARIO === currentUser.correo) {
+            actionsHtml = `
+                <div class="event-actions" style="margin-top: 10px; text-align: center;">
+                    <button onclick="executeEvent(${evento.ID}); event.stopPropagation();" class="btn-execute" style="background-color: #28a745; color: white; border: none; padding: 6px 12px; cursor: pointer; border-radius: 4px; font-size: 12px;">Ejecutar Actividad</button>
+                </div>
+            `;
+        }
+
         eventoDiv.innerHTML = `
             <h4>${evento.NOMBRE_ACTIVIDAD}</h4>
             <p><strong>Fecha:</strong> ${formatDate(evento.FECHA)} a las ${formatTime(evento.HORA)}</p>
             <p><strong>Lugar:</strong> ${evento.DIRECCION}</p>
             <p><strong>Disciplina:</strong> ${evento.DISCIPLINA}</p>
+            <p><strong>Estado:</strong> ${evento.ESTADO_EJECUCION || 'registrado'}</p>
+            ${actionsHtml}
         `;
         eventoDiv.onclick = () => showEventoDetails(evento);
         eventosContainer.appendChild(eventoDiv);
@@ -201,6 +232,15 @@ function showEventoDetails(evento) {
         <p><strong>Municipio:</strong> ${evento.MUNICIPIO}</p>
         <p><strong>Estado:</strong> ${evento.ESTADO}</p>
     `;
+
+    // Add execute button for events that can be executed
+    if (evento.ESTADO_EJECUCION !== 'reportada') {
+        detailsHtml += `
+            <div class="event-actions" style="margin-top: 20px; text-align: center;">
+                <button onclick="executeEvent(${evento.ID})" class="btn-execute" style="background-color: #28a745; color: white; border: none; padding: 8px 16px; margin-right: 10px; cursor: pointer; border-radius: 4px;">Ejecutar Actividad</button>
+            </div>
+        `;
+    }
 
     // Add edit and delete buttons if the event belongs to the current user
     if (currentUser && evento.CORREO_USUARIO === currentUser.correo) {
@@ -387,6 +427,26 @@ function populateEditForm(eventData) {
     document.getElementById('jovenesFemeninas').value = eventData.JOVENES_FEMENINAS;
     document.getElementById('adultosMasculinos').value = eventData.ADULTOS_MASCULINOS;
     document.getElementById('adultosFemeninas').value = eventData.ADULTOS_FEMENINAS;
+}
+
+function executeEvent(eventId) {
+    if (confirm('¿Está seguro de que desea ejecutar esta actividad? Esto la marcará como reportada.')) {
+        // Send execute request to server
+        fetch('calendario.php?action=execute_event&id=' + eventId)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Actividad ejecutada y reportada exitosamente.');
+                    location.reload();
+                } else {
+                    alert('Error al ejecutar la actividad: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al procesar la solicitud.');
+            });
+    }
 }
 
 function deleteEvent(eventId) {

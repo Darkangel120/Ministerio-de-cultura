@@ -2,9 +2,13 @@
 session_start();
 require_once 'config.php';
 
-// Si ya está logueado, redirigir al dashboard
+// Configurar sesiones seguras y headers de seguridad
+configurarSesionSegura();
+configurarHeadersSeguridad();
+
+// Si ya está logueado, redirigir al Menu
 if (isset($_SESSION['usuario_id'])) {
-    header('Location: dashboard.php');
+    header('Location: Menu.php');
     exit();
 }
 
@@ -18,12 +22,16 @@ function calcularEdad($fecha_nacimiento) {
 
 // Procesar registro
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $nombre_completo = sanitizar($_POST['nombre_completo']);
-    $email = sanitizar($_POST['email']);
-    $telefono = sanitizar($_POST['telefono']);
-    $tipo_usuario = sanitizar($_POST['tipo_usuario']);
-    $password = $_POST['password'];
-    $password_confirm = $_POST['password_confirm'];
+    // Validar token CSRF
+    if (!validarTokenCSRF($_POST['csrf_token'] ?? '')) {
+        $errores[] = "Token de seguridad inválido.";
+    } else {
+        $nombre_completo = sanitizar($_POST['nombre_completo']);
+        $email = sanitizar($_POST['email']);
+        $telefono = sanitizar($_POST['telefono']);
+        $tipo_usuario = sanitizar($_POST['tipo_usuario']);
+        $password = $_POST['password'];
+        $password_confirm = $_POST['password_confirm'];
 
     // Validaciones
     $errores = [];
@@ -63,10 +71,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         try {
             $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
-            $stmt = $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, telefono, tipo_usuario, password, fecha_registro, activo) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, 1)");
+            $stmt = $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, telefono, tipo_usuario, password_hash, fecha_registro, activo) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, 1) RETURNING id");
             $stmt->execute([$nombre_completo, $email, $telefono, $tipo_usuario, $password_hash]);
 
-            $usuario_id = $pdo->lastInsertId();
+            $usuario_id = $stmt->fetchColumn();
 
             // Si es cultor, guardar datos adicionales en tabla cultores
             if ($tipo_usuario == 'cultor') {
@@ -80,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $direccion = sanitizar($_POST['direccion']);
                 $lugar_nacimiento = sanitizar($_POST['lugar_nacimiento']);
                 $fecha_nacimiento = $_POST['fecha_nacimiento'];
-                $edad = (int)$_POST['edad'];
+                $edad = calcularEdad($fecha_nacimiento);
                 $trayectoria_anios = (int)$_POST['trayectoria_anios'];
                 $organizacion = sanitizar($_POST['organizacion']);
 
@@ -89,9 +97,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
 
             $success = "Registro exitoso. Ahora puedes iniciar sesión.";
+            header('Location: login.php');
+            exit();
         } catch (Exception $e) {
             $errores[] = "Error al registrar usuario: " . $e->getMessage();
         }
+    }
     }
 }
 ?>
@@ -135,6 +146,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <?php endif; ?>
 
                 <form method="POST" action="registro.php" class="registro-form">
+                    <input type="hidden" name="csrf_token" value="<?php echo generarTokenCSRF(); ?>">
                     <div class="form-row">
                         <div class="form-group">
                             <label for="nombre_completo">
@@ -169,7 +181,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <select id="tipo_usuario" name="tipo_usuario" required>
                                 <option value="">Seleccionar...</option>
                                 <option value="cultor" <?php echo (isset($_POST['tipo_usuario']) && $_POST['tipo_usuario'] == 'cultor') ? 'selected' : ''; ?>>Cultor</option>
-                                <option value="Publico en general" <?php echo (isset($_POST['tipo_usuario']) && $_POST['tipo_usuario'] == 'institucion') ? 'selected' : ''; ?>>Institución</option>
+                                <option value="publico" <?php echo (isset($_POST['tipo_usuario']) && $_POST['tipo_usuario'] == 'publico') ? 'selected' : ''; ?>>Público en general</option>
                             </select>
                         </div>
                     </div>
@@ -322,6 +334,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                 <div class="registro-footer">
                     <p>¿Ya tienes cuenta? <a href="login.php">Inicia sesión aquí</a></p>
+                    <p><a href="index.php">Volver al Inicio</a></p>
+                    <p>Realizado por Rodolfo Gómez</p>
                 </div>
             </div>
         </div>
