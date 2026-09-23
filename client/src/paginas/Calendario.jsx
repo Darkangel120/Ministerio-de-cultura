@@ -1,3 +1,234 @@
+import { useEffect, useState } from 'react';
+import { api } from '../api';
+import { useAuth } from '../context/AuthContext';
+import {
+  MESES, AREAS_VE, CARGOS_RESPONSABLE, TIPOS_ORGANIZACION, TIPOS_ACTIVIDAD,
+  DISCIPLINAS_EVENTO, OBJETIVOS_TRANSFORMADORES, ESTADO_EJECUCION,
+} from '../constantes';
+
+const vacio = {
+  estado: '', municipio: '', parroquia: '', organizacion: '', tipo_organizacion: 'comuna',
+  direccion: '', ubicacion_exacta: '', consejo_comunal: '', nombre_consejo: '', nombre_comuna: '',
+  vocero_nombre: '', vocero_cedula: '', vocero_telefono: '',
+  responsable_nombre: '', responsable_cedula: '', responsable_telefono: '', responsable_cargo: '',
+  tipo_actividad: '', disciplina: '', nombre_actividad: '', objetivo: '',
+  mes: '', fecha: '', hora: '', duracion: '',
+  ninos: 0, ninas: 0, jovenes_masculinos: 0, jovenes_femeninas: 0, adultos_masculinos: 0, adultos_femeninas: 0,
+};
+
+const PARTICIPANTES = [
+  ['ninos', 'Niños (1 a 12 años)'],
+  ['ninas', 'Niñas (1 a 12 años)'],
+  ['jovenes_masculinos', 'Jóvenes masculinos (12 a 17 años)'],
+  ['jovenes_femeninas', 'Jóvenes femeninas (12 a 17 años)'],
+  ['adultos_masculinos', 'Adultos masculinos (18+)'],
+  ['adultos_femeninas', 'Adultas femeninas (18+)'],
+];
+
 export default function Calendario() {
-  return <div className="contenedor">Página en construcción</div>;
+  const { usuario } = useAuth();
+  const ahora = new Date();
+  const [anio, setAnio] = useState(ahora.getFullYear());
+  const [mes, setMes] = useState(ahora.getMonth() + 1);
+  const [eventos, setEventos] = useState([]);
+  const [error, setError] = useState(null);
+  const [form, setForm] = useState(vacio);
+  const [editandoId, setEditandoId] = useState(null);
+  const [abierto, setAbierto] = useState(false);
+
+  const cargar = async () => {
+    try {
+      const r = await api(`/api/eventos?mes=${mes}&anio=${anio}`);
+      setEventos(r.eventos);
+    } catch (e) { setError(e.message); }
+  };
+  useEffect(() => { cargar(); }, [mes, anio]);
+
+  const primerDia = new Date(anio, mes - 1, 1).getDay();
+  const diasMes = new Date(anio, mes, 0).getDate();
+  const celdas = Array.from({ length: primerDia }, () => null).concat(Array.from({ length: diasMes }, (_, i) => i + 1));
+  const porDia = {};
+  eventos.forEach((e) => { const d = new Date(e.fecha).getDate(); (porDia[d] = porDia[d] || []).push(e); });
+
+  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+
+  const abrirNuevo = () => {
+    setForm({ ...vacio, mes: String(mes) });
+    setEditandoId(null);
+    setAbierto(true);
+  };
+  const abrirEdicion = (ev) => {
+    const { id, fecha, hora, ...resto } = ev;
+    setForm({ ...resto, fecha: fecha.slice(0, 10), hora: hora.slice(0, 5), mes: String(ev.mes) });
+    setEditandoId(id);
+    setAbierto(true);
+  };
+
+  const guardar = async (e) => {
+    e.preventDefault();
+    setError(null);
+    const payload = { ...form, mes: Number(form.mes) };
+    try {
+      if (editandoId) await api(`/api/eventos/${editandoId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      else await api('/api/eventos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      setAbierto(false);
+      cargar();
+    } catch (err) { setError(err.message); }
+  };
+
+  const ejecutar = async (id) => {
+    try { await api(`/api/eventos/${id}/ejecutar`, { method: 'POST' }); cargar(); } catch (err) { setError(err.message); }
+  };
+  const eliminar = async (id) => {
+    if (!window.confirm('¿Eliminar esta actividad?')) return;
+    try { await api(`/api/eventos/${id}`, { method: 'DELETE' }); cargar(); } catch (err) { setError(err.message); }
+  };
+
+  return (
+    <div className="contenedor">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+        <h2>Calendario de Actividades</h2>
+        <button className="btn" type="button" onClick={abrirNuevo}>Agregar Actividad</button>
+      </div>
+      {error && <div className="aviso aviso-error">{error}</div>}
+
+      <div className="tarjeta">
+        <div style={{ display: 'flex', gap: 10, marginBottom: 16, alignItems: 'center' }}>
+          <select value={mes} onChange={(e) => setMes(Number(e.target.value))}>
+            {MESES.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
+          </select>
+          <input type="number" value={anio} onChange={(e) => setAnio(Number(e.target.value))} style={{ width: 90 }} />
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
+          {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map((d) => <div key={d} style={{ textAlign: 'center', fontWeight: 600, color: 'var(--azul)' }}>{d}</div>)}
+          {celdas.map((d, i) => (
+            <div key={i} style={{ minHeight: 90, border: '1px solid var(--borde)', borderRadius: 6, padding: 6, background: d ? '#fff' : 'transparent' }}>
+              {d && (
+                <>
+                  <strong>{d}</strong>
+                  {(porDia[d] || []).map((ev) => (
+                    <div key={ev.id} style={{ fontSize: 12, background: 'var(--amarillo)', borderRadius: 4, padding: '2px 4px', marginTop: 4, cursor: 'pointer' }}
+                      onClick={() => abrirEdicion(ev)}>
+                      {ev.nombre_actividad}
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {abierto && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.45)', overflowY: 'auto', zIndex: 50 }}>
+          <div className="tarjeta" style={{ maxWidth: 860, margin: '40px auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ color: 'var(--azul)' }}>{editandoId ? 'Editar Actividad' : 'Nueva Actividad — Misión Cultura'}</h2>
+              <button className="btn-bajo" type="button" onClick={() => setAbierto(false)}>Cerrar</button>
+            </div>
+            <form onSubmit={guardar}>
+              <section>
+                <h3 style={{ color: 'var(--rojo)' }}>Información General</h3>
+                <div className="campo"><label>Correo electrónico</label><input value={usuario?.email} readOnly /></div>
+              </section>
+              <section>
+                <h3 style={{ color: 'var(--rojo)' }}>Ubicación Geográfica</h3>
+                <div className="grilha grilha-2">
+                  <div className="campo"><label>Estado *</label>
+                    <select value={form.estado} onChange={set('estado')} required>
+                      <option value="">Seleccione un estado</option>
+                      {AREAS_VE.map((e) => <option key={e} value={e}>{e}</option>)}
+                    </select></div>
+                  <div className="campo"><label>Municipio *</label><input value={form.municipio} onChange={set('municipio')} required /></div>
+                  <div className="campo"><label>Parroquia *</label><input value={form.parroquia} onChange={set('parroquia')} required /></div>
+                  <div className="campo"><label>Organización *</label><input value={form.organizacion} onChange={set('organizacion')} required /></div>
+                  <div className="campo"><label>Identificar si es comunas o circuito comunal</label>
+                    <select value={form.tipo_organizacion} onChange={set('tipo_organizacion')}>
+                      {Object.entries(TIPOS_ORGANIZACION).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                    </select></div>
+                  <div className="campo"><label>Dirección exacta *</label><input value={form.direccion} onChange={set('direccion')} required /></div>
+                  <div className="campo"><label>Ubicación exacta del punto y círculo</label><input value={form.ubicacion_exacta} onChange={set('ubicacion_exacta')} /></div>
+                  <div className="campo"><label>Consejo comunal vinculado *</label><input value={form.consejo_comunal} onChange={set('consejo_comunal')} required /></div>
+                  <div className="campo"><label>Nombre del consejo comunal</label><input value={form.nombre_consejo} onChange={set('nombre_consejo')} /></div>
+                  <div className="campo"><label>Nombre de la comuna o circuito comunal *</label><input value={form.nombre_comuna} onChange={set('nombre_comuna')} required /></div>
+                </div>
+              </section>
+              <section>
+                <h3 style={{ color: 'var(--rojo)' }}>Datos del Vocero Responsable de la Comunidad</h3>
+                <div className="grilha grilha-3">
+                  <div className="campo"><label>Nombre y apellido *</label><input value={form.vocero_nombre} onChange={set('vocero_nombre')} required /></div>
+                  <div className="campo"><label>Cédula *</label><input value={form.vocero_cedula} onChange={set('vocero_cedula')} required /></div>
+                  <div className="campo"><label>Teléfono *</label><input value={form.vocero_telefono} onChange={set('vocero_telefono')} required /></div>
+                </div>
+              </section>
+              <section>
+                <h3 style={{ color: 'var(--rojo)' }}>Datos del Responsable por Misión Cultura</h3>
+                <div className="grilha grilha-2">
+                  <div className="campo"><label>Nombre y apellido *</label><input value={form.responsable_nombre} onChange={set('responsable_nombre')} required /></div>
+                  <div className="campo"><label>Teléfono *</label><input value={form.responsable_telefono} onChange={set('responsable_telefono')} required /></div>
+                  <div className="campo"><label>Cédula *</label><input value={form.responsable_cedula} onChange={set('responsable_cedula')} required /></div>
+                  <div className="campo"><label>Cargo *</label>
+                    <select value={form.responsable_cargo} onChange={set('responsable_cargo')} required>
+                      <option value="">Seleccione un cargo</option>
+                      {CARGOS_RESPONSABLE.map((c) => <option key={c} value={c}>{c}</option>)}
+                    </select></div>
+                </div>
+              </section>
+              <section>
+                <h3 style={{ color: 'var(--rojo)' }}>Descripción de la Actividad</h3>
+                <div className="grilha grilha-2">
+                  <div className="campo"><label>Tipo de actividad *</label>
+                    <select value={form.tipo_actividad} onChange={set('tipo_actividad')} required>
+                      <option value="">Seleccione un tipo de actividad</option>
+                      {TIPOS_ACTIVIDAD.map((t) => <option key={t} value={t}>{t}</option>)}
+                    </select></div>
+                  <div className="campo"><label>Disciplina *</label>
+                    <select value={form.disciplina} onChange={set('disciplina')} required>
+                      <option value="">Seleccione una disciplina</option>
+                      {DISCIPLINAS_EVENTO.map((d) => <option key={d} value={d}>{d}</option>)}
+                    </select></div>
+                  <div className="campo"><label>Nombre de la actividad *</label><input value={form.nombre_actividad} onChange={set('nombre_actividad')} required /></div>
+                  <div className="campo"><label>Objetivo transformador (contenido) *</label>
+                    <select value={form.objetivo} onChange={set('objetivo')} required>
+                      <option value="">Seleccione un objetivo transformador</option>
+                      {OBJETIVOS_TRANSFORMADORES.map((o) => <option key={o} value={o}>{o}</option>)}
+                    </select></div>
+                </div>
+              </section>
+              <section>
+                <h3 style={{ color: 'var(--rojo)' }}>Fecha y Hora</h3>
+                <div className="grilha grilha-3">
+                  <div className="campo"><label>Mes *</label>
+                    <select value={form.mes} onChange={set('mes')} required>
+                      <option value="">Seleccione</option>
+                      {MESES.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
+                    </select></div>
+                  <div className="campo"><label>Fecha *</label><input type="date" value={form.fecha} onChange={set('fecha')} required /></div>
+                  <div className="campo"><label>Hora *</label><input type="time" value={form.hora} onChange={set('hora')} required /></div>
+                  <div className="campo"><label>Duración (horas) *</label><input type="number" min="1" value={form.duracion} onChange={set('duracion')} required /></div>
+                </div>
+              </section>
+              <section>
+                <h3 style={{ color: 'var(--rojo)' }}>Datos de Participación (Beneficiarios)</h3>
+                <div className="grilha grilha-3">
+                  {PARTICIPANTES.map(([k, label]) => (
+                    <div className="campo" key={k}><label>{label} *</label><input type="number" min="0" value={form[k]} onChange={set(k)} required /></div>
+                  ))}
+                </div>
+              </section>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 6 }}>
+                <button className="btn" type="submit">{editandoId ? 'Guardar Cambios' : 'Agregar Actividad'}</button>
+                {editandoId && (
+                  <>
+                    <button className="btn btn-sec" type="button" onClick={() => ejecutar(editandoId)}>Marcar como Reportada</button>
+                    <button className="btn-bajo" type="button" onClick={() => eliminar(editandoId)}>Eliminar</button>
+                  </>
+                )}
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
