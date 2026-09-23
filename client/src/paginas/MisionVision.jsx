@@ -1,10 +1,14 @@
 export default function MisionVision() {
   return (
-    <div className="contenedor">
-      <h2>Misión y Visión</h2>
+    <div className="contenedor max-m">
+      <div className="pagina-titulo">
+        <h1>Misión y Visión</h1>
+        <p className="subtitulo">El norte institucional del Ministerio del Poder Popular para la Cultura.</p>
+      </div>
       <div className="grilha grilha-2">
         <section className="tarjeta">
-          <h3 style={{ color: 'var(--azul)' }}>Misión</h3>
+          <span className="badge badge-rojo">Misión</span>
+          <h3 style={{ color: 'var(--azul)' }}>Nuestra Misión</h3>
           <p>
             Garantizar el derecho del pueblo venezolano a la cultura, impulsando la creación,
             la producción, la circulación y el disfrute de los bienes culturales, así como la
@@ -13,7 +17,8 @@ export default function MisionVision() {
           </p>
         </section>
         <section className="tarjeta">
-          <h3 style={{ color: 'var(--azul)' }}>Visión</h3>
+          <span className="badge badge-azul">Visión</span>
+          <h3 style={{ color: 'var(--azul)' }}>Nuestra Visión</h3>
           <p>
             Ser la institución rectora de la política cultural del Estado venezolano, consolidando
             un modelo de gestión participativo y protagónico donde las comunidades sean las

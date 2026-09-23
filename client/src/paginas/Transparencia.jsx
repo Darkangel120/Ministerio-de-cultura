@@ -8,16 +8,19 @@ const SECCIONES = [
 export default function Transparencia() {
   return (
     <div className="contenedor">
-      <h2>Transparencia y Acceso a la Información</h2>
-      <p>
-        Conforme a la Ley de Transparencia del Sector Público, este portal publica la información
-        relativa a la gestión institucional.
-      </p>
+      <div className="pagina-titulo">
+        <h1>Transparencia y Acceso a la Información</h1>
+        <p className="subtitulo">
+          Conforme a la Ley de Transparencia del Sector Público, este portal publica la información
+          relativa a la gestión institucional.
+        </p>
+      </div>
       <div className="grilha grilha-2">
         {SECCIONES.map(([t, d]) => (
           <section className="tarjeta" key={t}>
-            <h3 style={{ color: 'var(--azul)', marginTop: 0 }}>{t}</h3>
-            <p>{d}</p>
+            <span className="badge badge-azul">{t}</span>
+            <h3 style={{ color: 'var(--azul)' }}>{t}</h3>
+            <p style={{ margin: 0 }}>{d}</p>
           </section>
         ))}
       </div>

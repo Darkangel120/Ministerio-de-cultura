@@ -3,7 +3,7 @@ import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import {
   MESES, AREAS_VE, CARGOS_RESPONSABLE, TIPOS_ORGANIZACION, TIPOS_ACTIVIDAD,
-  DISCIPLINAS_EVENTO, OBJETIVOS_TRANSFORMADORES, ESTADO_EJECUCION,
+  DISCIPLINAS_EVENTO, OBJETIVOS_TRANSFORMADORES,
 } from '../constantes';
 
 const vacio = {
@@ -24,6 +24,8 @@ const PARTICIPANTES = [
   ['adultos_masculinos', 'Adultos masculinos (18+)'],
   ['adultos_femeninas', 'Adultas femeninas (18+)'],
 ];
+
+const DIAS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
 export default function Calendario() {
   const { usuario } = useAuth();
@@ -87,28 +89,33 @@ export default function Calendario() {
   return (
     <div className="contenedor">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
-        <h2>Calendario de Actividades</h2>
-        <button className="btn" type="button" onClick={abrirNuevo}>Agregar Actividad</button>
+        <div className="pagina-titulo" style={{ borderBottom: 'none', marginBottom: 0, paddingBottom: 0 }}>
+          <h1>Calendario de Actividades</h1>
+          <p className="subtitulo">Agenda cultural del Ministerio del Poder Popular para la Cultura.</p>
+        </div>
+        <button className="btn btn-sec" type="button" onClick={abrirNuevo}>+ Agregar Actividad</button>
       </div>
       {error && <div className="aviso aviso-error">{error}</div>}
 
       <div className="tarjeta">
-        <div style={{ display: 'flex', gap: 10, marginBottom: 16, alignItems: 'center' }}>
+        <div className="cal-cab">
           <select value={mes} onChange={(e) => setMes(Number(e.target.value))}>
             {MESES.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
           </select>
-          <input type="number" value={anio} onChange={(e) => setAnio(Number(e.target.value))} style={{ width: 90 }} />
+          <input type="number" value={anio} onChange={(e) => setAnio(Number(e.target.value))} />
+          <span style={{ color: 'var(--texto-suave)', fontSize: 14, marginLeft: 'auto' }}>
+            {eventos.length} actividad{eventos.length === 1 ? '' : 'es'}
+          </span>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
-          {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map((d) => <div key={d} style={{ textAlign: 'center', fontWeight: 600, color: 'var(--azul)' }}>{d}</div>)}
+        <div className="cal-grid">
+          {DIAS.map((d) => <div className="cal-dia-nombre" key={d}>{d}</div>)}
           {celdas.map((d, i) => (
-            <div key={i} style={{ minHeight: 90, border: '1px solid var(--borde)', borderRadius: 6, padding: 6, background: d ? '#fff' : 'transparent' }}>
+            <div className={d ? 'cal-dia' : 'cal-dia cal-dia-vacio'} key={i}>
               {d && (
                 <>
-                  <strong>{d}</strong>
+                  <div className="num">{d}</div>
                   {(porDia[d] || []).map((ev) => (
-                    <div key={ev.id} style={{ fontSize: 12, background: 'var(--amarillo)', borderRadius: 4, padding: '2px 4px', marginTop: 4, cursor: 'pointer' }}
-                      onClick={() => abrirEdicion(ev)}>
+                    <div key={ev.id} className="cal-evento" title={ev.nombre_actividad} onClick={() => abrirEdicion(ev)}>
                       {ev.nombre_actividad}
                     </div>
                   ))}
@@ -120,112 +127,114 @@ export default function Calendario() {
       </div>
 
       {abierto && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.45)', overflowY: 'auto', zIndex: 50 }}>
-          <div className="tarjeta" style={{ maxWidth: 860, margin: '40px auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ color: 'var(--azul)' }}>{editandoId ? 'Editar Actividad' : 'Nueva Actividad — Misión Cultura'}</h2>
-              <button className="btn-bajo" type="button" onClick={() => setAbierto(false)}>Cerrar</button>
+        <div className="modal-fondo" onClick={(e) => { if (e.target === e.currentTarget) setAbierto(false); }}>
+          <div className="tarjeta modal-tarjeta" style={{ marginBottom: 0 }}>
+            <div className="modal-cab">
+              <h2>{editandoId ? 'Editar Actividad' : 'Nueva Actividad — Misión Cultura'}</h2>
+              <button className="btn btn-bajo cerrar" type="button" onClick={() => setAbierto(false)}>Cerrar</button>
             </div>
-            <form onSubmit={guardar}>
-              <section>
-                <h3 style={{ color: 'var(--rojo)' }}>Información General</h3>
-                <div className="campo"><label>Correo electrónico</label><input value={usuario?.email} readOnly /></div>
-              </section>
-              <section>
-                <h3 style={{ color: 'var(--rojo)' }}>Ubicación Geográfica</h3>
-                <div className="grilha grilha-2">
-                  <div className="campo"><label>Estado *</label>
-                    <select value={form.estado} onChange={set('estado')} required>
-                      <option value="">Seleccione un estado</option>
-                      {AREAS_VE.map((e) => <option key={e} value={e}>{e}</option>)}
-                    </select></div>
-                  <div className="campo"><label>Municipio *</label><input value={form.municipio} onChange={set('municipio')} required /></div>
-                  <div className="campo"><label>Parroquia *</label><input value={form.parroquia} onChange={set('parroquia')} required /></div>
-                  <div className="campo"><label>Organización *</label><input value={form.organizacion} onChange={set('organizacion')} required /></div>
-                  <div className="campo"><label>Identificar si es comunas o circuito comunal</label>
-                    <select value={form.tipo_organizacion} onChange={set('tipo_organizacion')}>
-                      {Object.entries(TIPOS_ORGANIZACION).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                    </select></div>
-                  <div className="campo"><label>Dirección exacta *</label><input value={form.direccion} onChange={set('direccion')} required /></div>
-                  <div className="campo"><label>Ubicación exacta del punto y círculo</label><input value={form.ubicacion_exacta} onChange={set('ubicacion_exacta')} /></div>
-                  <div className="campo"><label>Consejo comunal vinculado *</label><input value={form.consejo_comunal} onChange={set('consejo_comunal')} required /></div>
-                  <div className="campo"><label>Nombre del consejo comunal</label><input value={form.nombre_consejo} onChange={set('nombre_consejo')} /></div>
-                  <div className="campo"><label>Nombre de la comuna o circuito comunal *</label><input value={form.nombre_comuna} onChange={set('nombre_comuna')} required /></div>
+            <div className="modal-cuerpo">
+              <form onSubmit={guardar}>
+                <div className="form-seccion" style={{ marginTop: 0, borderTop: 'none', paddingTop: 0 }}>
+                  <h3>Información General</h3>
+                  <div className="campo"><label>Correo electrónico</label><input value={usuario?.email} readOnly /></div>
                 </div>
-              </section>
-              <section>
-                <h3 style={{ color: 'var(--rojo)' }}>Datos del Vocero Responsable de la Comunidad</h3>
-                <div className="grilha grilha-3">
-                  <div className="campo"><label>Nombre y apellido *</label><input value={form.vocero_nombre} onChange={set('vocero_nombre')} required /></div>
-                  <div className="campo"><label>Cédula *</label><input value={form.vocero_cedula} onChange={set('vocero_cedula')} required /></div>
-                  <div className="campo"><label>Teléfono *</label><input value={form.vocero_telefono} onChange={set('vocero_telefono')} required /></div>
+                <div className="form-seccion">
+                  <h3>Ubicación Geográfica</h3>
+                  <div className="grilha grilha-2">
+                    <div className="campo"><label>Estado *</label>
+                      <select value={form.estado} onChange={set('estado')} required>
+                        <option value="">Seleccione un estado</option>
+                        {AREAS_VE.map((e) => <option key={e} value={e}>{e}</option>)}
+                      </select></div>
+                    <div className="campo"><label>Municipio *</label><input value={form.municipio} onChange={set('municipio')} required /></div>
+                    <div className="campo"><label>Parroquia *</label><input value={form.parroquia} onChange={set('parroquia')} required /></div>
+                    <div className="campo"><label>Organización *</label><input value={form.organizacion} onChange={set('organizacion')} required /></div>
+                    <div className="campo"><label>Identificar si es comunas o circuito comunal</label>
+                      <select value={form.tipo_organizacion} onChange={set('tipo_organizacion')}>
+                        {Object.entries(TIPOS_ORGANIZACION).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                      </select></div>
+                    <div className="campo"><label>Dirección exacta *</label><input value={form.direccion} onChange={set('direccion')} required /></div>
+                    <div className="campo"><label>Ubicación exacta del punto y círculo</label><input value={form.ubicacion_exacta} onChange={set('ubicacion_exacta')} /></div>
+                    <div className="campo"><label>Consejo comunal vinculado *</label><input value={form.consejo_comunal} onChange={set('consejo_comunal')} required /></div>
+                    <div className="campo"><label>Nombre del consejo comunal</label><input value={form.nombre_consejo} onChange={set('nombre_consejo')} /></div>
+                    <div className="campo"><label>Nombre de la comuna o circuito comunal *</label><input value={form.nombre_comuna} onChange={set('nombre_comuna')} required /></div>
+                  </div>
                 </div>
-              </section>
-              <section>
-                <h3 style={{ color: 'var(--rojo)' }}>Datos del Responsable por Misión Cultura</h3>
-                <div className="grilha grilha-2">
-                  <div className="campo"><label>Nombre y apellido *</label><input value={form.responsable_nombre} onChange={set('responsable_nombre')} required /></div>
-                  <div className="campo"><label>Teléfono *</label><input value={form.responsable_telefono} onChange={set('responsable_telefono')} required /></div>
-                  <div className="campo"><label>Cédula *</label><input value={form.responsable_cedula} onChange={set('responsable_cedula')} required /></div>
-                  <div className="campo"><label>Cargo *</label>
-                    <select value={form.responsable_cargo} onChange={set('responsable_cargo')} required>
-                      <option value="">Seleccione un cargo</option>
-                      {CARGOS_RESPONSABLE.map((c) => <option key={c} value={c}>{c}</option>)}
-                    </select></div>
+                <div className="form-seccion">
+                  <h3>Datos del Vocero Responsable de la Comunidad</h3>
+                  <div className="grilha grilha-3">
+                    <div className="campo"><label>Nombre y apellido *</label><input value={form.vocero_nombre} onChange={set('vocero_nombre')} required /></div>
+                    <div className="campo"><label>Cédula *</label><input value={form.vocero_cedula} onChange={set('vocero_cedula')} required /></div>
+                    <div className="campo"><label>Teléfono *</label><input value={form.vocero_telefono} onChange={set('vocero_telefono')} required /></div>
+                  </div>
                 </div>
-              </section>
-              <section>
-                <h3 style={{ color: 'var(--rojo)' }}>Descripción de la Actividad</h3>
-                <div className="grilha grilha-2">
-                  <div className="campo"><label>Tipo de actividad *</label>
-                    <select value={form.tipo_actividad} onChange={set('tipo_actividad')} required>
-                      <option value="">Seleccione un tipo de actividad</option>
-                      {TIPOS_ACTIVIDAD.map((t) => <option key={t} value={t}>{t}</option>)}
-                    </select></div>
-                  <div className="campo"><label>Disciplina *</label>
-                    <select value={form.disciplina} onChange={set('disciplina')} required>
-                      <option value="">Seleccione una disciplina</option>
-                      {DISCIPLINAS_EVENTO.map((d) => <option key={d} value={d}>{d}</option>)}
-                    </select></div>
-                  <div className="campo"><label>Nombre de la actividad *</label><input value={form.nombre_actividad} onChange={set('nombre_actividad')} required /></div>
-                  <div className="campo"><label>Objetivo transformador (contenido) *</label>
-                    <select value={form.objetivo} onChange={set('objetivo')} required>
-                      <option value="">Seleccione un objetivo transformador</option>
-                      {OBJETIVOS_TRANSFORMADORES.map((o) => <option key={o} value={o}>{o}</option>)}
-                    </select></div>
+                <div className="form-seccion">
+                  <h3>Datos del Responsable por Misión Cultura</h3>
+                  <div className="grilha grilha-2">
+                    <div className="campo"><label>Nombre y apellido *</label><input value={form.responsable_nombre} onChange={set('responsable_nombre')} required /></div>
+                    <div className="campo"><label>Teléfono *</label><input value={form.responsable_telefono} onChange={set('responsable_telefono')} required /></div>
+                    <div className="campo"><label>Cédula *</label><input value={form.responsable_cedula} onChange={set('responsable_cedula')} required /></div>
+                    <div className="campo"><label>Cargo *</label>
+                      <select value={form.responsable_cargo} onChange={set('responsable_cargo')} required>
+                        <option value="">Seleccione un cargo</option>
+                        {CARGOS_RESPONSABLE.map((c) => <option key={c} value={c}>{c}</option>)}
+                      </select></div>
+                  </div>
                 </div>
-              </section>
-              <section>
-                <h3 style={{ color: 'var(--rojo)' }}>Fecha y Hora</h3>
-                <div className="grilha grilha-3">
-                  <div className="campo"><label>Mes *</label>
-                    <select value={form.mes} onChange={set('mes')} required>
-                      <option value="">Seleccione</option>
-                      {MESES.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
-                    </select></div>
-                  <div className="campo"><label>Fecha *</label><input type="date" value={form.fecha} onChange={set('fecha')} required /></div>
-                  <div className="campo"><label>Hora *</label><input type="time" value={form.hora} onChange={set('hora')} required /></div>
-                  <div className="campo"><label>Duración (horas) *</label><input type="number" min="1" value={form.duracion} onChange={set('duracion')} required /></div>
+                <div className="form-seccion">
+                  <h3>Descripción de la Actividad</h3>
+                  <div className="grilha grilha-2">
+                    <div className="campo"><label>Tipo de actividad *</label>
+                      <select value={form.tipo_actividad} onChange={set('tipo_actividad')} required>
+                        <option value="">Seleccione un tipo de actividad</option>
+                        {TIPOS_ACTIVIDAD.map((t) => <option key={t} value={t}>{t}</option>)}
+                      </select></div>
+                    <div className="campo"><label>Disciplina *</label>
+                      <select value={form.disciplina} onChange={set('disciplina')} required>
+                        <option value="">Seleccione una disciplina</option>
+                        {DISCIPLINAS_EVENTO.map((d) => <option key={d} value={d}>{d}</option>)}
+                      </select></div>
+                    <div className="campo"><label>Nombre de la actividad *</label><input value={form.nombre_actividad} onChange={set('nombre_actividad')} required /></div>
+                    <div className="campo"><label>Objetivo transformador (contenido) *</label>
+                      <select value={form.objetivo} onChange={set('objetivo')} required>
+                        <option value="">Seleccione un objetivo transformador</option>
+                        {OBJETIVOS_TRANSFORMADORES.map((o) => <option key={o} value={o}>{o}</option>)}
+                      </select></div>
+                  </div>
                 </div>
-              </section>
-              <section>
-                <h3 style={{ color: 'var(--rojo)' }}>Datos de Participación (Beneficiarios)</h3>
-                <div className="grilha grilha-3">
-                  {PARTICIPANTES.map(([k, label]) => (
-                    <div className="campo" key={k}><label>{label} *</label><input type="number" min="0" value={form[k]} onChange={set(k)} required /></div>
-                  ))}
+                <div className="form-seccion">
+                  <h3>Fecha y Hora</h3>
+                  <div className="grilha grilha-3">
+                    <div className="campo"><label>Mes *</label>
+                      <select value={form.mes} onChange={set('mes')} required>
+                        <option value="">Seleccione</option>
+                        {MESES.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
+                      </select></div>
+                    <div className="campo"><label>Fecha *</label><input type="date" value={form.fecha} onChange={set('fecha')} required /></div>
+                    <div className="campo"><label>Hora *</label><input type="time" value={form.hora} onChange={set('hora')} required /></div>
+                    <div className="campo"><label>Duración (horas) *</label><input type="number" min="1" value={form.duracion} onChange={set('duracion')} required /></div>
+                  </div>
                 </div>
-              </section>
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 6 }}>
-                <button className="btn" type="submit">{editandoId ? 'Guardar Cambios' : 'Agregar Actividad'}</button>
-                {editandoId && (
-                  <>
-                    <button className="btn btn-sec" type="button" onClick={() => ejecutar(editandoId)}>Marcar como Reportada</button>
-                    <button className="btn-bajo" type="button" onClick={() => eliminar(editandoId)}>Eliminar</button>
-                  </>
-                )}
-              </div>
-            </form>
+                <div className="form-seccion">
+                  <h3>Datos de Participación (Beneficiarios)</h3>
+                  <div className="grilha grilha-3">
+                    {PARTICIPANTES.map(([k, label]) => (
+                      <div className="campo" key={k}><label>{label} *</label><input type="number" min="0" value={form[k]} onChange={set(k)} required /></div>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 6 }}>
+                  <button className="btn" type="submit">{editandoId ? 'Guardar Cambios' : 'Agregar Actividad'}</button>
+                  {editandoId && (
+                    <>
+                      <button className="btn btn-sec" type="button" onClick={() => ejecutar(editandoId)}>Marcar como Reportada</button>
+                      <button className="btn btn-bajo" type="button" onClick={() => eliminar(editandoId)}>Eliminar</button>
+                    </>
+                  )}
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}

@@ -47,12 +47,16 @@ export default function Registro() {
   const esCultor = form.tipo_usuario === 'cultor';
 
   return (
-    <div className="contenedor" style={{ maxWidth: 760, margin: '0 auto' }}>
+    <div className="contenedor max-m">
+      <div className="pagina-titulo">
+        <h1>Registro Cultural</h1>
+        <p className="subtitulo">Únete a la comunidad de cultores y cultoras de la Patria.</p>
+      </div>
       <div className="tarjeta">
-        <h2 style={{ color: 'var(--azul)', marginTop: 0 }}>Registro Cultural</h2>
         {error && <div className="aviso aviso-error">{error}</div>}
         <form onSubmit={enviar}>
-          <h3 style={{ color: 'var(--rojo)' }}>Datos de la cuenta</h3>
+          <div className="form-seccion">
+            <h3>Datos de la cuenta</h3>
           <div className="campo">
             <label htmlFor="nombre_completo">Nombre completo *</label>
             <input id="nombre_completo" value={form.nombre_completo} onChange={set('nombre_completo')} required />
@@ -74,10 +78,12 @@ export default function Registro() {
               <option value="publico">Público en general</option>
             </select>
           </div>
+          </div>
 
           {esCultor && (
             <>
-              <h3 style={{ color: 'var(--rojo)' }}>Información del Cultor</h3>
+              <div className="form-seccion">
+                <h3>Información del Cultor</h3>
               <div className="grilha grilha-2">
                 <div className="campo">
                   <label htmlFor="cedula">Cédula *</label>
@@ -131,10 +137,12 @@ export default function Registro() {
                   <input id="organizacion" value={form.organizacion} onChange={set('organizacion')} />
                 </div>
               </div>
+              </div>
             </>
           )}
 
-          <h3 style={{ color: 'var(--rojo)' }}>Contraseña</h3>
+          <div className="form-seccion">
+            <h3>Contraseña</h3>
           <div className="grilha grilha-2">
             <div className="campo">
               <label htmlFor="password">Contraseña *</label>
@@ -145,6 +153,7 @@ export default function Registro() {
               <label htmlFor="password_confirm">Confirmar contraseña *</label>
               <input id="password_confirm" type="password" minLength={8} value={form.password_confirm} onChange={set('password_confirm')} required />
             </div>
+          </div>
           </div>
 
           <button className="btn" type="submit" disabled={cargando}>{cargando ? 'Registrando…' : 'Registrarme'}</button>

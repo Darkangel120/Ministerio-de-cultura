@@ -92,7 +92,10 @@ export default function Foro() {
 
   return (
     <div className="contenedor">
-      <h2>Foro Comunitario Cultural</h2>
+      <div className="pagina-titulo">
+        <h1>Foro Comunitario Cultural</h1>
+        <p className="subtitulo">Comparte experiencias, propuestas y saberes con la comunidad cultural.</p>
+      </div>
       {error && <div className="aviso aviso-error">{error}</div>}
 
       <div className="tarjeta">
@@ -123,27 +126,27 @@ export default function Foro() {
       </div>
 
       {publicaciones.map((p) => (
-        <article className="tarjeta" key={p.id} style={{ borderLeft: `4px solid ${p.mio_like ? 'var(--amarillo)' : 'var(--azul)'}` }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+        <article className={`tarjeta post-acento ${p.mio_like ? 'gustado' : ''}`} key={p.id}>
+          <div className="post-cab">
             <h3 style={{ margin: 0, color: 'var(--azul)' }}>{p.titulo}</h3>
-            <span style={{ background: 'var(--amarillo)', padding: '2px 10px', borderRadius: 12, fontSize: 12 }}>{CATEGORIAS_FORO[p.categoria] || p.categoria}</span>
+            <span className="badge badge-amarillo">{CATEGORIAS_FORO[p.categoria] || p.categoria}</span>
           </div>
-          <p style={{ color: 'var(--texto-suave)', fontSize: 13 }}>
+          <p className="post-autor">
             por <strong>{p.autor_nombre}</strong> · {new Date(p.fecha_publicacion).toLocaleDateString('es-VE', { dateStyle: 'long' })}
           </p>
           <p>{p.descripcion}</p>
           <MediaArchivo publicacion={p} />
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 10 }}>
-            <button className="btn-sec" type="button" onClick={() => toggleLike(p)} style={{ padding: '4px 10px', fontSize: 13 }}>
+          <div className="post-acciones">
+            <button className={`btn btn-${p.mio_like ? 'bajo' : 'sec'} btn-sm`} type="button" onClick={() => toggleLike(p)}>
               {p.mio_like ? '♥' : '♡'} {p.likes_count}
             </button>
-            <button className="btn-bajo" type="button" onClick={() => abrirComentarios(p.id)} style={{ padding: '4px 10px', fontSize: 13 }}>
+            <button className="btn btn-bajo btn-sm" type="button" onClick={() => abrirComentarios(p.id)}>
               Comentarios ({p.comments_count})
             </button>
             {usuario?.id === p.usuario_id && (
               <>
-                <button className="btn-bajo" type="button" onClick={() => setEditando({ ...p, archivo: null })}>Editar</button>
-                <button className="btn-bajo" type="button" onClick={() => borrar(p.id)}>Eliminar</button>
+                <button className="btn btn-bajo btn-sm" type="button" onClick={() => setEditando({ ...p, archivo: null })}>Editar</button>
+                <button className="btn btn-bajo btn-sm" type="button" onClick={() => borrar(p.id)}>Eliminar</button>
               </>
             )}
           </div>
@@ -160,19 +163,19 @@ export default function Foro() {
               <div className="campo"><label>Descripción</label><textarea rows="4" value={editando.descripcion} onChange={(e) => setEditando({ ...editando, descripcion: e.target.value })} required /></div>
               <div className="campo"><label>Nuevo archivo (opcional)</label><input type="file" accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.webm,.mov,.mp3,.wav,.ogg" onChange={(e) => setEditando({ ...editando, archivo: e.target.files[0] || null })} /></div>
               <button className="btn" type="submit">Guardar</button>{' '}
-              <button className="btn-bajo" type="button" onClick={() => setEditando(null)}>Cancelar</button>
+              <button className="btn btn-bajo" type="button" onClick={() => setEditando(null)}>Cancelar</button>
             </form>
           )}
 
           {comentariosDe === p.id && (
             <div style={{ marginTop: 14, borderTop: '1px solid var(--borde)', paddingTop: 12 }}>
               {comentarios.map((c) => (
-                <div key={c.id} style={{ marginBottom: 8 }}>
+                <div className="comentario" key={c.id}>
                   <strong>{c.autor_nombre}</strong>: {c.comentario}
-                  <div style={{ fontSize: 11, color: 'var(--texto-fantasma)' }}>{new Date(c.fecha_comentario).toLocaleString('es-VE')}</div>
+                  <div className="pie">{new Date(c.fecha_comentario).toLocaleString('es-VE')}</div>
                 </div>
               ))}
-              <form onSubmit={enviarComentario} style={{ display: 'flex', gap: 8 }}>
+              <form onSubmit={enviarComentario} className="publicar-caja" style={{ marginTop: 10 }}>
                 <input value={textoComentario} onChange={(e) => setTextoComentario(e.target.value)} placeholder="Escribe un comentario…" required />
                 <button className="btn" type="submit" disabled={!usuario}>Comentar</button>
               </form>
@@ -180,6 +183,9 @@ export default function Foro() {
           )}
         </article>
       ))}
+      {publicaciones.length === 0 && (
+        <div className="vacio"><span className="simbolo">🎭</span>Todavía no hay publicaciones. ¡Sé la primera voz!</div>
+      )}
     </div>
   );
 }

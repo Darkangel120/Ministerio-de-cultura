@@ -40,12 +40,14 @@ export default function CrearUsuario() {
   };
 
   return (
-    <div className="contenedor" style={{ maxWidth: 720, margin: '0 auto' }}>
-      <div className="tarjeta">
-        <h2 style={{ color: 'var(--azul)', marginTop: 0 }}>Crear Nuevo Usuario</h2>
-        <p style={{ color: 'var(--texto-suave)', fontSize: 14 }}>
-          Puede crear usuarios de los siguientes tipos: {rolesPermitidos.map((r) => LABEL[r]).join(', ')}.
+    <div className="contenedor max-m">
+      <div className="pagina-titulo">
+        <h1>Crear Nuevo Usuario</h1>
+        <p className="subtitulo">
+          Puede crear usuarios de los siguientes tipos: {rolesPermitidos.map((r, i) => <span key={r}><span className="badge badge-azul">{LABEL[r]}</span>{i < rolesPermitidos.length - 1 ? ' ' : ''}</span>)}.
         </p>
+      </div>
+      <div className="tarjeta">
         {error && <div className="aviso aviso-error">{error}</div>}
         {ok && <div className="aviso aviso-ok">{ok}</div>}
         <form onSubmit={enviar}>
@@ -53,13 +55,15 @@ export default function CrearUsuario() {
             <label htmlFor="nombre_completo">Nombre completo *</label>
             <input id="nombre_completo" value={form.nombre_completo} onChange={set('nombre_completo')} required />
           </div>
-          <div className="campo">
-            <label htmlFor="email">Correo electrónico *</label>
-            <input id="email" type="email" value={form.email} onChange={set('email')} required />
-          </div>
-          <div className="campo">
-            <label htmlFor="telefono">Teléfono</label>
-            <input id="telefono" type="tel" value={form.telefono} onChange={set('telefono')} />
+          <div className="grilha grilha-2">
+            <div className="campo">
+              <label htmlFor="email">Correo electrónico *</label>
+              <input id="email" type="email" value={form.email} onChange={set('email')} required />
+            </div>
+            <div className="campo">
+              <label htmlFor="telefono">Teléfono</label>
+              <input id="telefono" type="tel" value={form.telefono} onChange={set('telefono')} />
+            </div>
           </div>
           <div className="campo">
             <label htmlFor="tipo_usuario">Tipo de usuario *</label>
@@ -80,7 +84,7 @@ export default function CrearUsuario() {
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <button className="btn" type="submit" disabled={cargando}>{cargando ? 'Creando…' : 'Crear Usuario'}</button>
-            <button className="btn-sec" type="button" onClick={() => navigate('/panel')}>Volver al Panel</button>
+            <button className="btn btn-sec" type="button" onClick={() => navigate('/panel')}>Volver al Panel</button>
           </div>
         </form>
       </div>

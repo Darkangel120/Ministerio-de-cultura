@@ -22,7 +22,10 @@ export default function Contacto() {
 
   return (
     <div className="contenedor">
-      <h2>Contacto</h2>
+      <div className="pagina-titulo">
+        <h1>Contacto</h1>
+        <p className="subtitulo">Canales oficiales y formulario de atención al pueblo.</p>
+      </div>
       <div className="grilha grilha-2">
         <section className="tarjeta">
           <h3 style={{ color: 'var(--azul)', marginTop: 0 }}>Canales institucionales</h3>

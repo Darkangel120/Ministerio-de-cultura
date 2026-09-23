@@ -66,8 +66,11 @@ export default function Reportes() {
 
   return (
     <div className="contenedor">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
-        <h2>Reportes</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+        <div className="pagina-titulo" style={{ borderBottom: 'none', marginBottom: 0, paddingBottom: 0 }}>
+          <h1>Reportes</h1>
+          <p className="subtitulo">Genera informes detallados o generales y descárgalos en PDF.</p>
+        </div>
         <button className="btn" type="button" onClick={descargarPDF}>Descargar PDF</button>
       </div>
       {error && <div className="aviso aviso-error">{error}</div>}
@@ -137,20 +140,23 @@ export default function Reportes() {
       </div>
 
       {resultado && (
-        <div className="tarjeta" style={{ overflowX: 'auto' }}>
+        <div className="tarjeta tabla-wrap">
           {resultado.vista === 'general' ? (
             <p><strong>Total:</strong> {resultado.resumen.total ?? resultado.filas.length}{resultado.resumen.asistentes != null ? ` · Asistentes: ${resultado.resumen.asistentes}` : ''}</p>
           ) : (
-            <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: 12 }}>
+            <table className="tabla">
               <thead>
-                <tr>{columnas.map((c) => <th key={c} style={{ border: '1px solid #ccc', padding: 6, background: 'var(--azul)', color: '#fff', textTransform: 'uppercase' }}>{c.replace(/_/g, ' ')}</th>)}</tr>
+                <tr>{columnas.map((c) => <th key={c}>{c.replace(/_/g, ' ')}</th>)}</tr>
               </thead>
               <tbody>
                 {resultado.filas.map((f, i) => (
-                  <tr key={i}>{columnas.map((c) => <td key={c} style={{ border: '1px solid #ccc', padding: 6 }}>{f[c] ?? '—'}</td>)}</tr>
+                  <tr key={i}>{columnas.map((c) => <td key={c}>{f[c] ?? '—'}</td>)}</tr>
                 ))}
               </tbody>
             </table>
+          )}
+          {resultado.filas.length === 0 && (
+            <div className="vacio"><span className="simbolo">📄</span>No hay registros para este reporte.</div>
           )}
         </div>
       )}

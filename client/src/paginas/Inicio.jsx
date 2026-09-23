@@ -13,38 +13,43 @@ export default function Inicio() {
 
   return (
     <div className="contenedor">
-      <section className="tarjeta" style={{ background: 'linear-gradient(135deg, var(--azul) 0%, #0a2a6e 100%)', color: '#fff' }}>
-        <h2 style={{ marginTop: 0 }}>Misión Cultura</h2>
-        <p style={{ fontSize: 18 }}>
+      <section className="hero">
+        <h1>Misión Cultura</h1>
+        <p>
           El Ministerio del Poder Popular para la Cultura impulsa el desarrollo cultural del
           pueblo venezolano, promoviendo la participación popular y la defensa de la identidad nacional.
         </p>
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <Link className="btn" to="/registro" style={{ color: '#fff' }}>Registrarme</Link>
+        <div className="hero-cta">
+          <Link className="btn" to="/registro">Registrarme</Link>
           <Link className="btn btn-sec" to="/foro" style={{ color: '#fff' }}>Visitar el Foro</Link>
         </div>
       </section>
 
-      <h2>Noticias</h2>
+      <h2 className="seccion-titulo">Noticias</h2>
       {errNoticias && <div className="aviso aviso-error">{errNoticias}</div>}
       <div className="grilha grilha-3">
         {(noticias?.noticias || []).map((n) => (
           <article className="tarjeta" key={n.id}>
+            <span className="badge badge-azul" style={{ marginBottom: 10 }}>
+              {new Date(n.fecha_publicacion).toLocaleDateString('es-VE', { dateStyle: 'long' })}
+            </span>
             <h3 style={{ color: 'var(--azul)', marginTop: 0 }}>{n.titulo}</h3>
             <p>{n.contenido}</p>
-            <small>{new Date(n.fecha_publicacion).toLocaleDateString('es-VE', { dateStyle: 'long' })}</small>
           </article>
         ))}
       </div>
 
-      <h2>Próximos Eventos</h2>
+      <h2 className="seccion-titulo">Próximos Eventos</h2>
       {errEventos && <div className="aviso aviso-error">{errEventos}</div>}
       <div className="grilha grilha-3">
         {(eventos?.eventos || []).map((e) => (
           <article className="tarjeta" key={e.id}>
-            <h3 style={{ marginTop: 0 }}>{e.nombre_actividad}</h3>
-            <p>{e.disciplina} — {e.municipio}, {e.estado}</p>
-            <p><strong>{fechaEvento(e)}</strong> · {e.hora?.slice(0, 5)} h</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <h3 style={{ margin: 0 }}>{e.nombre_actividad}</h3>
+              <span className="badge badge-amarillo">{e.disciplina}</span>
+            </div>
+            <p style={{ color: 'var(--texto-suave)', margin: '0 0 10px' }}>{e.municipio}, {e.estado}</p>
+            <p style={{ margin: 0 }}><strong>{fechaEvento(e)}</strong> · {e.hora?.slice(0, 5)} h</p>
           </article>
         ))}
       </div>

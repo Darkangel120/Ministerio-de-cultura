@@ -33,24 +33,46 @@ export default function Login() {
   };
 
   return (
-    <div className="contenedor" style={{ maxWidth: 460, margin: '0 auto' }}>
-      <div className="tarjeta">
-        <h2 style={{ color: 'var(--azul)', marginTop: 0 }}>Iniciar Sesión</h2>
-        {error && <div className="aviso aviso-error">{error}</div>}
-        <form onSubmit={enviar}>
-          <div className="campo">
-            <label htmlFor="email">Correo electrónico</label>
-            <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
+    <div className="contenedor">
+      <div className="split">
+        <aside className="panel-azul">
+          <div>
+            <span className="bandera" style={{ width: 64, marginBottom: 18 }}>
+              <span className="amarilla" />
+              <span className="roja" />
+              <span className="azul"><span className="estrellas">★ ★ ★ ★ ★ ★ ★ ★</span></span>
+            </span>
+            <h2>Misión Cultura</h2>
+            <p>
+              Accede a la plataforma del Ministerio del Poder Popular para la Cultura:
+              registra actividades, consulta el calendario cultural y participa en la
+              comunidad de cultores del país.
+            </p>
           </div>
-          <div className="campo">
-            <label htmlFor="password">Contraseña</label>
-            <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-          </div>
-          <button className="btn" type="submit" disabled={cargando}>{cargando ? 'Ingresando…' : 'Ingresar'}</button>
-        </form>
-        <p style={{ marginTop: 16 }}>
-          ¿No tienes cuenta? <Link to="/registro">Regístrate aquí</Link>
-        </p>
+          <p style={{ margin: 0, fontSize: 13, opacity: '0.8' }}>
+            Atención a las necesidades de cultores, cultoras y comunidades organizadas.
+          </p>
+        </aside>
+        <div className="panel-form">
+          <h2 style={{ color: 'var(--azul)', marginTop: 0 }}>Iniciar Sesión</h2>
+          {error && <div className="aviso aviso-error">{error}</div>}
+          <form onSubmit={enviar}>
+            <div className="campo">
+              <label htmlFor="email">Correo electrónico</label>
+              <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
+            </div>
+            <div className="campo">
+              <label htmlFor="password">Contraseña</label>
+              <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            </div>
+            <button className="btn btn-sec" type="submit" disabled={cargando} style={{ width: '100%' }}>
+              {cargando ? 'Ingresando…' : 'Ingresar'}
+            </button>
+          </form>
+          <p style={{ marginTop: 18 }}>
+            ¿No tienes cuenta? <Link to="/registro">Regístrate aquí</Link>
+          </p>
+        </div>
       </div>
     </div>
   );

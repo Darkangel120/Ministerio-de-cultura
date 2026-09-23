@@ -8,6 +8,9 @@ const vacio = {
   direccion: '', lugar_nacimiento: '', fecha_nacimiento: '', edad: '', trayectoria_anios: 0, organizacion: '',
 };
 
+const iniciales = (nombre) =>
+  (nombre || '').split(/\s+/).map((p) => p[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || '?';
+
 export default function Cultores() {
   const [cultores, setCultores] = useState([]);
   const [opciones, setOpciones] = useState({ areas: [], municipios: [] });
@@ -57,20 +60,23 @@ export default function Cultores() {
   return (
     <div className="contenedor">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
-        <h2>Cultores</h2>
-        <button className="btn" type="button" onClick={abrirNuevo}>Registrar Cultor</button>
+        <div className="pagina-titulo" style={{ borderBottom: 'none', marginBottom: 0, paddingBottom: 0 }}>
+          <h1>Cultores y Cultoras</h1>
+          <p className="subtitulo">Registro nacional de cultores del pueblo venezolano.</p>
+        </div>
+        <button className="btn btn-sec" type="button" onClick={abrirNuevo}>+ Registrar Cultor</button>
       </div>
       {error && <div className="aviso aviso-error">{error}</div>}
 
-      <div className="tarjeta" style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-        <div className="campo" style={{ minWidth: 180 }}>
+      <div className="tarjeta grupo-filtros" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', padding: '16px 20px' }}>
+        <div className="campo" style={{ minWidth: 200 }}>
           <label htmlFor="fArea">Área temática</label>
           <select id="fArea" value={fArea} onChange={(e) => setFArea(e.target.value)}>
             <option value="">Todas las áreas</option>
             {opciones.areas.map((a) => <option key={a} value={a}>{AREAS_TEMATICAS[a] || a}</option>)}
           </select>
         </div>
-        <div className="campo" style={{ minWidth: 180 }}>
+        <div className="campo" style={{ minWidth: 200 }}>
           <label htmlFor="fMun">Municipio</label>
           <select id="fMun" value={fMun} onChange={(e) => setFMun(e.target.value)}>
             <option value="">Todos los municipios</option>
@@ -81,50 +87,65 @@ export default function Cultores() {
 
       <div className="grilha grilha-3">
         {cultores.map((c) => (
-          <div className="tarjeta" key={c.id}>
-            <h3 style={{ color: 'var(--azul)', margin: 0, fontSize: 17 }}>{c.nombres_apellidos}</h3>
-            <p style={{ color: 'var(--texto-suave)', fontSize: 13 }}>{AREAS_TEMATICAS[c.area_tematica] || c.area_tematica} — {c.disciplina}</p>
-            <p>Cédula: {c.cedula}<br />Correo: {c.correo}<br />Municipio: {c.municipio}, {c.parroquia}</p>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button className="btn-sec" type="button" onClick={() => abrirEdicion(c)}>Editar</button>
-              <button className="btn-bajo" type="button" onClick={() => eliminar(c.id)}>Eliminar</button>
+          <div className="tarjeta" key={c.id} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span className="avatar">{iniciales(c.nombres_apellidos)}</span>
+              <div>
+                <h3 style={{ color: 'var(--azul)', margin: 0, fontSize: 17 }}>{c.nombres_apellidos}</h3>
+                <p style={{ color: 'var(--texto-suave)', fontSize: 13, margin: '2px 0 0' }}>
+                  {AREAS_TEMATICAS[c.area_tematica] || c.area_tematica}
+                </p>
+              </div>
+            </div>
+            <div className="fila-detalle">
+              {c.disciplina} · Cédula {c.cedula}<br />
+              {c.municipio}, {c.parroquia}
+            </div>
+            <div className="post-acciones" style={{ marginTop: 'auto' }}>
+              <button className="btn btn-sec btn-sm" type="button" onClick={() => abrirEdicion(c)}>Editar</button>
+              <button className="btn btn-bajo btn-sm" type="button" onClick={() => eliminar(c.id)}>Eliminar</button>
             </div>
           </div>
         ))}
       </div>
+      {cultores.length === 0 && (
+        <div className="vacio"><span className="simbolo">🎨</span>No hay cultores que coincidan con los filtros.</div>
+      )}
 
       {abierto && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.45)', overflowY: 'auto', zIndex: 50 }}>
-          <div className="tarjeta" style={{ maxWidth: 820, margin: '40px auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ color: 'var(--azul)' }}>{editandoId ? 'Editar Cultor' : 'Registrar Cultor'}</h2>
-              <button className="btn-bajo" type="button" onClick={() => setAbierto(false)}>Cerrar</button>
+        <div className="modal-fondo" onClick={(e) => { if (e.target === e.currentTarget) setAbierto(false); }}>
+          <div className="tarjeta modal-tarjeta" style={{ marginBottom: 0 }}>
+            <div className="modal-cab">
+              <h2>{editandoId ? 'Editar Cultor' : 'Registrar Cultor'}</h2>
+              <button className="btn btn-bajo cerrar" type="button" onClick={() => setAbierto(false)}>Cerrar</button>
             </div>
-            <form onSubmit={guardar}>
-              <div className="grilha grilha-2">
-                <div className="campo"><label>Nombres y apellidos *</label><input value={form.nombres_apellidos} onChange={set('nombres_apellidos')} required /></div>
-                <div className="campo"><label>Teléfono *</label><input value={form.telefono} onChange={set('telefono')} required /></div>
-                <div className="campo"><label>Cédula *</label><input value={form.cedula} onChange={set('cedula')} required /></div>
-                <div className="campo"><label>Correo *</label><input type="email" value={form.correo} onChange={set('correo')} required /></div>
-                <div className="campo"><label>Área temática *</label>
-                  <select value={form.area_tematica} onChange={set('area_tematica')} required>
-                    <option value="">Seleccionar...</option>
-                    {Object.entries(AREAS_TEMATICAS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                  </select></div>
-                <div className="campo"><label>Disciplina *</label><input value={form.disciplina} onChange={set('disciplina')} required /></div>
-                <div className="campo"><label>Comuna *</label><input value={form.comuna} onChange={set('comuna')} required /></div>
-                <div className="campo"><label>Municipio *</label><input value={form.municipio} onChange={set('municipio')} required /></div>
-                <div className="campo"><label>Parroquia *</label><input value={form.parroquia} onChange={set('parroquia')} required /></div>
-                <div className="campo"><label>Código carnet patria *</label><input value={form.carnet_patria} onChange={set('carnet_patria')} required /></div>
-                <div className="campo"><label>Dirección exacta *</label><input value={form.direccion} onChange={set('direccion')} required /></div>
-                <div className="campo"><label>Lugar de nacimiento *</label><input value={form.lugar_nacimiento} onChange={set('lugar_nacimiento')} required /></div>
-                <div className="campo"><label>Fecha de nacimiento *</label><input type="date" value={form.fecha_nacimiento} onChange={set('fecha_nacimiento')} required /></div>
-                <div className="campo"><label>Edad *</label><input type="number" min="0" value={form.edad} onChange={set('edad')} required /></div>
-                <div className="campo"><label>Años de trayectoria *</label><input type="number" min="0" max="100" value={form.trayectoria_anios} onChange={set('trayectoria_anios')} required /></div>
-                <div className="campo"><label>Organización *</label><input value={form.organizacion} onChange={set('organizacion')} required /></div>
-              </div>
-              <button className="btn" type="submit">{editandoId ? 'Guardar Cambios' : 'Registrar Cultor'}</button>
-            </form>
+            <div className="modal-cuerpo">
+              <form onSubmit={guardar}>
+                <div className="grilha grilha-2">
+                  <div className="campo"><label>Nombres y apellidos *</label><input value={form.nombres_apellidos} onChange={set('nombres_apellidos')} required /></div>
+                  <div className="campo"><label>Teléfono *</label><input value={form.telefono} onChange={set('telefono')} required /></div>
+                  <div className="campo"><label>Cédula *</label><input value={form.cedula} onChange={set('cedula')} required /></div>
+                  <div className="campo"><label>Correo *</label><input type="email" value={form.correo} onChange={set('correo')} required /></div>
+                  <div className="campo"><label>Área temática *</label>
+                    <select value={form.area_tematica} onChange={set('area_tematica')} required>
+                      <option value="">Seleccionar...</option>
+                      {Object.entries(AREAS_TEMATICAS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                    </select></div>
+                  <div className="campo"><label>Disciplina *</label><input value={form.disciplina} onChange={set('disciplina')} required /></div>
+                  <div className="campo"><label>Comuna *</label><input value={form.comuna} onChange={set('comuna')} required /></div>
+                  <div className="campo"><label>Municipio *</label><input value={form.municipio} onChange={set('municipio')} required /></div>
+                  <div className="campo"><label>Parroquia *</label><input value={form.parroquia} onChange={set('parroquia')} required /></div>
+                  <div className="campo"><label>Código carnet patria *</label><input value={form.carnet_patria} onChange={set('carnet_patria')} required /></div>
+                  <div className="campo"><label>Dirección exacta *</label><input value={form.direccion} onChange={set('direccion')} required /></div>
+                  <div className="campo"><label>Lugar de nacimiento *</label><input value={form.lugar_nacimiento} onChange={set('lugar_nacimiento')} required /></div>
+                  <div className="campo"><label>Fecha de nacimiento *</label><input type="date" value={form.fecha_nacimiento} onChange={set('fecha_nacimiento')} required /></div>
+                  <div className="campo"><label>Edad *</label><input type="number" min="0" value={form.edad} onChange={set('edad')} required /></div>
+                  <div className="campo"><label>Años de trayectoria *</label><input type="number" min="0" max="100" value={form.trayectoria_anios} onChange={set('trayectoria_anios')} required /></div>
+                  <div className="campo"><label>Organización *</label><input value={form.organizacion} onChange={set('organizacion')} required /></div>
+                </div>
+                <button className="btn" type="submit">{editandoId ? 'Guardar Cambios' : 'Registrar Cultor'}</button>
+              </form>
+            </div>
           </div>
         </div>
       )}

@@ -6,6 +6,8 @@ import useDatos from '../hooks/useDatos';
 import { AREAS_TEMATICAS, CATEGORIAS_FORO } from '../constantes';
 import MediaArchivo from '../componentes/MediaArchivo';
 
+const ROL_LABEL = { admin: 'Administrador', director_general: 'Director General', director_operativo: 'Director Operativo', funcionario: 'Funcionario', cultor: 'Cultor', publico: 'Público' };
+
 export default function Perfil() {
   const { id } = useParams();
   const { usuario } = useAuth();
@@ -49,57 +51,65 @@ export default function Perfil() {
 
   return (
     <div className="contenedor" style={{ maxWidth: 860, margin: '0 auto' }}>
-      <div className="tarjeta">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
-          <h2 style={{ color: 'var(--azul)', marginTop: 0 }}>{u.nombre_completo}</h2>
+      <div className="tarjeta" style={{ padding: 0, overflow: 'hidden' }}>
+        <div className="perfil-cab">
+          <h2>{u.nombre_completo}</h2>
+          <div className="metadatos">
+            {u.email} · {u.telefono || 'sin teléfono'} · <span className="badge badge-amarillo">{ROL_LABEL[u.tipo_usuario] || u.tipo_usuario}</span>
+          </div>
+        </div>
+        <div style={{ padding: '22px 24px' }}>
           {esPropio && (
-            <button className="btn-sec" type="button" onClick={() => setEditando(!editando)}>
-              {editando ? 'Cancelar' : 'Editar mis datos'}
+            <button className="btn btn-sec btn-sm" type="button" onClick={() => setEditando(!editando)}>
+              {editando ? 'Cancelar' : '✎ Editar mis datos'}
             </button>
           )}
-        </div>
-        <p>Correo: {u.email} · Teléfono: {u.telefono || '—'} · Rol: {u.tipo_usuario}</p>
-        {cultor && (
-          <div style={{ background: 'var(--superficie-suave)', border: '1px solid var(--borde)', borderRadius: 10, padding: 14 }}>
-            <h3 style={{ marginTop: 0, color: 'var(--rojo)' }}>Ficha de Cultor</h3>
-            <p>
-              Cédula: {cultor.cedula} · {AREAS_TEMATICAS[cultor.area_tematica] || cultor.area_tematica} — {cultor.disciplina}<br />
-              Comuna: {cultor.comuna} · Municipio: {cultor.municipio}, {cultor.parroquia}<br />
-              Trayectoria: {cultor.trayectoria_anios} años · Organización: {cultor.organizacion || '—'}
-            </p>
-          </div>
-        )}
-        {esPropio && editando && (
-          <form onSubmit={guardar} style={{ marginTop: 12 }}>
-            {msg && <div className="aviso aviso-ok">{msg}</div>}
-            {errEdit && <div className="aviso aviso-error">{errEdit}</div>}
-            <div className="grilha grilha-2">
-              <div className="campo"><label htmlFor="nombre_completo">Nombre completo</label><input id="nombre_completo" value={form.nombre_completo} onChange={(e) => setForm({ ...form, nombre_completo: e.target.value })} required /></div>
-              <div className="campo"><label htmlFor="telefono">Teléfono</label><input id="telefono" value={form.telefono} onChange={(e) => setForm({ ...form, telefono: e.target.value })} /></div>
+          {cultor && (
+            <div className="perfil-ficha" style={{ marginTop: esPropio ? 16 : 0 }}>
+              <h3 style={{ marginTop: 0, color: 'var(--azul)' }}>Ficha de Cultor</h3>
+              <p style={{ margin: 0 }}>
+                <span className="badge badge-azul" style={{ marginRight: 6 }}>{AREAS_TEMATICAS[cultor.area_tematica] || cultor.area_tematica}</span>
+                {cultor.disciplina} · Cédula {cultor.cedula}<br />
+                {cultor.comuna} · {cultor.municipio}, {cultor.parroquia}<br />
+                Trayectoria: {cultor.trayectoria_anios} años · Organización: {cultor.organizacion || '—'}
+              </p>
             </div>
-            <button className="btn" type="submit">Guardar cambios</button>
-          </form>
-        )}
+          )}
+          {esPropio && editando && (
+            <form onSubmit={guardar} style={{ marginTop: 16 }}>
+              {msg && <div className="aviso aviso-ok">{msg}</div>}
+              {errEdit && <div className="aviso aviso-error">{errEdit}</div>}
+              <div className="grilha grilha-2">
+                <div className="campo"><label htmlFor="nombre_completo">Nombre completo</label><input id="nombre_completo" value={form.nombre_completo} onChange={(e) => setForm({ ...form, nombre_completo: e.target.value })} required /></div>
+                <div className="campo"><label htmlFor="telefono">Teléfono</label><input id="telefono" value={form.telefono} onChange={(e) => setForm({ ...form, telefono: e.target.value })} /></div>
+              </div>
+              <button className="btn" type="submit">Guardar cambios</button>
+            </form>
+          )}
+        </div>
       </div>
 
-      <div className="grilha grilha-3">
-        <div className="tarjeta" style={{ textAlign: 'center' }}><div style={{ fontSize: 30, fontWeight: 700, color: 'var(--azul)' }}>{stats.publicaciones ?? publicaciones.length}</div><div style={{ color: 'var(--texto-suave)', fontSize: 12, textTransform: 'uppercase' }}>Publicaciones</div></div>
-        <div className="tarjeta" style={{ textAlign: 'center' }}><div style={{ fontSize: 30, fontWeight: 700, color: 'var(--azul)' }}>{stats.comentarios ?? 0}</div><div style={{ color: 'var(--texto-suave)', fontSize: 12, textTransform: 'uppercase' }}>Comentarios</div></div>
-        <div className="tarjeta" style={{ textAlign: 'center' }}><div style={{ fontSize: 30, fontWeight: 700, color: 'var(--azul)' }}>{stats.likes_recibidos ?? 0}</div><div style={{ color: 'var(--texto-suave)', fontSize: 12, textTransform: 'uppercase' }}>Likes recibidos</div></div>
+      <div className="grilha grilha-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))' }}>
+        <div className="tarjeta tarjeta-estadistica"><div className="valor">{stats.publicaciones ?? publicaciones.length}</div><div className="etiqueta">Publicaciones</div></div>
+        <div className="tarjeta tarjeta-estadistica"><div className="valor">{stats.comentarios ?? 0}</div><div className="etiqueta">Comentarios</div></div>
+        <div className="tarjeta tarjeta-estadistica"><div className="valor">{stats.likes_recibidos ?? 0}</div><div className="etiqueta">Likes recibidos</div></div>
       </div>
 
-      <h3>Publicaciones de {u.nombre_completo}</h3>
+      <h2 className="seccion-titulo">Publicaciones de {u.nombre_completo}</h2>
       {publicaciones.map((p) => (
         <article className="tarjeta" key={p.id}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+          <div className="post-cab">
             <h4 style={{ margin: 0, color: 'var(--azul)' }}>{p.titulo}</h4>
-            <span style={{ background: 'var(--amarillo)', padding: '2px 10px', borderRadius: 12, fontSize: 12 }}>{CATEGORIAS_FORO[p.categoria] || p.categoria}</span>
+            <span className="badge badge-amarillo">{CATEGORIAS_FORO[p.categoria] || p.categoria}</span>
           </div>
           <p>{p.descripcion}</p>
           <MediaArchivo publicacion={p} />
           <p style={{ color: 'var(--texto-fantasma)', fontSize: 12 }}>♥ {p.likes_count} · 💬 {p.comments_count} · {new Date(p.fecha_publicacion).toLocaleDateString('es-VE', { dateStyle: 'long' })}</p>
         </article>
       ))}
+      {publicaciones.length === 0 && (
+        <div className="vacio"><span className="simbolo">💬</span>Este usuario aún no ha publicado.</div>
+      )}
     </div>
   );
 }

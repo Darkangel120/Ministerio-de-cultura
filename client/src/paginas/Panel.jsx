@@ -3,6 +3,13 @@ import { useAuth } from '../context/AuthContext';
 import useDatos from '../hooks/useDatos';
 import { MESES, ESTADO_EJECUCION } from '../constantes';
 
+const ETIQUETAS = {
+  eventos: 'Eventos registrados',
+  cultores: 'Cultores registrados',
+  publicaciones: 'Publicaciones',
+  comentarios: 'Comentarios',
+};
+
 export default function Panel() {
   const { usuario } = useAuth();
   const { datos, error } = useDatos('/api/dashboard');
@@ -14,32 +21,35 @@ export default function Panel() {
 
   return (
     <div className="contenedor">
-      <h2>Panel de Gestión</h2>
-      <p>Bienvenido, <strong>{usuario?.nombre_completo}</strong></p>
+      <div className="pagina-titulo">
+        <h1>Panel de Gestión</h1>
+        <p className="subtitulo">Bienvenido, <strong>{usuario?.nombre_completo}</strong> — resumen de la actividad cultural.</p>
+      </div>
       {error && <div className="aviso aviso-error">{error}</div>}
 
-      <div className="grilha grilha-3">
+      <div className="grilha grilha-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
         {datos && Object.entries(datos.stats || {}).map(([k, v]) => (
-          <div className="tarjeta" key={k} style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 34, fontWeight: 700, color: 'var(--azul)' }}>{v}</div>
-            <div style={{ textTransform: 'uppercase', color: 'var(--texto-suave)', fontSize: 12 }}>
-              {k === 'eventos' ? 'Eventos' : k === 'cultores' ? 'Cultores' : k === 'publicaciones' ? 'Publicaciones' : k === 'comentarios' ? 'Comentarios' : k}
-            </div>
+          <div className="tarjeta tarjeta-estadistica" key={k}>
+            <div className="valor">{v}</div>
+            <div className="etiqueta">{ETIQUETAS[k] || k}</div>
           </div>
         ))}
       </div>
 
-      <h3>Próximos Eventos</h3>
-      <div className="grilha">
+      <h2 className="seccion-titulo">Próximos Eventos</h2>
+      <div className="tarjeta">
         {(datos?.proximosEventos || []).map((e) => (
-          <div className="tarjeta" key={e.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+          <div className="fila" key={e.id}>
             <div>
-              <strong>{e.nombre_actividad}</strong>
-              <div style={{ color: 'var(--texto-suave)', fontSize: 14 }}>{e.municipio}, {e.estado} · {fmt(e)}</div>
+              <div className="fila-titulo">{e.nombre_actividad}</div>
+              <div className="fila-detalle">{e.municipio}, {e.estado} · {fmt(e)}</div>
             </div>
-            <span className="btn" style={{ display: 'inline-block', padding: '4px 10px', fontSize: 12 }}>{ESTADO_EJECUCION[e.estado_ejecucion] || e.estado_ejecucion}</span>
+            <span className="badge badge-amarillo">{ESTADO_EJECUCION[e.estado_ejecucion] || e.estado_ejecucion}</span>
           </div>
         ))}
+        {(datos?.proximosEventos || []).length === 0 && (
+          <div className="vacio"><span className="simbolo">🗓️</span>No hay eventos próximos registrados.</div>
+        )}
       </div>
       <Link className="btn btn-sec" to="/calendario">Ir al Calendario</Link>
     </div>
