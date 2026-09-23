@@ -1,13 +1,13 @@
 import { Router } from 'express';
 import { query } from '../db.js';
-import { autenticar } from '../auth.js';
+import { autenticar, autenticarOpcional } from '../auth.js';
+import { esStaff, esNacional, alcance, alcanceEn, estamparAlcance } from '../alcance.js';
 import {
   AREAS_VE, TIPOS_ORGANIZACION, CARGOS_RESPONSABLE, TIPOS_ACTIVIDAD,
   DISCIPLINAS_EVENTO, OBJETIVOS_TRANSFORMADORES, MESES, PARTICIPAR_KEYS, numeroEntero,
 } from '../validadores.js';
 
 const router = Router();
-const esStaff = (u) => ['admin', 'director_general', 'director_operativo', 'funcionario'].includes(u.tipo);
 
 const validarEvento = (b) => {
   const e = {};
@@ -53,23 +53,30 @@ const validarEvento = (b) => {
 
 const COLUMNAS_VALIDAS_ORDEN = { fecha: 1, nombre_actividad: 1, estado: 1, municipio: 1 };
 
-router.get('/', async (req, res) => {
+// Vista de calendario: el personal de gestión ve solo su ámbito; el público ve todo el país
+const vistaSegunAlcance = (u) => (esStaff(u) ? alcance(u) : { sql: 'TRUE', params: [] });
+
+router.get('/', autenticarOpcional, async (req, res) => {
   const mes = Number(req.query.mes);
   const anio = Number(req.query.anio);
   const orderBy = COLUMNAS_VALIDAS_ORDEN[req.query.orderBy] ? req.query.orderBy : 'fecha';
   const dir = req.query.dir === 'asc' ? 'ASC' : 'DESC';
+  const vista = vistaSegunAlcance(req.usuario);
   if (mes && MESES.includes(mes) && anio) {
     const r = await query(
-      `SELECT * FROM eventos WHERE activo = 1 AND mes = $1 AND EXTRACT(YEAR FROM fecha) = $2 ORDER BY fecha ${dir}, hora ASC`,
-      [mes, anio]
+      `SELECT * FROM eventos WHERE activo = 1 AND ${vista.sql} AND mes = $${vista.params.length + 1} AND EXTRACT(YEAR FROM fecha) = $${vista.params.length + 2} ORDER BY fecha ${dir}, hora ASC`,
+      [...vista.params, mes, anio]
     );
     return res.json({ eventos: r.rows });
   }
-  const r = await query(`SELECT * FROM eventos WHERE activo = 1 ORDER BY fecha ${dir}, hora ASC`);
+  const r = await query(
+    `SELECT * FROM eventos WHERE activo = 1 AND ${vista.sql} ORDER BY fecha ${dir}, hora ASC`,
+    vista.params
+  );
   res.json({ eventos: r.rows });
 });
 
-router.get('/nuevos', async (_req, res) => {
+router.get('/nuevos', autenticarOpcional, async (_req, res) => {
   const r = await query('SELECT * FROM eventos WHERE activo = 1 AND fecha >= CURRENT_DATE ORDER BY fecha ASC, hora ASC LIMIT 3');
   res.json({ eventos: r.rows });
 });
@@ -81,6 +88,7 @@ router.post('/', async (req, res) => {
   if (!esStaff(req.usuario)) return res.status(403).json({ error: 'No autorizado' });
   const { evento, error } = validarEvento(req.body || {});
   if (error) return res.status(400).json({ error });
+  Object.assign(evento, estamparAlcance(req.usuario));
   const cols = Object.keys(evento);
   const vals = cols.map((_, i) => `$${i + 2}`);
   const r = await query(
@@ -92,12 +100,15 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   if (!esStaff(req.usuario)) return res.status(403).json({ error: 'No autorizado' });
+  const id = Number(req.params.id);
   const { evento, error } = validarEvento(req.body || {});
   if (error) return res.status(400).json({ error });
-  const sets = Object.keys(evento).map((c, i) => `${c} = $${i + 2}`);
+  Object.assign(evento, estamparAlcance(req.usuario));
+  const sets = Object.keys(evento).map((c, i) => `${c} = $${i + 3}`);
+  const alc = alcanceEn(req.usuario, 3 + sets.length);
   const r = await query(
-    `UPDATE eventos SET ${sets.join(', ')} WHERE id = $1 AND activo = 1 RETURNING *`,
-    [req.params.id, ...Object.keys(evento).map((c) => evento[c])]
+    `UPDATE eventos SET ${sets.join(', ')}, correo_usuario = $2 WHERE id = $1 AND activo = 1 AND ${alc.sql} RETURNING *`,
+    [id, req.usuario.email, ...Object.keys(evento).map((c) => evento[c]), ...alc.params]
   );
   if (!r.rows.length) return res.status(404).json({ error: 'Evento no encontrado' });
   res.json({ evento: r.rows[0] });
@@ -105,22 +116,32 @@ router.put('/:id', async (req, res) => {
 
 router.post('/:id/ejecutar', async (req, res) => {
   if (!esStaff(req.usuario)) return res.status(403).json({ error: 'No autorizado' });
+  const id = Number(req.params.id);
+  const alc = alcanceEn(req.usuario, 2);
   const r = await query(
-    `UPDATE eventos SET estado_ejecucion = 'reportada' WHERE id = $1 AND activo = 1 RETURNING *`,
-    [req.params.id]
+    `UPDATE eventos SET estado_ejecucion = 'reportada' WHERE id = $1 AND activo = 1 AND ${alc.sql} RETURNING *`,
+    [id, ...alc.params]
   );
   if (!r.rows.length) return res.status(404).json({ error: 'Evento no encontrado' });
   res.json({ evento: r.rows[0] });
 });
 
 router.delete('/:id', async (req, res) => {
-  const r = await query('SELECT * FROM eventos WHERE id = $1 AND activo = 1', [req.params.id]);
+  const id = Number(req.params.id);
+  const alc = alcanceEn(req.usuario, 2);
+  const r = await query(`SELECT * FROM eventos WHERE id = $1 AND activo = 1 AND ${alc.sql}`, [id, ...alc.params]);
   if (!r.rows.length) return res.status(404).json({ error: 'Evento no encontrado' });
   const evento = r.rows[0];
-  if (!esStaff(req.usuario) && evento.correo_usuario !== req.usuario.email) {
-    return res.status(403).json({ error: 'Solo el autor o personal autorizado puede eliminar' });
+  if (esNacional(req.usuario)) {
+    await query('UPDATE eventos SET activo = 0 WHERE id = $1', [id]);
+    return res.json({ ok: true });
   }
-  await query('UPDATE eventos SET activo = 0 WHERE id = $1', [req.params.id]);
+  if (!esStaff(req.usuario)) return res.status(403).json({ error: 'Solo personal autorizado puede eliminar' });
+  const coincide = alc.sql === 'TRUE'
+    || (alc.params[0] === evento.estado && (alc.params.length === 1 || evento.municipio === alc.params[1]))
+    || evento.correo_usuario === req.usuario.email;
+  if (!coincide) return res.status(403).json({ error: 'Fuera de su ámbito' });
+  await query('UPDATE eventos SET activo = 0 WHERE id = $1', [id]);
   res.json({ ok: true });
 });
 

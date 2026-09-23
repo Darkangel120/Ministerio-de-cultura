@@ -13,8 +13,8 @@ const TIPOS = {
 
 // Columnas de presentación (nombres de columna del modelo)
 const EVENTO_COLS = ['id', 'correo_usuario', 'estado', 'municipio', 'parroquia', 'organizacion', 'tipo_organizacion', 'direccion', 'ubicacion_exacta', 'consejo_comunal', 'nombre_consejo', 'nombre_comuna', 'vocero_nombre', 'vocero_cedula', 'responsable_nombre', 'responsable_cargo', 'tipo_actividad', 'disciplina', 'nombre_actividad', 'objetivo', 'mes', 'fecha', 'hora', 'duracion', 'ninos', 'ninas', 'jovenes_masculinos', 'jovenes_femeninas', 'adultos_masculinos', 'adultos_femeninas', 'asistentes'];
-const CULTOR_COLS = ['id', 'nombres_apellidos', 'telefono', 'cedula', 'correo', 'area_tematica', 'disciplina', 'comuna', 'municipio', 'parroquia', 'carnet_patria', 'fecha_nacimiento', 'trayectoria_anios', 'organizacion'];
-const USUARIO_COLS = ['id', 'nombre_completo', 'email', 'telefono', 'tipo_usuario', 'fecha_registro'];
+const CULTOR_COLS = ['id', 'nombres_apellidos', 'telefono', 'cedula', 'correo', 'area_tematica', 'disciplina', 'comuna', 'estado', 'municipio', 'parroquia', 'carnet_patria', 'fecha_nacimiento', 'trayectoria_anios', 'organizacion'];
+const USUARIO_COLS = ['id', 'nombre_completo', 'email', 'telefono', 'tipo_usuario', 'estado', 'municipio', 'fecha_registro'];
 
 export default function Reportes() {
   const [tipo, setTipo] = useState('eventos');

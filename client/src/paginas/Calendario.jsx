@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, MapPin, Landmark } from 'lucide-react';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { SelectEstado, SelectMunicipio } from '../componentes/SelectUbicacion';
 import {
-  MESES, AREAS_VE, CARGOS_RESPONSABLE, TIPOS_ORGANIZACION, TIPOS_ACTIVIDAD,
+  MESES, CARGOS_RESPONSABLE, TIPOS_ORGANIZACION, TIPOS_ACTIVIDAD,
   DISCIPLINAS_EVENTO, OBJETIVOS_TRANSFORMADORES, ESTADO_EJECUCION,
 } from '../constantes';
 
@@ -31,6 +32,8 @@ const DIAS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 export default function Calendario() {
   const { usuario } = useAuth();
   const esStaff = ['admin', 'director_general', 'director_operativo', 'funcionario'].includes(usuario?.tipo);
+  const estadoFijo = ['director_operativo', 'funcionario'].includes(usuario?.tipo);
+  const municipioFijo = usuario?.tipo === 'funcionario';
   const ahora = new Date();
   const [anio, setAnio] = useState(ahora.getFullYear());
   const [mes, setMes] = useState(ahora.getMonth() + 1);
@@ -58,13 +61,14 @@ export default function Calendario() {
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
 
   const abrirNuevo = () => {
-    setForm({ ...vacio, mes: String(mes) });
+    setForm({ ...vacio, mes: String(mes), estado: usuario?.estado || '', municipio: municipioFijo ? usuario?.municipio || '' : '' });
     setEditandoId(null);
     setAbierto(true);
   };
   const abrirEdicion = (ev) => {
     const { id, fecha, hora, ...resto } = ev;
-    setForm({ ...resto, fecha: fecha.slice(0, 10), hora: hora.slice(0, 5), mes: String(ev.mes) });
+    const alcanceUsuario = { ...resto, estado: estadoFijo ? usuario?.estado : resto.estado, municipio: municipioFijo ? usuario?.municipio : resto.municipio };
+    setForm({ ...alcanceUsuario, fecha: fecha.slice(0, 10), hora: hora.slice(0, 5), mes: String(ev.mes) });
     setEditandoId(id);
     setAbierto(true);
   };
@@ -199,11 +203,9 @@ export default function Calendario() {
                   <h3>Ubicación Geográfica</h3>
                   <div className="grilha grilha-2">
                     <div className="campo"><label>Estado *</label>
-                      <select value={form.estado} onChange={set('estado')} required>
-                        <option value="">Seleccione un estado</option>
-                        {AREAS_VE.map((e) => <option key={e} value={e}>{e}</option>)}
-                      </select></div>
-                    <div className="campo"><label>Municipio *</label><input value={form.municipio} onChange={set('municipio')} required /></div>
+                      <SelectEstado value={form.estado} onChange={(v) => setForm({ ...form, estado: v, municipio: municipioFijo ? form.municipio : '' })} disabled={estadoFijo} required /></div>
+                    <div className="campo"><label>Municipio *</label>
+                      <SelectMunicipio estado={form.estado} value={form.municipio} onChange={set('municipio')} disabled={municipioFijo} required /></div>
                     <div className="campo"><label>Parroquia *</label><input value={form.parroquia} onChange={set('parroquia')} required /></div>
                     <div className="campo"><label>Organización *</label><input value={form.organizacion} onChange={set('organizacion')} required /></div>
                     <div className="campo"><label>Identificar si es comunas o circuito comunal</label>

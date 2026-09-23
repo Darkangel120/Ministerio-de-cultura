@@ -1,28 +1,40 @@
 import { Palette } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { api } from '../api';
+import { useAuth } from '../context/AuthContext';
 import { iniciales, colorAvatar } from '../lib/iniciales';
 import { AREAS_TEMATICAS } from '../constantes';
+import { MUNICIPIOS_POR_ESTADO } from '../datos/ubicaciones';
+import { SelectEstado, SelectMunicipio } from '../componentes/SelectUbicacion';
 
 const vacio = {
   nombres_apellidos: '', telefono: '', cedula: '', correo: '', area_tematica: '',
-  disciplina: '', comuna: '', municipio: '', parroquia: '', carnet_patria: '',
+  disciplina: '', comuna: '', estado: '', municipio: '', parroquia: '', carnet_patria: '',
   direccion: '', lugar_nacimiento: '', fecha_nacimiento: '', edad: '', trayectoria_anios: 0, organizacion: '',
 };
 
 export default function Cultores() {
+  const { usuario } = useAuth();
+  const fijoEstado = ['director_operativo', 'funcionario'].includes(usuario?.tipo);
+  const fijoMunicipio = usuario?.tipo === 'funcionario';
   const [cultores, setCultores] = useState([]);
-  const [opciones, setOpciones] = useState({ areas: [], municipios: [] });
+  const [opciones, setOpciones] = useState({ areas: [], municipios: [], estados: [] });
   const [fArea, setFArea] = useState('');
+  const [fEstado, setFEstado] = useState('');
   const [fMun, setFMun] = useState('');
   const [error, setError] = useState(null);
   const [form, setForm] = useState(vacio);
   const [editandoId, setEditandoId] = useState(null);
   const [abierto, setAbierto] = useState(false);
 
+  const municipiosVisibles = fEstado
+    ? opciones.municipios.filter((m) => (MUNICIPIOS_POR_ESTADO[fEstado] || []).includes(m))
+    : opciones.municipios;
+
   const cargar = async () => {
     const q = new URLSearchParams();
     if (fArea) q.set('area_tematica', fArea);
+    if (fEstado) q.set('estado', fEstado);
     if (fMun) q.set('municipio', fMun);
     try {
       const r = await api(`/api/cultores?${q.toString()}`);
@@ -30,15 +42,28 @@ export default function Cultores() {
     } catch (e) { setError(e.message); }
   };
 
-  useEffect(() => { cargar(); }, [fArea, fMun]);
+  useEffect(() => { cargar(); }, [fArea, fEstado, fMun]);
   useEffect(() => {
     api('/api/cultores/opciones').then((r) => setOpciones(r)).catch(() => {});
   }, []);
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+  const cambiarEstado = (v) => setForm({ ...form, estado: v, municipio: fijoMunicipio ? form.municipio : '' });
 
-  const abrirNuevo = () => { setForm(vacio); setEditandoId(null); setAbierto(true); };
-  const abrirEdicion = (c) => { const { id, fecha_registro, ...resto } = c; resto.fecha_nacimiento = c.fecha_nacimiento.slice(0, 10); setForm(resto); setEditandoId(id); setAbierto(true); };
+  const abrirNuevo = () => {
+    setForm({ ...vacio, estado: usuario?.estado || '', municipio: fijoMunicipio ? usuario?.municipio || '' : '' });
+    setEditandoId(null);
+    setAbierto(true);
+  };
+  const abrirEdicion = (c) => {
+    const { id, fecha_registro, ...resto } = c;
+    const ficha = { ...resto, estado: fijoEstado ? usuario?.estado : resto.estado, municipio: fijoMunicipio ? usuario?.municipio : resto.municipio };
+    if (ficha.estado && !fijoEstado && !(MUNICIPIOS_POR_ESTADO[ficha.estado] || []).includes(ficha.municipio)) ficha.municipio = '';
+    ficha.fecha_nacimiento = c.fecha_nacimiento.slice(0, 10);
+    setForm(ficha);
+    setEditandoId(id);
+    setAbierto(true);
+  };
 
   const guardar = async (e) => {
     e.preventDefault();
@@ -76,10 +101,17 @@ export default function Cultores() {
           </select>
         </div>
         <div className="campo" style={{ minWidth: 200 }}>
+          <label htmlFor="fEstado">Estado</label>
+          <select id="fEstado" value={fEstado} onChange={(e) => { setFEstado(e.target.value); setFMun(''); }}>
+            <option value="">Todos los estados</option>
+            {opciones.estados.map((e) => <option key={e} value={e}>{e}</option>)}
+          </select>
+        </div>
+        <div className="campo" style={{ minWidth: 200 }}>
           <label htmlFor="fMun">Municipio</label>
           <select id="fMun" value={fMun} onChange={(e) => setFMun(e.target.value)}>
-            <option value="">Todos los municipios</option>
-            {opciones.municipios.map((m) => <option key={m} value={m}>{m}</option>)}
+            <option value="">{fEstado ? 'Todos los municipios' : 'Primero elige estado'}</option>
+            {municipiosVisibles.map((m) => <option key={m} value={m}>{m}</option>)}
           </select>
         </div>
       </div>
@@ -132,7 +164,10 @@ export default function Cultores() {
                     </select></div>
                   <div className="campo"><label>Disciplina *</label><input value={form.disciplina} onChange={set('disciplina')} required /></div>
                   <div className="campo"><label>Comuna *</label><input value={form.comuna} onChange={set('comuna')} required /></div>
-                  <div className="campo"><label>Municipio *</label><input value={form.municipio} onChange={set('municipio')} required /></div>
+                  <div className="campo"><label>Estado *</label>
+                    <SelectEstado value={form.estado} onChange={cambiarEstado} disabled={fijoEstado} required /></div>
+                  <div className="campo"><label>Municipio *</label>
+                    <SelectMunicipio estado={form.estado} value={form.municipio} onChange={set('municipio')} disabled={fijoMunicipio} required /></div>
                   <div className="campo"><label>Parroquia *</label><input value={form.parroquia} onChange={set('parroquia')} required /></div>
                   <div className="campo"><label>Código carnet patria *</label><input value={form.carnet_patria} onChange={set('carnet_patria')} required /></div>
                   <div className="campo"><label>Dirección exacta *</label><input value={form.direccion} onChange={set('direccion')} required /></div>

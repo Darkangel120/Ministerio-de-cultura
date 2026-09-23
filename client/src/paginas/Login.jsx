@@ -5,7 +5,7 @@ import Bandera from '../componentes/Bandera';
 import { useAuth } from '../context/AuthContext';
 
 const destinoSegunRol = (tipo) =>
-  ['admin', 'director_general'].includes(tipo) ? '/panel' : '/foro';
+  ['admin', 'director_general', 'director_operativo', 'funcionario'].includes(tipo) ? '/panel' : '/foro';
 
 export default function Login() {
   const { login, usuario } = useAuth();

@@ -8,11 +8,15 @@ CREATE TABLE usuarios (
     tipo_usuario VARCHAR(20) NOT NULL CHECK (tipo_usuario IN ('admin','director_general','director_operativo','funcionario','cultor','publico')),
     password_hash VARCHAR(255) NOT NULL,
     foto_url VARCHAR(255),
+    estado VARCHAR(100),
+    municipio VARCHAR(100),
     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     activo SMALLINT DEFAULT 1 CHECK (activo IN (0,1))
 );
 CREATE INDEX idx_usuarios_email ON usuarios (email);
 CREATE INDEX idx_usuarios_tipo_usuario ON usuarios (tipo_usuario);
+CREATE INDEX idx_usuarios_estado ON usuarios (estado);
+CREATE INDEX idx_usuarios_municipio ON usuarios (municipio);
 
 CREATE TABLE cultores (
     id SERIAL PRIMARY KEY,
@@ -23,6 +27,7 @@ CREATE TABLE cultores (
     area_tematica VARCHAR(20) NOT NULL CHECK (area_tematica IN ('musica','danza','teatro','artesPlasticas','literatura','artesanias','cine','fotografia')),
     disciplina VARCHAR(100) NOT NULL,
     comuna VARCHAR(100) NOT NULL,
+    estado VARCHAR(100) NOT NULL,
     municipio VARCHAR(100) NOT NULL,
     parroquia VARCHAR(100) NOT NULL,
     carnet_patria VARCHAR(50) NOT NULL,
@@ -38,6 +43,7 @@ CREATE TABLE cultores (
 CREATE INDEX idx_cultores_cedula ON cultores (cedula);
 CREATE INDEX idx_cultores_correo ON cultores (correo);
 CREATE INDEX idx_cultores_area_tematica ON cultores (area_tematica);
+CREATE INDEX idx_cultores_estado ON cultores (estado);
 CREATE INDEX idx_cultores_municipio ON cultores (municipio);
 
 CREATE TABLE eventos (

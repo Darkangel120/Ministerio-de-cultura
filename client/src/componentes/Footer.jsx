@@ -2,8 +2,8 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function Footer() {
-  const { usuario, esAdmin } = useAuth();
-  const puedeRegistro = usuario && usuario.tipo !== 'publico';
+  const { usuario, esStaff, puedeCrearUsuario } = useAuth();
+  const puedeRegistro = usuario ? usuario.tipo !== 'publico' : true;
   return (
     <footer className="pie">
       <div className="pie-interno">
@@ -30,12 +30,14 @@ export default function Footer() {
             <li><Link to="/foro">Foro Comunitario</Link></li>
           </ul>
         </div>
-        {esAdmin && (
+        {esStaff && (
           <div>
             <h3>Administración</h3>
             <ul style={{ listStyle: 'none', padding: 0 }}>
               <li><Link to="/panel">Panel</Link></li>
+              <li><Link to="/cultores">Cultores</Link></li>
               <li><Link to="/reportes">Reportes</Link></li>
+              {puedeCrearUsuario && <li><Link to="/crear-usuario">Crear Usuario</Link></li>}
             </ul>
           </div>
         )}

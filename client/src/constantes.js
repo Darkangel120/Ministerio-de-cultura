@@ -21,5 +21,5 @@ export const OBJETIVOS_TRANSFORMADORES = [
   'ECOSOCIALISMO (CIENCIA Y TECNOLOGÍA): ENFRENTAMIENTO AL CAMBIO CLIMÁTICO Y DESARROLLO CIENTÍFICO-TECNOLÓGICO',
   'GEOPOLÍTICA: POSICIONAMIENTO DE VENEZUELA EN UN NUEVO ORDEN MUNDIAL MULTIPOLAR',
 ];
-export const TIPOS_USUARIO = { admin: 'Administrador', director_general: 'Director General', director_operativo: 'Director Operativo', funcionario: 'Funcionario', cultor: 'Cultor', publico: 'Público en general' };
+export const TIPOS_USUARIO = { admin: 'Administrador', director_general: 'Director General', director_operativo: 'Director por Estado', funcionario: 'Responsable por Municipio', cultor: 'Cultor', publico: 'Público en general' };
 export const ESTADO_EJECUCION = { registrado: 'Registrado', ejecutado: 'Ejecutado', reportada: 'Reportada' };

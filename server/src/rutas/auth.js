@@ -2,7 +2,7 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import { query } from '../db.js';
 import { firmarToken, COOKIE_NOMBRE, autenticar } from '../auth.js';
-import { esEmail, numeroEntero, AREAS_TEMATICAS } from '../validadores.js';
+import { esEmail, numeroEntero, AREAS_TEMATICAS, AREAS_VE } from '../validadores.js';
 
 const router = Router();
 const ROLE_SELF_REGISTRABLES = ['cultor', 'publico'];
@@ -17,7 +17,7 @@ const calcularEdad = (fechaNacimiento) => {
 };
 
 router.post('/registro', async (req, res) => {
-  const { nombre_completo, email, telefono, tipo_usuario, password, cedula, area_tematica, disciplina, comuna, municipio, parroquia, carnet_patria, direccion, lugar_nacimiento, fecha_nacimiento, trayectoria_anios, organizacion } = req.body || {};
+  const { nombre_completo, email, telefono, tipo_usuario, password, cedula, area_tematica, disciplina, comuna, estado, municipio, parroquia, carnet_patria, direccion, lugar_nacimiento, fecha_nacimiento, trayectoria_anios, organizacion } = req.body || {};
 
   if (!nombre_completo?.trim() || !esEmail(email)) return res.status(400).json({ error: 'Nombre y correo válidos son obligatorios' });
   if (typeof password !== 'string' || password.length < 8) return res.status(400).json({ error: 'La contraseña debe tener mínimo 8 caracteres' });
@@ -27,7 +27,10 @@ router.post('/registro', async (req, res) => {
   if (existe.rows.length) return res.status(409).json({ error: 'El correo ya está registrado' });
 
   if (tipo_usuario === 'cultor') {
-    if (!cedula?.trim() || !AREA_TEMATICAS.includes(area_tematica) || !disciplina?.trim() ||
+    if (!AREAS_VE.includes(estado)) {
+      return res.status(400).json({ error: 'Seleccione el estado de residencia' });
+    }
+    if (!cedula?.trim() || !AREAS_TEMATICAS.includes(area_tematica) || !disciplina?.trim() ||
         !municipio?.trim() || !parroquia?.trim() || !carnet_patria?.trim() ||
         !direccion?.trim() || !lugar_nacimiento?.trim() || !fecha_nacimiento?.trim()) {
       return res.status(400).json({ error: 'Faltan datos obligatorios de la ficha de cultor' });
@@ -38,18 +41,18 @@ router.post('/registro', async (req, res) => {
 
   const hash = await bcrypt.hash(password, 10);
   const r = await query(
-    `INSERT INTO usuarios (nombre_completo, email, telefono, tipo_usuario, password_hash)
-     VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-    [nombre_completo.trim(), email.trim(), telefono?.trim() || null, tipo_usuario, hash]
+    `INSERT INTO usuarios (nombre_completo, email, telefono, tipo_usuario, estado, municipio, password_hash)
+     VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+    [nombre_completo.trim(), email.trim(), telefono?.trim() || null, tipo_usuario, tipo_usuario === 'cultor' ? estado : null, tipo_usuario === 'cultor' ? municipio?.trim() || null : null, hash]
   );
   const usuario = r.rows[0];
 
   if (tipo_usuario === 'cultor') {
     const edad = calcularEdad(fecha_nacimiento);
     await query(
-      `INSERT INTO cultores (nombres_apellidos, telefono, cedula, correo, area_tematica, disciplina, comuna, municipio, parroquia, carnet_patria, direccion, lugar_nacimiento, fecha_nacimiento, edad, trayectoria_anios, organizacion)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
-      [nombre_completo.trim(), telefono?.trim() || '', cedula.trim(), email.trim(), area_tematica, disciplina.trim(), comuna?.trim() || '', municipio.trim(), parroquia.trim(), carnet_patria.trim(), direccion.trim(), lugar_nacimiento.trim(), fecha_nacimiento, edad, numeroEntero(trayectoria_anios, 0) ?? 0, organizacion?.trim() || '']
+      `INSERT INTO cultores (nombres_apellidos, telefono, cedula, correo, area_tematica, disciplina, comuna, estado, municipio, parroquia, carnet_patria, direccion, lugar_nacimiento, fecha_nacimiento, edad, trayectoria_anios, organizacion)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
+      [nombre_completo.trim(), telefono?.trim() || '', cedula.trim(), email.trim(), area_tematica, disciplina.trim(), comuna?.trim() || '', estado, municipio.trim(), parroquia.trim(), carnet_patria.trim(), direccion.trim(), lugar_nacimiento.trim(), fecha_nacimiento, edad, numeroEntero(trayectoria_anios, 0) ?? 0, organizacion?.trim() || '']
     );
   }
 
@@ -85,7 +88,7 @@ router.post('/logout', (_req, res) => {
 });
 
 router.get('/me', autenticar, async (req, res) => {
-  const r = await query('SELECT id, nombre_completo, email, telefono, tipo_usuario, fecha_registro FROM usuarios WHERE id = $1', [req.usuario.id]);
+  const r = await query('SELECT id, nombre_completo, email, telefono, tipo_usuario, estado, municipio, foto_url, fecha_registro FROM usuarios WHERE id = $1', [req.usuario.id]);
   if (!r.rows.length) return res.status(404).json({ error: 'Usuario no encontrado' });
   res.json({ usuario: r.rows[0] });
 });

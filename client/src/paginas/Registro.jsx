@@ -1,52 +1,32 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { CheckCircle2, Info } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { AREAS_TEMATICAS } from '../constantes';
+import { SelectEstado, SelectMunicipio } from '../componentes/SelectUbicacion';
 
 const destinoSegunRol = (tipo) =>
-  ['admin', 'director_general'].includes(tipo) ? '/panel' : '/foro';
+  ['admin', 'director_general', 'director_operativo', 'funcionario'].includes(tipo) ? '/panel' : '/foro';
 
 const inicial = {
   nombre_completo: '', email: '', telefono: '', tipo_usuario: 'publico',
   password: '', password_confirm: '',
-  cedula: '', area_tematica: '', disciplina: '', comuna: '', municipio: '', parroquia: '',
+  cedula: '', area_tematica: '', disciplina: '', comuna: '', estado: '', municipio: '', parroquia: '',
   carnet_patria: '', direccion: '', lugar_nacimiento: '', fecha_nacimiento: '',
   trayectoria_anios: '', organizacion: '',
 };
 
 export default function Registro() {
   const { registrar, usuario } = useAuth();
+  const navigate = useNavigate();
   const [form, setForm] = useState(inicial);
   const [error, setError] = useState(null);
   const [cargando, setCargando] = useState(false);
 
-  if (usuario) {
-    const mensajes = {
-      publico: ['El Registro Cultural es un servicio dirigido a cultores y cultoras del pueblo venezolano.', 'Tu cuenta de participante está activa. Explora los eventos y el foro comunitario.'],
-      cultor: ['Ya estás registrado en el Registro Cultural', 'Tu ficha de cultor está activa en el portal. Puedes actualizarla desde tu perfil.'],
-    };
-    const [titulo, detalle] = mensajes[usuario.tipo] || ['Cuenta institucional activa', 'El Registro Cultural es un servicio de la comunidad. Tu cuenta del Ministerio ya está registrada.'];
+  useEffect(() => {
+    if (usuario) navigate(destinoSegunRol(usuario.tipo), { replace: true });
+  }, [usuario, navigate]);
 
-    return (
-      <div className="contenedor max-m">
-        <div className="pagina-titulo">
-          <h1>Registro Cultural</h1>
-          <p className="subtitulo">Únete a la comunidad de cultores y cultoras de la Patria.</p>
-        </div>
-        <div className="tarjeta" style={{ textAlign: 'center', padding: '36px 24px' }}>
-          <CheckCircle2 size={46} color="var(--azul)" style={{ marginBottom: 10 }} />
-          <h3 style={{ color: 'var(--azul)', margin: '0 0 8px' }}>{titulo}</h3>
-          <p style={{ margin: '0 auto 18px', maxWidth: 520, color: 'var(--texto-suave)' }}>{detalle}</p>
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link className="btn" to="/foro"><Info size={15} /> Visitar el Foro</Link>
-            <Link className="btn btn-sec" to="/calendario">Ver Eventos</Link>
-            <Link className="btn btn-bajo" to={`/perfil/${usuario.id}`}>Mi Perfil</Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (usuario) return null;
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
 
@@ -57,8 +37,8 @@ export default function Registro() {
     setCargando(true);
     try {
       const { password_confirm, tipo_usuario, ...datos } = form;
-      const r = await registrar({ ...datos, tipo_usuario });
-      return r;
+      await registrar({ ...datos, tipo_usuario });
+      navigate(destinoSegunRol(tipo_usuario), { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -72,7 +52,10 @@ export default function Registro() {
     <div className="contenedor max-m">
       <div className="pagina-titulo">
         <h1>Registro Cultural</h1>
-        <p className="subtitulo">Únete a la comunidad de cultores y cultoras de la Patria.</p>
+        <p className="subtitulo">
+          Si eres cultor, cultora o integrante de una comuna, regístrate para formar parte del
+          registro cultural de tu municipio y estado.
+        </p>
       </div>
       <div className="tarjeta">
         {error && <div className="aviso aviso-error">{error}</div>}
@@ -105,7 +88,7 @@ export default function Registro() {
           {esCultor && (
             <>
               <div className="form-seccion">
-                <h3>Información del Cultor</h3>
+                <h3>Ficha del Cultor</h3>
               <div className="grilha grilha-2">
                 <div className="campo">
                   <label htmlFor="cedula">Cédula *</label>
@@ -127,8 +110,12 @@ export default function Registro() {
                   <input id="comuna" value={form.comuna} onChange={set('comuna')} />
                 </div>
                 <div className="campo">
+                  <label htmlFor="estado">Estado de residencia *</label>
+                  <SelectEstado id="estado" value={form.estado} onChange={(v) => setForm({ ...form, estado: v, municipio: '' })} required={esCultor} />
+                </div>
+                <div className="campo">
                   <label htmlFor="municipio">Municipio *</label>
-                  <input id="municipio" value={form.municipio} onChange={set('municipio')} required={esCultor} />
+                  <SelectMunicipio id="municipio" estado={form.estado} value={form.municipio} onChange={set('municipio')} required={esCultor} />
                 </div>
                 <div className="campo">
                   <label htmlFor="parroquia">Parroquia *</label>

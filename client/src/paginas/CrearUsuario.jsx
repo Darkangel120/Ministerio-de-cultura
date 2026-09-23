@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { SelectEstado, SelectMunicipio } from '../componentes/SelectUbicacion';
 
 const JERARQUIA = {
   admin: ['admin', 'director_general', 'director_operativo', 'funcionario'],
@@ -9,20 +10,29 @@ const JERARQUIA = {
   director_operativo: ['funcionario'],
 };
 
-const LABEL = { admin: 'Administrador', director_general: 'Director General', director_operativo: 'Director Operativo', funcionario: 'Funcionario' };
+const LABEL = { admin: 'Administrador', director_general: 'Director General', director_operativo: 'Director por Estado', funcionario: 'Responsable por Municipio' };
 
-const vacio = { nombre_completo: '', email: '', telefono: '', tipo_usuario: '', password: '', confirm_password: '' };
+const vacio = { nombre_completo: '', email: '', telefono: '', tipo_usuario: '', estado: '', municipio: '', password: '', confirm_password: '' };
 
 export default function CrearUsuario() {
   const { usuario } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState(vacio);
+  const [form, setForm] = useState({ ...vacio, estado: usuario?.estado || '' });
   const [error, setError] = useState(null);
   const [ok, setOk] = useState(null);
   const [cargando, setCargando] = useState(false);
 
   const rolesPermitidos = JERARQUIA[usuario?.tipo] || [];
+  const esTerritorial = ['director_operativo', 'funcionario'].includes(form.tipo_usuario);
+  const estadoBloqueado = usuario?.tipo === 'director_operativo';
+
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+
+  const seleccionarTipo = (v) => {
+    setForm({ ...form, tipo_usuario: v, estado: usuario?.estado || '', municipio: '' });
+  };
+
+  const cambiarEstado = (v) => setForm({ ...form, estado: v, municipio: '' });
 
   const enviar = async (e) => {
     e.preventDefault();
@@ -31,10 +41,12 @@ export default function CrearUsuario() {
     if (form.password !== form.confirm_password) { setError('Las contraseñas no coinciden'); return; }
     setCargando(true);
     try {
-      const { confirm_password, ...payload } = form;
+      const { confirm_password, tipo_usuario, ...resto } = form;
+      const payload = { ...resto, tipo_usuario };
+      if (!esTerritorial) { payload.estado = null; payload.municipio = null; }
       await api('/api/usuarios', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       setOk(`Usuario ${form.nombre_completo} (${LABEL[form.tipo_usuario]}) creado correctamente.`);
-      setForm(vacio);
+      setForm({ ...vacio, estado: usuario?.estado || '' });
     } catch (err) { setError(err.message); }
     finally { setCargando(false); }
   };
@@ -44,7 +56,8 @@ export default function CrearUsuario() {
       <div className="pagina-titulo">
         <h1>Crear Nuevo Usuario</h1>
         <p className="subtitulo">
-          Puede crear usuarios de los siguientes tipos: {rolesPermitidos.map((r, i) => <span key={r}><span className="badge badge-azul">{LABEL[r]}</span>{i < rolesPermitidos.length - 1 ? ' ' : ''}</span>)}.
+          La jerarquía permite crear a los niveles inferiores: {rolesPermitidos.map((r, i) => <span key={r}><span className="badge badge-azul">{LABEL[r]}</span>{i < rolesPermitidos.length - 1 ? ' ' : ''}</span>)}.
+          {usuario?.tipo === 'director_operativo' && ` Como ${LABEL.director_operativo} solo puedes crear responsables por municipio de tu estado (${usuario.estado}).`}
         </p>
       </div>
       <div className="tarjeta">
@@ -67,11 +80,25 @@ export default function CrearUsuario() {
           </div>
           <div className="campo">
             <label htmlFor="tipo_usuario">Tipo de usuario *</label>
-            <select id="tipo_usuario" value={form.tipo_usuario} onChange={set('tipo_usuario')} required>
+            <select id="tipo_usuario" value={form.tipo_usuario} onChange={(e) => seleccionarTipo(e.target.value)} required>
               <option value="">Seleccionar tipo de usuario</option>
               {rolesPermitidos.map((r) => <option key={r} value={r}>{LABEL[r]}</option>)}
             </select>
           </div>
+          {esTerritorial && (
+            <div className="grilha grilha-2">
+              <div className="campo">
+                <label htmlFor="estado">Estado de la entidad federal *</label>
+                <SelectEstado id="estado" value={form.estado} onChange={cambiarEstado} disabled={estadoBloqueado} required />
+                {estadoBloqueado && <small>Asignado: {usuario?.estado}</small>}
+              </div>
+              <div className="campo">
+                <label htmlFor="municipio">Municipio *</label>
+                <SelectMunicipio id="municipio" estado={form.estado} value={form.municipio} onChange={set('municipio')} required disabled={form.tipo_usuario !== 'funcionario'} />
+                {form.tipo_usuario !== 'funcionario' && <small>Solo aplica a responsables por municipio.</small>}
+              </div>
+            </div>
+          )}
           <div className="grilha grilha-2">
             <div className="campo">
               <label htmlFor="password">Contraseña *</label>
