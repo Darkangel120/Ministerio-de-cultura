@@ -9,15 +9,17 @@ import MediaArchivo from '../componentes/MediaArchivo';
 const nuevoVacio = { titulo: '', categoria: 'musica', descripcion: '', archivo: null };
 
 const hace = (iso) => {
-  const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-  if (s < 60) return 'ahora mismo';
-  const m = Math.floor(s / 60);
-  if (m < 60) return `hace ${m} min`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `hace ${h} h`;
+  const s = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+  const min = Math.floor(s / 60);
+  const h = Math.floor(min / 60);
   const d = Math.floor(h / 24);
-  if (d === 1) return 'ayer';
-  if (d < 7) return `hace ${d} días`;
+  const sem = Math.floor(d / 7);
+  const unidad = (n, sg, pl) => `hace ${n} ${n === 1 ? sg : pl}`;
+  if (s < 60) return s <= 5 ? 'hace unos segundos' : unidad(s, 'segundo', 'segundos');
+  if (min < 60) return unidad(min, 'minuto', 'minutos');
+  if (h < 24) return unidad(h, 'hora', 'horas');
+  if (d < 7) return unidad(d, 'día', 'días');
+  if (d < 30) return unidad(sem, 'semana', 'semanas');
   return new Intl.DateTimeFormat('es-VE', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(iso));
 };
 
@@ -28,6 +30,7 @@ export default function Foro() {
   const [nueva, setNueva] = useState(nuevoVacio);
   const [componer, setComponer] = useState(false);
   const [editando, setEditando] = useState(null);
+  const [eliminando, setEliminando] = useState(null);
   const [abiertos, setAbiertos] = useState({});
   const [comentarios, setComentarios] = useState({});
   const [textoComentario, setTextoComentario] = useState('');
@@ -72,9 +75,19 @@ export default function Foro() {
     fd.append('categoria', editando.categoria);
     fd.append('descripcion', editando.descripcion);
     if (editando.archivo) fd.append('archivo', editando.archivo);
-    await api(`/api/foro/publicaciones/${editando.id}`, { method: 'PUT', body: fd });
-    setEditando(null);
-    cargar();
+    try {
+      await api(`/api/foro/publicaciones/${editando.id}`, { method: 'PUT', body: fd });
+      setEditando(null);
+      cargar();
+    } catch (err) { setError(err.message); }
+  };
+
+  const confirmarBorrado = async () => {
+    try {
+      await api(`/api/foro/publicaciones/${eliminando.id}`, { method: 'DELETE' });
+      setPublicaciones((prev) => prev.filter((x) => x.id !== eliminando.id));
+      setEliminando(null);
+    } catch (err) { setError(err.message); }
   };
 
   const toggleLike = async (p) => {
@@ -86,14 +99,6 @@ export default function Foro() {
           ? { ...x, mio_like: r.liked, likes_count: x.likes_count + (r.liked ? 1 : -1) }
           : x
       ));
-    } catch (err) { setError(err.message); }
-  };
-
-  const borrar = async (id) => {
-    if (!window.confirm('¿Eliminar esta publicación?')) return;
-    try {
-      await api(`/api/foro/publicaciones/${id}`, { method: 'DELETE' });
-      setPublicaciones((prev) => prev.filter((x) => x.id !== id));
     } catch (err) { setError(err.message); }
   };
 
@@ -176,7 +181,7 @@ export default function Foro() {
                 {usuario?.id === p.usuario_id && (
                   <div className="autor-opciones">
                     <button className="icono-btn" type="button" title="Editar" onClick={() => setEditando({ ...p, archivo: null })}><Pencil size={15} /></button>
-                    <button className="icono-btn" type="button" title="Eliminar" onClick={() => borrar(p.id)}><Trash2 size={15} /></button>
+                    <button className="icono-btn" type="button" title="Eliminar" onClick={() => setEliminando(p)}><Trash2 size={15} /></button>
                   </div>
                 )}
               </header>
@@ -200,25 +205,6 @@ export default function Foro() {
                   <MessageCircle size={16} /> Comentar
                 </button>
               </div>
-
-              {editando?.id === p.id && (
-                <form onSubmit={guardarEdicion} className="comentario-bloque">
-                  <div className="campo"><label>Título</label><input value={editando.titulo} onChange={(e) => setEditando({ ...editando, titulo: e.target.value })} required /></div>
-                  <div className="campo">
-                    <label>Categoría</label>
-                    <select value={editando.categoria} onChange={(e) => setEditando({ ...editando, categoria: e.target.value })}>
-                      {Object.entries(CATEGORIAS_FORO).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                    </select>
-                  </div>
-                  <div className="campo"><label>Descripción</label><textarea rows="3" value={editando.descripcion} onChange={(e) => setEditando({ ...editando, descripcion: e.target.value })} required /></div>
-                  <div className="campo"><label>Nuevo archivo (opcional)</label><input type="file" accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.webm,.mov,.mp3,.wav,.ogg" onChange={(e) => setEditando({ ...editando, archivo: e.target.files[0] || null })} /></div>
-                  <div className="componer-pie">
-                    <div className="grow" />
-                    <button className="btn btn-bajo" type="button" onClick={() => setEditando(null)}>Cancelar</button>
-                    <button className="btn" type="submit">Guardar</button>
-                  </div>
-                </form>
-              )}
 
               {abiertos[p.id] && (
                 <div className="comentario-bloque">
@@ -263,6 +249,53 @@ export default function Foro() {
           </div>
         </aside>
       </div>
+
+      {editando && (
+        <div className="modal-fondo" onClick={(e) => { if (e.target === e.currentTarget) setEditando(null); }}>
+          <div className="tarjeta modal-tarjeta" style={{ marginBottom: 0, maxWidth: 620 }}>
+            <div className="modal-cab">
+              <h2>Editar publicación</h2>
+              <button className="icono-btn cerrar" type="button" onClick={() => setEditando(null)}><X size={18} /></button>
+            </div>
+            <form className="modal-cuerpo" onSubmit={guardarEdicion}>
+              <div className="campo"><label>Título</label><input value={editando.titulo} onChange={(e) => setEditando({ ...editando, titulo: e.target.value })} required /></div>
+              <div className="campo">
+                <label>Categoría</label>
+                <select value={editando.categoria} onChange={(e) => setEditando({ ...editando, categoria: e.target.value })}>
+                  {Object.entries(CATEGORIAS_FORO).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                </select>
+              </div>
+              <div className="campo"><label>Descripción</label><textarea rows="4" value={editando.descripcion} onChange={(e) => setEditando({ ...editando, descripcion: e.target.value })} required /></div>
+              <div className="campo"><label>Nuevo archivo (opcional)</label><input type="file" accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.webm,.mov,.mp3,.wav,.ogg" onChange={(e) => setEditando({ ...editando, archivo: e.target.files[0] || null })} /></div>
+              <div className="componer-pie">
+                <div className="grow" />
+                <button className="btn btn-bajo" type="button" onClick={() => setEditando(null)}>Cancelar</button>
+                <button className="btn" type="submit">Guardar cambios</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {eliminando && (
+        <div className="modal-fondo" onClick={(e) => { if (e.target === e.currentTarget) setEliminando(null); }}>
+          <div className="tarjeta modal-tarjeta" style={{ marginBottom: 0, maxWidth: 460 }}>
+            <div className="modal-cab">
+              <h2>Eliminar publicación</h2>
+              <button className="icono-btn cerrar" type="button" onClick={() => setEliminando(null)}><X size={18} /></button>
+            </div>
+            <div className="modal-cuerpo">
+              <p style={{ marginTop: 0 }}>¿Estás seguro de que deseas eliminar esta publicación?</p>
+              <p className="m0" style={{ color: 'var(--texto-suave)', fontSize: 14 }}>«<strong>{eliminando.titulo}</strong>» — Esta acción no se puede deshacer.</p>
+              <div className="componer-pie" style={{ marginTop: 20 }}>
+                <div className="grow" />
+                <button className="btn btn-bajo" type="button" onClick={() => setEliminando(null)}>Cancelar</button>
+                <button className="btn" type="button" onClick={confirmarBorrado}><Trash2 size={15} /> Eliminar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
