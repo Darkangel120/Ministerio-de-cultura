@@ -22,7 +22,7 @@ export default function Panel() {
         {datos && Object.entries(datos.stats || {}).map(([k, v]) => (
           <div className="tarjeta" key={k} style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 34, fontWeight: 700, color: 'var(--azul)' }}>{v}</div>
-            <div style={{ textTransform: 'uppercase', color: '#666', fontSize: 13 }}>
+            <div style={{ textTransform: 'uppercase', color: 'var(--texto-suave)', fontSize: 12 }}>
               {k === 'eventos' ? 'Eventos' : k === 'cultores' ? 'Cultores' : k === 'publicaciones' ? 'Publicaciones' : k === 'comentarios' ? 'Comentarios' : k}
             </div>
           </div>
@@ -35,7 +35,7 @@ export default function Panel() {
           <div className="tarjeta" key={e.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
             <div>
               <strong>{e.nombre_actividad}</strong>
-              <div style={{ color: '#555', fontSize: 14 }}>{e.municipio}, {e.estado} · {fmt(e)}</div>
+              <div style={{ color: 'var(--texto-suave)', fontSize: 14 }}>{e.municipio}, {e.estado} · {fmt(e)}</div>
             </div>
             <span className="btn" style={{ display: 'inline-block', padding: '4px 10px', fontSize: 12 }}>{ESTADO_EJECUCION[e.estado_ejecucion] || e.estado_ejecucion}</span>
           </div>

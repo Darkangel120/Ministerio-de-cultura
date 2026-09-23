@@ -83,7 +83,7 @@ export default function Cultores() {
         {cultores.map((c) => (
           <div className="tarjeta" key={c.id}>
             <h3 style={{ color: 'var(--azul)', margin: 0, fontSize: 17 }}>{c.nombres_apellidos}</h3>
-            <p style={{ color: '#666', fontSize: 13 }}>{AREAS_TEMATICAS[c.area_tematica] || c.area_tematica} — {c.disciplina}</p>
+            <p style={{ color: 'var(--texto-suave)', fontSize: 13 }}>{AREAS_TEMATICAS[c.area_tematica] || c.area_tematica} — {c.disciplina}</p>
             <p>Cédula: {c.cedula}<br />Correo: {c.correo}<br />Municipio: {c.municipio}, {c.parroquia}</p>
             <div style={{ display: 'flex', gap: 8 }}>
               <button className="btn-sec" type="button" onClick={() => abrirEdicion(c)}>Editar</button>

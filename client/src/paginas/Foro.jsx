@@ -128,7 +128,7 @@ export default function Foro() {
             <h3 style={{ margin: 0, color: 'var(--azul)' }}>{p.titulo}</h3>
             <span style={{ background: 'var(--amarillo)', padding: '2px 10px', borderRadius: 12, fontSize: 12 }}>{CATEGORIAS_FORO[p.categoria] || p.categoria}</span>
           </div>
-          <p style={{ color: '#666', fontSize: 13 }}>
+          <p style={{ color: 'var(--texto-suave)', fontSize: 13 }}>
             por <strong>{p.autor_nombre}</strong> · {new Date(p.fecha_publicacion).toLocaleDateString('es-VE', { dateStyle: 'long' })}
           </p>
           <p>{p.descripcion}</p>
@@ -169,7 +169,7 @@ export default function Foro() {
               {comentarios.map((c) => (
                 <div key={c.id} style={{ marginBottom: 8 }}>
                   <strong>{c.autor_nombre}</strong>: {c.comentario}
-                  <div style={{ fontSize: 11, color: '#888' }}>{new Date(c.fecha_comentario).toLocaleString('es-VE')}</div>
+                  <div style={{ fontSize: 11, color: 'var(--texto-fantasma)' }}>{new Date(c.fecha_comentario).toLocaleString('es-VE')}</div>
                 </div>
               ))}
               <form onSubmit={enviarComentario} style={{ display: 'flex', gap: 8 }}>

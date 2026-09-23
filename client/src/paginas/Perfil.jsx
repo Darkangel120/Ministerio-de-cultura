@@ -60,7 +60,7 @@ export default function Perfil() {
         </div>
         <p>Correo: {u.email} · Teléfono: {u.telefono || '—'} · Rol: {u.tipo_usuario}</p>
         {cultor && (
-          <div style={{ background: '#faf8f0', border: '1px solid var(--borde)', borderRadius: 6, padding: 12 }}>
+          <div style={{ background: 'var(--superficie-suave)', border: '1px solid var(--borde)', borderRadius: 10, padding: 14 }}>
             <h3 style={{ marginTop: 0, color: 'var(--rojo)' }}>Ficha de Cultor</h3>
             <p>
               Cédula: {cultor.cedula} · {AREAS_TEMATICAS[cultor.area_tematica] || cultor.area_tematica} — {cultor.disciplina}<br />
@@ -83,9 +83,9 @@ export default function Perfil() {
       </div>
 
       <div className="grilha grilha-3">
-        <div className="tarjeta" style={{ textAlign: 'center' }}><div style={{ fontSize: 30, fontWeight: 700, color: 'var(--azul)' }}>{stats.publicaciones ?? publicaciones.length}</div><div style={{ color: '#666', fontSize: 12, textTransform: 'uppercase' }}>Publicaciones</div></div>
-        <div className="tarjeta" style={{ textAlign: 'center' }}><div style={{ fontSize: 30, fontWeight: 700, color: 'var(--azul)' }}>{stats.comentarios ?? 0}</div><div style={{ color: '#666', fontSize: 12, textTransform: 'uppercase' }}>Comentarios</div></div>
-        <div className="tarjeta" style={{ textAlign: 'center' }}><div style={{ fontSize: 30, fontWeight: 700, color: 'var(--azul)' }}>{stats.likes_recibidos ?? 0}</div><div style={{ color: '#666', fontSize: 12, textTransform: 'uppercase' }}>Likes recibidos</div></div>
+        <div className="tarjeta" style={{ textAlign: 'center' }}><div style={{ fontSize: 30, fontWeight: 700, color: 'var(--azul)' }}>{stats.publicaciones ?? publicaciones.length}</div><div style={{ color: 'var(--texto-suave)', fontSize: 12, textTransform: 'uppercase' }}>Publicaciones</div></div>
+        <div className="tarjeta" style={{ textAlign: 'center' }}><div style={{ fontSize: 30, fontWeight: 700, color: 'var(--azul)' }}>{stats.comentarios ?? 0}</div><div style={{ color: 'var(--texto-suave)', fontSize: 12, textTransform: 'uppercase' }}>Comentarios</div></div>
+        <div className="tarjeta" style={{ textAlign: 'center' }}><div style={{ fontSize: 30, fontWeight: 700, color: 'var(--azul)' }}>{stats.likes_recibidos ?? 0}</div><div style={{ color: 'var(--texto-suave)', fontSize: 12, textTransform: 'uppercase' }}>Likes recibidos</div></div>
       </div>
 
       <h3>Publicaciones de {u.nombre_completo}</h3>
@@ -97,7 +97,7 @@ export default function Perfil() {
           </div>
           <p>{p.descripcion}</p>
           <MediaArchivo publicacion={p} />
-          <p style={{ color: '#888', fontSize: 12 }}>♥ {p.likes_count} · 💬 {p.comments_count} · {new Date(p.fecha_publicacion).toLocaleDateString('es-VE', { dateStyle: 'long' })}</p>
+          <p style={{ color: 'var(--texto-fantasma)', fontSize: 12 }}>♥ {p.likes_count} · 💬 {p.comments_count} · {new Date(p.fecha_publicacion).toLocaleDateString('es-VE', { dateStyle: 'long' })}</p>
         </article>
       ))}
     </div>

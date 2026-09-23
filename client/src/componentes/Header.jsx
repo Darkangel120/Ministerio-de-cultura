@@ -16,7 +16,7 @@ export default function Header() {
         <Link to="/" className="logo-img-item"><img className="logo-img" src="/favicon.jpg" alt="Logo del Ministerio del Poder Popular para la Cultura" /></Link>
         <div className="titulos">
           <h1>República Bolivariana de Venezuela</h1>
-          <h2 style={{ margin: 0, fontSize: 15, color: '#333', fontFamily: 'Georgia, serif' }}>Ministerio del Poder Popular para la Cultura</h2>
+          <h2 style={{ margin: 0, fontSize: 16 }}>Ministerio del Poder Popular para la Cultura</h2>
           <p>Misión Cultura</p>
         </div>
         <nav className="menu">

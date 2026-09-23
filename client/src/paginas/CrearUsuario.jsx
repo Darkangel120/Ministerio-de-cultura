@@ -43,7 +43,7 @@ export default function CrearUsuario() {
     <div className="contenedor" style={{ maxWidth: 720, margin: '0 auto' }}>
       <div className="tarjeta">
         <h2 style={{ color: 'var(--azul)', marginTop: 0 }}>Crear Nuevo Usuario</h2>
-        <p style={{ color: '#555', fontSize: 14 }}>
+        <p style={{ color: 'var(--texto-suave)', fontSize: 14 }}>
           Puede crear usuarios de los siguientes tipos: {rolesPermitidos.map((r) => LABEL[r]).join(', ')}.
         </p>
         {error && <div className="aviso aviso-error">{error}</div>}
