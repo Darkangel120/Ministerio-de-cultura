@@ -27,7 +27,7 @@ app.use('/uploads', express.static(uploadsAbs));
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 app.use('/api/auth', rutasAuth);
 app.use('/api/dashboard', autenticar, rutasDashboard);
-app.use('/api/eventos', autenticar, rutasEventos);
+app.use('/api/eventos', rutasEventos);
 app.use('/api/cultores', autenticar, rutasCultores);
 app.use('/api/foro', rutasForo);
 app.use('/api/noticias', rutasNoticias);

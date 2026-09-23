@@ -3,7 +3,7 @@ import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import {
   MESES, AREAS_VE, CARGOS_RESPONSABLE, TIPOS_ORGANIZACION, TIPOS_ACTIVIDAD,
-  DISCIPLINAS_EVENTO, OBJETIVOS_TRANSFORMADORES,
+  DISCIPLINAS_EVENTO, OBJETIVOS_TRANSFORMADORES, ESTADO_EJECUCION,
 } from '../constantes';
 
 const vacio = {
@@ -29,6 +29,7 @@ const DIAS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
 export default function Calendario() {
   const { usuario } = useAuth();
+  const esStaff = ['admin', 'director_general', 'director_operativo', 'funcionario'].includes(usuario?.tipo);
   const ahora = new Date();
   const [anio, setAnio] = useState(ahora.getFullYear());
   const [mes, setMes] = useState(ahora.getMonth() + 1);
@@ -37,6 +38,7 @@ export default function Calendario() {
   const [form, setForm] = useState(vacio);
   const [editandoId, setEditandoId] = useState(null);
   const [abierto, setAbierto] = useState(false);
+  const [detalle, setDetalle] = useState(null);
 
   const cargar = async () => {
     try {
@@ -90,10 +92,10 @@ export default function Calendario() {
     <div className="contenedor">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
         <div className="pagina-titulo" style={{ borderBottom: 'none', marginBottom: 0, paddingBottom: 0 }}>
-          <h1>Calendario de Actividades</h1>
-          <p className="subtitulo">Agenda cultural del Ministerio del Poder Popular para la Cultura.</p>
+          <h1>Agenda de Eventos Culturales</h1>
+          <p className="subtitulo">Actividades culturales del pueblo venezolano, de acceso público.</p>
         </div>
-        <button className="btn btn-sec" type="button" onClick={abrirNuevo}>+ Agregar Actividad</button>
+        {esStaff && <button className="btn btn-sec" type="button" onClick={abrirNuevo}>+ Agregar Actividad</button>}
       </div>
       {error && <div className="aviso aviso-error">{error}</div>}
 
@@ -115,7 +117,8 @@ export default function Calendario() {
                 <>
                   <div className="num">{d}</div>
                   {(porDia[d] || []).map((ev) => (
-                    <div key={ev.id} className="cal-evento" title={ev.nombre_actividad} onClick={() => abrirEdicion(ev)}>
+                    <div key={ev.id} className="cal-evento" title={ev.nombre_actividad}
+                      onClick={() => (esStaff ? abrirEdicion(ev) : setDetalle(ev))}>
                       {ev.nombre_actividad}
                     </div>
                   ))}
@@ -125,6 +128,38 @@ export default function Calendario() {
           ))}
         </div>
       </div>
+
+      {detalle && !esStaff && (
+        <div className="modal-fondo" onClick={(e) => { if (e.target === e.currentTarget) setDetalle(null); }}>
+          <div className="tarjeta modal-tarjeta" style={{ marginBottom: 0, maxWidth: 640 }}>
+            <div className="modal-cab">
+              <h2>{detalle.nombre_actividad}</h2>
+              <button className="btn btn-bajo cerrar" type="button" onClick={() => setDetalle(null)}>Cerrar</button>
+            </div>
+            <div className="modal-cuerpo">
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
+                <span className="badge badge-amarillo">{detalle.disciplina}</span>
+                <span className="badge badge-azul">{detalle.tipo_actividad}</span>
+                <span className="badge badge-rojo">{ESTADO_EJECUCION[detalle.estado_ejecucion] || detalle.estado_ejecucion || 'programada'}</span>
+              </div>
+              <div className="perfil-ficha" style={{ marginBottom: 12 }}>
+                <p style={{ margin: 0, fontSize: 15 }}><strong>📍 {detalle.estado}</strong> — {detalle.municipio}, parroquia {detalle.parroquia}</p>
+                <p style={{ margin: '4px 0 0', fontSize: 14 }}>🏛️ {detalle.direccion}</p>
+                {detalle.ubicacion_exacta && <p style={{ margin: '4px 0 0', fontSize: 14 }}>Punto y círculo: {detalle.ubicacion_exacta}</p>}
+              </div>
+              <div className="perfil-ficha" style={{ marginBottom: 12 }}>
+                <p style={{ margin: 0, fontSize: 14 }}>
+                  <strong>{new Date(detalle.fecha).toLocaleDateString('es-VE', { dateStyle: 'long' })}</strong> · {detalle.hora?.slice(0, 5)} h · {detalle.duracion} hora{Number(detalle.duracion) === 1 ? '' : 's'}
+                </p>
+              </div>
+              <p style={{ margin: 0, fontSize: 14 }}>
+                <strong>Objetivo transformador:</strong> {detalle.objetivo}<br />
+                <strong>Organización:</strong> {(TIPOS_ORGANIZACION[detalle.tipo_organizacion] || detalle.tipo_organizacion)} · {detalle.nombre_comuna}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {abierto && (
         <div className="modal-fondo" onClick={(e) => { if (e.target === e.currentTarget) setAbierto(false); }}>

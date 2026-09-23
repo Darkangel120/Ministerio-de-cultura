@@ -52,10 +52,10 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Route path="/login" element={<Login />} />
             <Route path="/registro" element={<Registro />} />
             <Route path="/foro" element={<Foro />} />
+            <Route path="/calendario" element={<Calendario />} />
             <Route path="/perfil/:id" element={<Perfil />} />
             <Route element={<RequeridoLayout roles={ROLES_STAFF} />}>
               <Route path="/panel" element={<Panel />} />
-              <Route path="/calendario" element={<Calendario />} />
               <Route path="/cultores" element={<Cultores />} />
               <Route path="/reportes" element={<Reportes />} />
             </Route>

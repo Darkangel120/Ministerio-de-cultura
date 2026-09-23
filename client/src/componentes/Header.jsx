@@ -23,8 +23,8 @@ export default function Header() {
           <ul>
             <li><NavLink to="/" end={true}>Inicio</NavLink></li>
             <li><NavLink to="/foro">Foro</NavLink></li>
+            <li><NavLink to="/calendario">Eventos</NavLink></li>
             {esStaff && <li><NavLink to="/panel">Panel</NavLink></li>}
-            {esStaff && <li><NavLink to="/calendario">Calendario</NavLink></li>}
             {esStaff && <li><NavLink to="/cultores">Cultores</NavLink></li>}
             {esStaff && <li><NavLink to="/reportes">Reportes</NavLink></li>}
             {(usuario?.tipo === 'admin' || usuario?.tipo === 'director_general' || usuario?.tipo === 'director_operativo') && <li><NavLink to="/crear-usuario">Crear Usuario</NavLink></li>}

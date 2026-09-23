@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { query } from '../db.js';
+import { autenticar } from '../auth.js';
 import {
   AREAS_VE, TIPOS_ORGANIZACION, CARGOS_RESPONSABLE, TIPOS_ACTIVIDAD,
   DISCIPLINAS_EVENTO, OBJETIVOS_TRANSFORMADORES, MESES, PARTICIPAR_KEYS, numeroEntero,
@@ -73,7 +74,11 @@ router.get('/nuevos', async (_req, res) => {
   res.json({ eventos: r.rows });
 });
 
-router.post('/', esStaff ? async (req, res) => {
+// lecturas anteriores son públicas; a partir de aquí todo requiere sesión
+router.use(autenticar);
+
+router.post('/', async (req, res) => {
+  if (!esStaff(req.usuario)) return res.status(403).json({ error: 'No autorizado' });
   const { evento, error } = validarEvento(req.body || {});
   if (error) return res.status(400).json({ error });
   const cols = Object.keys(evento);
@@ -83,9 +88,10 @@ router.post('/', esStaff ? async (req, res) => {
     [req.usuario.email, ...cols.map((c) => evento[c])]
   );
   res.status(201).json({ evento: r.rows[0] });
-} : async (req, res) => res.status(403).json({ error: 'No autorizado' }));
+});
 
-router.put('/:id', esStaff ? async (req, res) => {
+router.put('/:id', async (req, res) => {
+  if (!esStaff(req.usuario)) return res.status(403).json({ error: 'No autorizado' });
   const { evento, error } = validarEvento(req.body || {});
   if (error) return res.status(400).json({ error });
   const sets = Object.keys(evento).map((c, i) => `${c} = $${i + 2}`);
@@ -95,16 +101,17 @@ router.put('/:id', esStaff ? async (req, res) => {
   );
   if (!r.rows.length) return res.status(404).json({ error: 'Evento no encontrado' });
   res.json({ evento: r.rows[0] });
-} : async (req, res) => res.status(403).json({ error: 'No autorizado' }));
+});
 
-router.post('/:id/ejecutar', esStaff ? async (req, res) => {
+router.post('/:id/ejecutar', async (req, res) => {
+  if (!esStaff(req.usuario)) return res.status(403).json({ error: 'No autorizado' });
   const r = await query(
     `UPDATE eventos SET estado_ejecucion = 'reportada' WHERE id = $1 AND activo = 1 RETURNING *`,
     [req.params.id]
   );
   if (!r.rows.length) return res.status(404).json({ error: 'Evento no encontrado' });
   res.json({ evento: r.rows[0] });
-} : async (req, res) => res.status(403).json({ error: 'No autorizado' }));
+});
 
 router.delete('/:id', async (req, res) => {
   const r = await query('SELECT * FROM eventos WHERE id = $1 AND activo = 1', [req.params.id]);

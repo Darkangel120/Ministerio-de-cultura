@@ -354,6 +354,103 @@ nav.menu button.btn-bajo:hover { background: var(--borde); }
 .pie-copia p:last-child { color: var(--amarillo); font-weight: 500; }
 
 /* ————— Micro-interacciones ————— */
+/* ————— Capa espectacular (wow) ————— */
+
+/* hero animado */
+.hero {
+  background-size: 200% 200%;
+  animation: gradiente 12s ease infinite;
+}
+@keyframes gradiente {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.hero .globo {
+  position: absolute; border-radius: 50%; filter: blur(46px); opacity: .5;
+  pointer-events: none; animation: flotar 9s ease-in-out infinite;
+}
+.hero .globo-1 { width: 300px; height: 300px; background: var(--amarillo); top: -110px; right: 8%; }
+.hero .globo-2 { width: 240px; height: 240px; background: var(--rojo); bottom: -90px; right: -40px; animation-delay: -3s; }
+.hero .globo-3 { width: 180px; height: 180px; background: #3f6ee0; bottom: 30px; left: -50px; animation-delay: -6s; }
+@keyframes flotar {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-22px) scale(1.06); }
+}
+.hero h1 { font-size: 2.6rem; position: relative; }
+.hero p { font-size: 1.05rem; position: relative; }
+.hero .hero-linea { color: var(--amarillo); font-weight: 800; letter-spacing: .08em; text-transform: uppercase; font-size: 13px; position: relative; display: flex; gap: 8px; align-items: center; }
+.hero .hero-linea::before { content: '★'; color: var(--amarillo); }
+
+@media (max-width: 720px) {
+  .hero { padding: 40px 26px; }
+  .hero h1 { font-size: 1.9rem; }
+}
+
+/* marquee con bandera */
+.franja-cinta {
+  overflow: hidden; border-radius: 999px; margin: -22px auto 8px;
+  max-width: 1200px; display: flex;
+  box-shadow: var(--sombra-card);
+}
+.cinta {
+  flex: 1; overflow: hidden; white-space: nowrap;
+  color: #fff; font-size: 13px; font-weight: 600; letter-spacing: .03em;
+}
+.cinta .cinta-inner { display: inline-block; padding: 10px 0; animation: rodar 28s linear infinite; }
+.cinta.amarilla-cinta { background: linear-gradient(135deg, #f5c400, var(--amarillo)); color: #433500; }
+.cinta.azul-cinta { background: linear-gradient(135deg, var(--azul), #1153c9); }
+.cinta.roja-cinta { background: linear-gradient(135deg, #b00f22, var(--rojo)); }
+@keyframes rodar { to { transform: translateX(-50%); } }
+
+/* revelar al hacer scroll */
+.revelar { opacity: 0; transform: translateY(28px); transition: opacity .6s ease, transform .6s ease; }
+.revelar.visible { opacity: 1; transform: none; }
+.grilha > .revelar, .grilha > .revelar > .tarjeta { height: 100%; }
+
+/* tarjetas levitan + borde degradado */
+.tarjeta:hover { transform: translateY(-4px); }
+.seccion-titulo { position: relative; }
+.seccion-titulo .emoji-sec { font-size: 1.4rem; }
+
+/* botones con gradiente y brillo sutil */
+.btn { background: linear-gradient(135deg, var(--rojo), #a60d1f); position: relative; overflow: hidden; }
+.btn::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(120deg, transparent 20%, rgba(255, 255, 255, 0.35) 50%, transparent 80%);
+  transform: translateX(-100%); transition: transform .5s ease;
+}
+.btn:hover::after { transform: translateX(100%); }
+.btn-sec { background: linear-gradient(135deg, var(--azul), #0a3d99); }
+.btn-bajo, .btn-bajo::after { background: #eef1f5; }
+
+/* cabecera con filete tricolor */
+.cabecera { border-bottom: none; }
+.cabecera::before {
+  content: ''; display: block; height: 3px;
+  background: linear-gradient(90deg, var(--amarillo) 0 40%, var(--azul) 40% 70%, var(--rojo) 70% 100%);
+}
+
+/* bandera superior un poco más protagonista */
+.bandera { height: 10px; }
+.bandera .azul { background: linear-gradient(90deg, #003893, #0b55d1, #003893); }
+.bandera .azul .estrellas { font-size: 6px; letter-spacing: 4px; }
+
+/* tarjetas de contenido con franja temática */
+.tarjeta-tema::before {
+  content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 5px;
+  background: var(--amarillo);
+}
+
+/* pie con banda de la bandera encima */
+.pie { border-radius: 24px 24px 0 0; }
+.pie::before {
+  content: ''; display: block; height: 6px;
+  background: linear-gradient(90deg, var(--amarillo) 33%, var(--azul) 33% 66%, var(--rojo) 66%);
+}
+.pie a { border-bottom: 1px dashed rgba(255, 215, 0, .4); }
+.pie a:hover { text-decoration: none; border-bottom-color: var(--amarillo); }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
   html { scroll-behavior: auto; }
