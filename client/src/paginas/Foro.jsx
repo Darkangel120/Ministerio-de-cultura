@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Heart, MessageCircle, MessagesSquare, X, Trash2, Pencil, Upload, Image as ImageIcon } from 'lucide-react';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
-import { iniciales, colorAvatar } from '../lib/iniciales';
+import Avatar from '../componentes/Avatar';
 import { CATEGORIAS_FORO } from '../constantes';
 import MediaArchivo from '../componentes/MediaArchivo';
 
@@ -131,7 +131,7 @@ export default function Foro() {
         <div className="feed">
           <div className="tarjeta component-caja">
             <div className="componer" onClick={() => usuario ? setComponer(true) : setError('Debes iniciar sesión para publicar')}>
-              <span className="avatar" style={colorAvatar(nombreComp)}>{iniciales(nombreComp || 'Anónimo')}</span>
+              <Avatar foto={usuario?.foto_url} nombre={usuario?.nombre_completo} />
               <span className="pista">{usuario ? `¿Qué estás pensando, ${nombreComp.split(' ')[0]}?` : 'Inicia sesión para publicar…'}</span>
             </div>
 
@@ -170,7 +170,7 @@ export default function Foro() {
           {publicaciones.map((p) => (
             <article className="tarjeta post" key={p.id}>
               <header className="post-cab">
-                <span className="avatar" style={colorAvatar(p.autor_nombre)}>{iniciales(p.autor_nombre)}</span>
+                <Avatar foto={p.autor_foto} nombre={p.autor_nombre} />
                 <div className="caja-autor grow">
                   <div className="nombre">{p.autor_nombre}</div>
                   <div className="post-fecha">
@@ -215,7 +215,7 @@ export default function Foro() {
                   </div>
                   {(comentarios[p.id] || []).map((c) => (
                     <div className="comentario" key={c.id}>
-                      <span className="avatar mini" style={colorAvatar(c.autor_nombre)}>{iniciales(c.autor_nombre)}</span>
+                      <Avatar clase="avatar mini" foto={c.autor_foto} nombre={c.autor_nombre} />
                       <div className="burbuja">
                         <div className="nombre-c">{c.autor_nombre}</div>
                         <p className="m0">{c.comentario}</p>
@@ -225,7 +225,7 @@ export default function Foro() {
                   ))}
                   {(comentarios[p.id] || []).length === 0 && <p className="vacio no-pad">Sé la primera voz en comentar.</p>}
                   <form className="publicar-comentario" data-id={p.id} onSubmit={enviarComentario}>
-                    <span className="avatar mini" style={colorAvatar(nombreComp)}>{iniciales(nombreComp || 'A')}</span>
+                    <Avatar clase="avatar mini" foto={usuario?.foto_url} nombre={usuario?.nombre_completo} />
                     <input className="grow" value={textoComentario} onChange={(e) => setTextoComentario(e.target.value)} placeholder="Escribe un comentario…" disabled={!usuario} required />
                     <button className="btn" type="submit" disabled={!usuario}>Comentar</button>
                   </form>

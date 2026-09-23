@@ -35,7 +35,7 @@ const upload = multer({
 });
 
 const feedSelect = `
-  SELECT fp.*, u.nombre_completo AS autor_nombre,
+  SELECT fp.*, u.nombre_completo AS autor_nombre, u.foto_url AS autor_foto,
     (SELECT COUNT(*) FROM foro_likes WHERE publicacion_id = fp.id)::int AS likes_count,
     (SELECT COUNT(*) FROM foro_comentarios WHERE publicacion_id = fp.id AND activo = 1)::int AS comments_count,
     EXISTS (SELECT 1 FROM foro_likes fl WHERE fl.publicacion_id = fp.id AND fl.usuario_id = $1) AS mio_like
@@ -116,7 +116,7 @@ router.post('/publicaciones/:id/like', autenticar, async (req, res) => {
 
 router.get('/publicaciones/:id/comentarios', async (req, res) => {
   const r = await query(
-    `SELECT fc.*, u.nombre_completo AS autor_nombre
+    `SELECT fc.*, u.nombre_completo AS autor_nombre, u.foto_url AS autor_foto
      FROM foro_comentarios fc LEFT JOIN usuarios u ON u.id = fc.usuario_id
      WHERE fc.publicacion_id = $1 AND fc.activo = 1 ORDER BY fc.fecha_comentario ASC`,
     [req.params.id]
