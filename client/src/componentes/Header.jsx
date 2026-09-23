@@ -1,6 +1,8 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, ChevronDown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import Avatar from './Avatar';
+import Dropdown from './Dropdown';
 
 export default function Header() {
   const { usuario, logout, esStaff, puedeCrearUsuario } = useAuth();
@@ -24,16 +26,29 @@ export default function Header() {
           <ul>
             <li><NavLink to="/" end={true}>Inicio</NavLink></li>
             <li><NavLink to="/foro">Foro</NavLink></li>
-            <li><NavLink to="/calendario">Eventos</NavLink></li>
-            {esStaff && <li><NavLink to="/panel">Panel</NavLink></li>}
-            {esStaff && <li><NavLink to="/cultores">Cultores</NavLink></li>}
-            {esStaff && <li><NavLink to="/reportes">Reportes</NavLink></li>}
-            {puedeCrearUsuario && <li><NavLink to="/crear-usuario">Crear Usuario</NavLink></li>}
+            {esStaff ? (
+              <li>
+                <Dropdown
+                  alinear="izq"
+                  trigger={<><LayoutDashboard size={15} /> Servicios <ChevronDown size={13} /></>}
+                >
+                  <Link to="/panel">Panel de Gestión</Link>
+                  <Link to="/calendario">Eventos</Link>
+                  <Link to="/cultores">Registro de Cultores</Link>
+                  {puedeCrearUsuario && <Link to="/crear-usuario">Creación de Usuarios</Link>}
+                  <Link to="/reportes">Reportes</Link>
+                </Dropdown>
+              </li>
+            ) : (
+              <li><NavLink to="/calendario">Eventos</NavLink></li>
+            )}
             {usuario ? (
-              <>
-                <li><NavLink to={`/perfil/${usuario.id}`} className="cuenta-link"><Avatar clase="avatar avatar-chico" foto={usuario.foto_url} nombre={usuario.nombre_completo} /> Mi Perfil</NavLink></li>
-                <li><button className="btn-bajo" onClick={salir}>Cerrar Sesión</button></li>
-              </>
+              <li>
+                <Dropdown alinear="der" trigger={<Avatar clase="avatar avatar-chico" foto={usuario.foto_url} nombre={usuario.nombre_completo} />}>
+                  <Link to={`/perfil/${usuario.id}`}>Mi Perfil</Link>
+                  <button type="button" className="danger" onClick={salir}>Cerrar Sesión</button>
+                </Dropdown>
+              </li>
             ) : (
               <>
                 <li><NavLink to="/login">Iniciar Sesión</NavLink></li>
