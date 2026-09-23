@@ -4,7 +4,7 @@ Sistema de gestión cultural (Misión Cultura) reconstruido sobre
 **Express + React SPA + PostgreSQL**, con identidad visual del Gobierno
 Bolivariano de Venezuela (bandera tricolor y 8 estrellas).
 
-> La versión PHP/Firebird original se conserva íntegra en `funcional/`
+> La versión PHP/Firebird original se conserva íntegra en `OLD/funcional/`
 > como referencia histórica y no debe eliminarse.
 
 ## Stack
