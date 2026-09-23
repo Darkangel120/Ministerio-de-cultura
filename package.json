@@ -1,0 +1,12 @@
+{
+  "name": "ministerio-de-cultura",
+  "private": true,
+  "workspaces": ["server", "client"],
+  "scripts": {
+    "setup": "npm install",
+    "dev:server": "npm --workspace server run dev",
+    "dev:client": "npm --workspace client run dev",
+    "db:init": "npm --workspace server run db:init",
+    "build": "npm --workspace client run build"
+  }
+}
