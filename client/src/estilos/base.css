@@ -465,6 +465,9 @@ nav.menu button.btn-bajo:hover { background: var(--borde); }
 }
 img.avatar { object-fit: cover; }
 
+.avatar-chico { width: 26px; height: 26px; font-size: 11px; }
+.cuenta-link { display: inline-flex; align-items: center; gap: 7px; }
+
 /* ————— Auth (split) ————— */
 .split { display: grid; grid-template-columns: 1fr 1fr; border-radius: 16px; overflow: hidden; box-shadow: var(--sombra-card); margin: 8px auto; }
 .split .panel-azul {

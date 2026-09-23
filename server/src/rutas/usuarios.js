@@ -56,7 +56,7 @@ router.post('/', async (req, res) => {
 });
 
 router.get('/me', async (req, res) => {
-  const u = await query('SELECT id, nombre_completo, email, telefono, tipo_usuario, estado, municipio, foto_url, fecha_registro FROM usuarios WHERE id = $1', [req.usuario.id]);
+  const u = await query('SELECT id, nombre_completo, email, telefono, tipo_usuario AS tipo, estado, municipio, foto_url, fecha_registro FROM usuarios WHERE id = $1', [req.usuario.id]);
   if (!u.rows.length) return res.status(404).json({ error: 'Usuario no encontrado' });
   const cultor = await query('SELECT * FROM cultores WHERE correo = $1 AND activo = 1', [u.rows[0].email]);
   res.json({ usuario: u.rows[0], cultor: cultor.rows[0] || null });

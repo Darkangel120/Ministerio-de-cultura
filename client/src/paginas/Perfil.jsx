@@ -5,10 +5,11 @@ import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import useDatos from '../hooks/useDatos';
 import { iniciales, colorAvatar } from '../lib/iniciales';
+import Avatar from '../componentes/Avatar';
 import { AREAS_TEMATICAS, CATEGORIAS_FORO } from '../constantes';
 import MediaArchivo from '../componentes/MediaArchivo';
 
-const ROL_LABEL = { admin: 'Administrador', director_general: 'Director General', director_operativo: 'Director Operativo', funcionario: 'Funcionario', cultor: 'Cultor', publico: 'Público' };
+const ROL_LABEL = { admin: 'Administrador', director_general: 'Director General', director_operativo: 'Director por Estado', funcionario: 'Responsable por Municipio', cultor: 'Cultor', publico: 'Público' };
 
 export default function Perfil() {
   const { id } = useParams();
@@ -131,8 +132,11 @@ export default function Perfil() {
       {publicaciones.map((p) => (
         <article className="tarjeta" key={p.id}>
           <div className="post-cab">
-            <h4 style={{ margin: 0, color: 'var(--azul)' }}>{p.titulo}</h4>
-            <span className="badge badge-amarillo">{CATEGORIAS_FORO[p.categoria] || p.categoria}</span>
+            <Avatar clase="avatar" foto={u.foto_url} nombre={u.nombre_completo} />
+            <div>
+              <h4 style={{ margin: 0, color: 'var(--azul)' }}>{p.titulo}</h4>
+              <span className="badge badge-amarillo">{CATEGORIAS_FORO[p.categoria] || p.categoria}</span>
+            </div>
           </div>
           <p>{p.descripcion}</p>
           <MediaArchivo publicacion={p} />

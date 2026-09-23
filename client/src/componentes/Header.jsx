@@ -1,5 +1,6 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Avatar from './Avatar';
 
 export default function Header() {
   const { usuario, logout, esStaff, puedeCrearUsuario } = useAuth();
@@ -30,7 +31,7 @@ export default function Header() {
             {puedeCrearUsuario && <li><NavLink to="/crear-usuario">Crear Usuario</NavLink></li>}
             {usuario ? (
               <>
-                <li><NavLink to={`/perfil/${usuario.id}`}>Mi Perfil</NavLink></li>
+                <li><NavLink to={`/perfil/${usuario.id}`} className="cuenta-link"><Avatar clase="avatar avatar-chico" foto={usuario.foto_url} nombre={usuario.nombre_completo} /> Mi Perfil</NavLink></li>
                 <li><button className="btn-bajo" onClick={salir}>Cerrar Sesión</button></li>
               </>
             ) : (
