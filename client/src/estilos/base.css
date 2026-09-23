@@ -57,7 +57,7 @@ a:hover { text-decoration: underline; }
 .bandera .azul { background: var(--azul); position: relative; }
 .bandera .azul .estrellas {
   position: absolute; inset: 0; display: flex; justify-content: space-evenly;
-  align-items: center; color: #fff; font-size: 5px; letter-spacing: 3px; line-height: 8px;
+  align-items: center; color: #fff; line-height: 0;
 }
 
 /* ————— Cabecera ————— */
@@ -130,11 +130,6 @@ nav.menu button.btn-bajo:hover { background: var(--borde); }
     linear-gradient(135deg, var(--azul) 0%, var(--azul-oscuro) 100%);
   color: #fff; padding: 56px 48px;
   box-shadow: var(--sombra-card);
-}
-.hero::after {
-  content: '★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★';
-  position: absolute; inset: auto 0 8px 0; text-align: center;
-  color: rgba(255, 255, 255, 0.22); font-size: 7px; letter-spacing: 8px;
 }
 .hero h1 { color: #fff; font-size: 2.1rem; margin: 0 0 10px; max-width: 640px; }
 .hero p { color: rgba(255, 255, 255, 0.9); font-size: 17px; max-width: 620px; margin: 0 0 26px; }
@@ -287,7 +282,7 @@ nav.menu button.btn-bajo:hover { background: var(--borde); }
 
 /* ————— Avisos de contenido vacío ————— */
 .vacio { text-align: center; color: var(--texto-fantasma); padding: 40px 20px; }
-.vacio .simbolo { font-size: 40px; display: block; margin-bottom: 8px; }
+.vacio svg { display: block; margin: 0 auto 8px; color: var(--texto-fantasma); }
 
 /* ————— Foro ————— */
 .post-acento { border-left: 4px solid var(--azul); }
@@ -379,8 +374,10 @@ nav.menu button.btn-bajo:hover { background: var(--borde); }
 }
 .hero h1 { font-size: 2.6rem; position: relative; }
 .hero p { font-size: 1.05rem; position: relative; }
-.hero .hero-linea { color: var(--amarillo); font-weight: 800; letter-spacing: .08em; text-transform: uppercase; font-size: 13px; position: relative; display: flex; gap: 8px; align-items: center; }
-.hero .hero-linea::before { content: '★'; color: var(--amarillo); }
+.hero .hero-linea {
+  color: var(--amarillo); font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+  font-size: 13px; position: relative; display: flex; gap: 8px; align-items: center;
+}
 
 @media (max-width: 720px) {
   .hero { padding: 40px 26px; }
@@ -411,7 +408,6 @@ nav.menu button.btn-bajo:hover { background: var(--borde); }
 /* tarjetas levitan + borde degradado */
 .tarjeta:hover { transform: translateY(-4px); }
 .seccion-titulo { position: relative; }
-.seccion-titulo .emoji-sec { font-size: 1.4rem; }
 
 /* botones con gradiente y brillo sutil */
 .btn { background: linear-gradient(135deg, var(--rojo), #a60d1f); position: relative; overflow: hidden; }
@@ -434,7 +430,7 @@ nav.menu button.btn-bajo:hover { background: var(--borde); }
 /* bandera superior un poco más protagonista */
 .bandera { height: 10px; }
 .bandera .azul { background: linear-gradient(90deg, #003893, #0b55d1, #003893); }
-.bandera .azul .estrellas { font-size: 6px; letter-spacing: 4px; }
+.bandera .azul .estrellas { color: #fff; }
 
 /* tarjetas de contenido con franja temática */
 .tarjeta-tema::before {

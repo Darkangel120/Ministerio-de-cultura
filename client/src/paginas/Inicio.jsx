@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Newspaper, Clapperboard, Tent, CalendarDays, MapPin, Star } from 'lucide-react';
 import useDatos from '../hooks/useDatos';
 import { MESES } from '../constantes';
 import Revelar from '../componentes/Revelar';
@@ -19,7 +20,7 @@ export default function Inicio() {
         <span className="globo globo-1" />
         <span className="globo globo-2" />
         <span className="globo globo-3" />
-        <p className="hero-linea">Misión Cultura · Ministerio del Poder Popular para la Cultura</p>
+        <p className="hero-linea"><Star size={13} fill="currentColor" stroke="none" /> Misión Cultura · Ministerio del Poder Popular para la Cultura</p>
         <h1>La cultura es vida, memoria y futuro del pueblo</h1>
         <p>
           Impulsamos la participación popular y la defensa de la identidad nacional.
@@ -28,14 +29,18 @@ export default function Inicio() {
         </p>
         <div className="hero-cta">
           <Link className="btn" to="/registro">Registrarme</Link>
-          <Link className="btn btn-sec" to="/calendario" style={{ color: '#fff' }}>Ver la Agenda Cultural</Link>
+          <Link className="btn btn-sec" to="/calendario" style={{ color: '#fff' }}>
+            <CalendarDays size={16} style={{ verticalAlign: '-2px', marginRight: 6 }} />Ver la Agenda Cultural
+          </Link>
         </div>
       </section>
 
       <CintaCultura />
 
       <Revelar>
-        <h2 className="seccion-titulo"><span className="emoji-sec">📰</span> Noticias</h2>
+        <h2 className="seccion-titulo">
+          <Newspaper size={26} color="var(--azul)" /> Noticias
+        </h2>
       </Revelar>
       {errNoticias && <div className="aviso aviso-error">{errNoticias}</div>}
       <div className="grilha grilha-3">
@@ -53,7 +58,9 @@ export default function Inicio() {
       </div>
 
       <Revelar>
-        <h2 className="seccion-titulo"><span className="emoji-sec">🎭</span> Próximos Eventos</h2>
+        <h2 className="seccion-titulo">
+          <Clapperboard size={26} color="var(--azul)" /> Próximos Eventos
+        </h2>
       </Revelar>
       {errEventos && <div className="aviso aviso-error">{errEventos}</div>}
       <div className="grilha grilha-3">
@@ -64,21 +71,21 @@ export default function Inicio() {
                 <h3 style={{ margin: 0 }}>{e.nombre_actividad}</h3>
                 <span className="badge badge-amarillo">{e.disciplina}</span>
               </div>
-              <p style={{ margin: '0 0 10px', fontSize: 14 }}>
-                📍 <strong>{e.estado}</strong> — {e.municipio}
+              <p style={{ margin: '0 0 10px', fontSize: 14, display: 'flex', alignItems: 'center', gap: 5 }}>
+                <MapPin size={15} color="var(--rojo)" /> <strong>{e.estado}</strong> — {e.municipio}
               </p>
               <p style={{ margin: 0 }}><strong>{fechaEvento(e)}</strong> · {e.hora?.slice(0, 5)} h</p>
             </article>
           </Revelar>
         ))}
         {(eventos?.eventos || []).length === 0 && !errEventos && (
-          <div className="vacio"><span className="simbolo">🎪</span>Aún no hay actividades programadas.</div>
+          <div className="vacio"><Tent size={40} style={{ marginBottom: 8 }} />Aún no hay actividades programadas.</div>
         )}
       </div>
       <Revelar>
         <div style={{ textAlign: 'center', marginTop: 8 }}>
           <Link className="btn btn-sec" to="/calendario" style={{ color: '#fff' }}>
-            🗓️ Ver la Agenda Cultural completa
+            <CalendarDays size={16} style={{ verticalAlign: '-2px', marginRight: 6 }} />Ver la Agenda Cultural completa
           </Link>
         </div>
       </Revelar>

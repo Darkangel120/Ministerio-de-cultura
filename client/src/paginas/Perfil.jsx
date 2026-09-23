@@ -1,3 +1,4 @@
+import { Pencil, Heart, MessageCircle, MessageSquare } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../api';
@@ -61,7 +62,8 @@ export default function Perfil() {
         <div style={{ padding: '22px 24px' }}>
           {esPropio && (
             <button className="btn btn-sec btn-sm" type="button" onClick={() => setEditando(!editando)}>
-              {editando ? 'Cancelar' : '✎ Editar mis datos'}
+              <Pencil size={13} style={{ verticalAlign: '-2px', marginRight: 5 }} />
+              {editando ? 'Cancelar' : 'Editar mis datos'}
             </button>
           )}
           {cultor && (
@@ -104,11 +106,15 @@ export default function Perfil() {
           </div>
           <p>{p.descripcion}</p>
           <MediaArchivo publicacion={p} />
-          <p style={{ color: 'var(--texto-fantasma)', fontSize: 12 }}>♥ {p.likes_count} · 💬 {p.comments_count} · {new Date(p.fecha_publicacion).toLocaleDateString('es-VE', { dateStyle: 'long' })}</p>
+          <p style={{ color: 'var(--texto-fantasma)', fontSize: 12, display: 'flex', alignItems: 'center', gap: 14, marginTop: 10 }}>
+            <span><Heart size={13} fill="var(--rojo)" color="var(--rojo)" style={{ verticalAlign: '-1px', marginRight: 3 }} />{p.likes_count}</span>
+            <span><MessageSquare size={13} color="var(--azul)" style={{ verticalAlign: '-1px', marginRight: 3 }} />{p.comments_count}</span>
+            <span>{new Date(p.fecha_publicacion).toLocaleDateString('es-VE', { dateStyle: 'long' })}</span>
+          </p>
         </article>
       ))}
       {publicaciones.length === 0 && (
-        <div className="vacio"><span className="simbolo">💬</span>Este usuario aún no ha publicado.</div>
+        <div className="vacio"><MessageCircle size={42} style={{ marginBottom: 8 }} />Este usuario aún no ha publicado.</div>
       )}
     </div>
   );

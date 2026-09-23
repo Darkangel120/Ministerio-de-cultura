@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Landmark } from 'lucide-react';
+import Bandera from '../componentes/Bandera';
 import { useAuth } from '../context/AuthContext';
 
 const destinoSegunRol = (tipo) =>
@@ -37,12 +39,10 @@ export default function Login() {
       <div className="split">
         <aside className="panel-azul">
           <div>
-            <span className="bandera" style={{ width: 64, marginBottom: 18 }}>
-              <span className="amarilla" />
-              <span className="roja" />
-              <span className="azul"><span className="estrellas">★ ★ ★ ★ ★ ★ ★ ★</span></span>
-            </span>
-            <h2>Misión Cultura</h2>
+            <div style={{ width: 64, marginBottom: 18 }}><Bandera /></div>
+            <h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <Landmark size={28} color="var(--amarillo)" /> Misión Cultura
+            </h2>
             <p>
               Accede a la plataforma del Ministerio del Poder Popular para la Cultura:
               registra actividades, consulta el calendario cultural y participa en la

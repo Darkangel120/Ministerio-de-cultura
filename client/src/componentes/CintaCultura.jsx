@@ -1,3 +1,5 @@
+import { Star } from 'lucide-react';
+
 const LEMAS = [
   'Cultura es el alma del pueblo',
   'Misión Cultura llega a cada comunidad',
@@ -9,7 +11,7 @@ const LEMAS = [
 
 export default function CintaCultura() {
   const texto = [...LEMAS, ...LEMAS].map((l, i) => (
-    <span key={i}>{l} <span style={{ margin: '0 14px', color: 'inherit', opacity: 0.7 }}>★</span>{' '}</span>
+    <span key={i}>{l} <Star size={12} style={{ margin: '0 14px', verticalAlign: '-1px', opacity: 0.75 }} /></span>
   ));
   return (
     <div className="franja-cinta">

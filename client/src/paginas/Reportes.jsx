@@ -1,3 +1,4 @@
+import { FileText } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { api } from '../api';
 import generarPDF from '../lib/reportePDF';
@@ -156,7 +157,7 @@ export default function Reportes() {
             </table>
           )}
           {resultado.filas.length === 0 && (
-            <div className="vacio"><span className="simbolo">📄</span>No hay registros para este reporte.</div>
+            <div className="vacio"><FileText size={42} style={{ marginBottom: 8 }} />No hay registros para este reporte.</div>
           )}
         </div>
       )}

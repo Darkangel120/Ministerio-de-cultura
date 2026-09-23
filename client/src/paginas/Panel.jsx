@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { CalendarDays, CalendarRange } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import useDatos from '../hooks/useDatos';
 import { MESES, ESTADO_EJECUCION } from '../constantes';
@@ -36,7 +37,7 @@ export default function Panel() {
         ))}
       </div>
 
-      <h2 className="seccion-titulo">Próximos Eventos</h2>
+      <h2 className="seccion-titulo"><CalendarRange size={24} color="var(--azul)" /> Próximos Eventos</h2>
       <div className="tarjeta">
         {(datos?.proximosEventos || []).map((e) => (
           <div className="fila" key={e.id}>
@@ -48,7 +49,7 @@ export default function Panel() {
           </div>
         ))}
         {(datos?.proximosEventos || []).length === 0 && (
-          <div className="vacio"><span className="simbolo">🗓️</span>No hay eventos próximos registrados.</div>
+          <div className="vacio"><CalendarDays size={40} style={{ marginBottom: 8 }} />No hay eventos próximos registrados.</div>
         )}
       </div>
       <Link className="btn btn-sec" to="/calendario">Ir al Calendario</Link>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { MapPin, Landmark } from 'lucide-react';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -143,8 +144,12 @@ export default function Calendario() {
                 <span className="badge badge-rojo">{ESTADO_EJECUCION[detalle.estado_ejecucion] || detalle.estado_ejecucion || 'programada'}</span>
               </div>
               <div className="perfil-ficha" style={{ marginBottom: 12 }}>
-                <p style={{ margin: 0, fontSize: 15 }}><strong>📍 {detalle.estado}</strong> — {detalle.municipio}, parroquia {detalle.parroquia}</p>
-                <p style={{ margin: '4px 0 0', fontSize: 14 }}>🏛️ {detalle.direccion}</p>
+                <p style={{ margin: 0, fontSize: 15, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <MapPin size={16} color="var(--rojo)" /> <strong>{detalle.estado}</strong> — {detalle.municipio}, parroquia {detalle.parroquia}
+                </p>
+                <p style={{ margin: '4px 0 0', fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Landmark size={15} color="var(--azul)" /> {detalle.direccion}
+                </p>
                 {detalle.ubicacion_exacta && <p style={{ margin: '4px 0 0', fontSize: 14 }}>Punto y círculo: {detalle.ubicacion_exacta}</p>}
               </div>
               <div className="perfil-ficha" style={{ marginBottom: 12 }}>

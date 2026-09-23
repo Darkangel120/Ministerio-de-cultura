@@ -1,3 +1,4 @@
+import { Palette } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { api } from '../api';
 import { AREAS_TEMATICAS } from '../constantes';
@@ -109,7 +110,7 @@ export default function Cultores() {
         ))}
       </div>
       {cultores.length === 0 && (
-        <div className="vacio"><span className="simbolo">🎨</span>No hay cultores que coincidan con los filtros.</div>
+        <div className="vacio"><Palette size={42} style={{ marginBottom: 8 }} />No hay cultores que coincidan con los filtros.</div>
       )}
 
       {abierto && (

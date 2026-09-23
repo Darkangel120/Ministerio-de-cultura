@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Heart, MessagesSquare } from 'lucide-react';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { CATEGORIAS_FORO } from '../constantes';
@@ -138,7 +139,8 @@ export default function Foro() {
           <MediaArchivo publicacion={p} />
           <div className="post-acciones">
             <button className={`btn btn-${p.mio_like ? 'bajo' : 'sec'} btn-sm`} type="button" onClick={() => toggleLike(p)}>
-              {p.mio_like ? '♥' : '♡'} {p.likes_count}
+              <Heart size={15} style={{ verticalAlign: '-2px', marginRight: 5 }} fill={p.mio_like ? 'currentColor' : 'none'} color={p.mio_like ? 'var(--rojo)' : 'inherit'} />
+              {p.likes_count}
             </button>
             <button className="btn btn-bajo btn-sm" type="button" onClick={() => abrirComentarios(p.id)}>
               Comentarios ({p.comments_count})
@@ -184,7 +186,7 @@ export default function Foro() {
         </article>
       ))}
       {publicaciones.length === 0 && (
-        <div className="vacio"><span className="simbolo">🎭</span>Todavía no hay publicaciones. ¡Sé la primera voz!</div>
+        <div className="vacio"><MessagesSquare size={42} style={{ marginBottom: 8 }} />Todavía no hay publicaciones. ¡Sé la primera voz!</div>
       )}
     </div>
   );
