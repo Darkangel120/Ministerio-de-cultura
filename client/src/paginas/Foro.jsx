@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Heart, MessageCircle, MessagesSquare, X, Trash2, Pencil } from 'lucide-react';
+import { Heart, MessageCircle, MessagesSquare, X, Trash2, Pencil, Upload, Image as ImageIcon } from 'lucide-react';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { iniciales, colorAvatar } from '../lib/iniciales';
@@ -155,7 +155,7 @@ export default function Foro() {
                 </div>
                 <div className="componer-pie">
                   <label className="adjuntar">
-                    Adjuntar imagen, video o audio (máx. 5 MB)
+                    <Upload size={15} /> Adjuntar imagen, video o audio (máx. 5 MB)
                     <input type="file" accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.webm,.mov,.mp3,.wav,.ogg" onChange={(e) => setNueva({ ...nueva, archivo: e.target.files[0] || null })} />
                   </label>
                   {nueva.archivo && <span className="fecha">{nueva.archivo.name}</span>}
@@ -194,7 +194,9 @@ export default function Foro() {
 
               <div className="post-stats">
                 <span>{p.likes_count} Me gusta</span>
-                <span>{p.comments_count} Comentarios</span>
+                <button type="button" className={abiertos[p.id] ? 'comentando pos-texto' : 'pos-texto'} onClick={() => abrirComentarios(p.id)}>
+                  {p.comments_count} Comentarios
+                </button>
               </div>
 
               <div className="post-barra">
@@ -202,7 +204,7 @@ export default function Foro() {
                   <Heart size={16} fill={p.mio_like ? 'currentColor' : 'none'} /> {p.mio_like ? 'Te gusta' : 'Me gusta'}
                 </button>
                 <button type="button" className={abiertos[p.id] ? 'comentando' : ''} onClick={() => abrirComentarios(p.id)}>
-                  <MessageCircle size={16} /> Comentar
+                  <MessageCircle size={16} /> Comentarios
                 </button>
               </div>
 
@@ -266,8 +268,23 @@ export default function Foro() {
                 </select>
               </div>
               <div className="campo"><label>Descripción</label><textarea rows="4" value={editando.descripcion} onChange={(e) => setEditando({ ...editando, descripcion: e.target.value })} required /></div>
-              <div className="campo"><label>Nuevo archivo (opcional)</label><input type="file" accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.webm,.mov,.mp3,.wav,.ogg" onChange={(e) => setEditando({ ...editando, archivo: e.target.files[0] || null })} /></div>
-              <div className="componer-pie">
+              {editando.archivo_url && (
+                <div className="vista-previa">
+                  <div className="etiqueta"><ImageIcon size={14} /> Archivo actual de la publicación</div>
+                  <MediaArchivo publicacion={editando} />
+                </div>
+              )}
+              <div className="campo">
+                <label>Reemplazar archivo (opcional)</label>
+                <div className="componer-pie">
+                  <label className="adjuntar">
+                    <Upload size={15} /> {editando.archivo ? editando.archivo.name : 'Seleccionar archivo nuevo'}
+                    <input type="file" accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.webm,.mov,.mp3,.wav,.ogg" onChange={(e) => setEditando({ ...editando, archivo: e.target.files[0] || null })} />
+                  </label>
+                  {editando.archivo && <button className="btn btn-bajo" type="button" onClick={() => setEditando({ ...editando, archivo: null })}>Quitar</button>}
+                </div>
+              </div>
+              <div className="componer-pie" style={{ marginTop: 18 }}>
                 <div className="grow" />
                 <button className="btn btn-bajo" type="button" onClick={() => setEditando(null)}>Cancelar</button>
                 <button className="btn" type="submit">Guardar cambios</button>
