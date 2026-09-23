@@ -348,7 +348,7 @@ nav.menu button.btn-bajo:hover { background: var(--borde); }
 }
 .comentario .burbuja .nombre-c { font-weight: 700; font-size: 13px; color: var(--azul); }
 .comentario .burbuja p { font-size: 14px; margin: 2px 0; }
-.comentario .burbuja .pie { font-size: 11px; color: var(--texto-fantasma); margin-top: 2px; }
+.comentario .burbuja .pie { font-size: 12px; color: var(--texto-suave); margin-top: 3px; }
 .publicar-comentario { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
 .publicar-comentario input {
   flex: 1; border: 1px solid var(--borde); border-radius: 999px; padding: 9px 14px;
