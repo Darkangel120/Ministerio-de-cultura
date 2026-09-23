@@ -49,7 +49,13 @@ router.get('/:id', async (req, res) => {
   res.json({ cultor: r.rows[0] });
 });
 
-router.post('/', esStaff ? async (req, res) => {
+router.use(async (req, res, next) => {
+  if (!['POST', 'PUT', 'DELETE'].includes(req.method)) return next();
+  if (!esStaff(req.usuario)) return res.status(403).json({ error: 'Solo personal autorizado' });
+  next();
+});
+
+router.post('/', async (req, res) => {
   const { ficha, error } = validarFicha(req.body || {});
   if (error) return res.status(400).json({ error });
   const exist = await query('SELECT id FROM cultores WHERE cedula = $1 OR correo = $2', [ficha.cedula, ficha.correo]);
@@ -58,9 +64,9 @@ router.post('/', esStaff ? async (req, res) => {
   const vals = cols.map((_, i) => `$${i + 1}`);
   const r = await query(`INSERT INTO cultores (${cols.join(', ')}) VALUES (${vals.join(', ')}) RETURNING *`, cols.map((c) => ficha[c]));
   res.status(201).json({ cultor: r.rows[0] });
-} : async (req, res) => res.status(403).json({ error: 'No autorizado' }));
+});
 
-router.put('/:id', esStaff ? async (req, res) => {
+router.put('/:id', async (req, res) => {
   const { ficha, error } = validarFicha(req.body || {});
   if (error) return res.status(400).json({ error });
   const exist = await query('SELECT id FROM cultores WHERE (cedula = $1 OR correo = $2) AND id != $3', [ficha.cedula, ficha.correo, req.params.id]);
@@ -69,12 +75,12 @@ router.put('/:id', esStaff ? async (req, res) => {
   const r = await query(`UPDATE cultores SET ${sets.join(', ')} WHERE id = $${sets.length + 1} RETURNING *`, [...Object.keys(ficha).map((c) => ficha[c]), req.params.id]);
   if (!r.rows.length) return res.status(404).json({ error: 'Cultor no encontrado' });
   res.json({ cultor: r.rows[0] });
-} : async (req, res) => res.status(403).json({ error: 'No autorizado' }));
+});
 
-router.delete('/:id', esStaff ? async (req, res) => {
+router.delete('/:id', async (req, res) => {
   const r = await query('UPDATE cultores SET activo = 0 WHERE id = $1 AND activo = 1 RETURNING id', [req.params.id]);
   if (!r.rows.length) return res.status(404).json({ error: 'Cultor no encontrado' });
   res.json({ ok: true });
-} : async (req, res) => res.status(403).json({ error: 'No autorizado' }));
+});
 
 export default router;

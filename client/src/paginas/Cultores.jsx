@@ -1,6 +1,7 @@
 import { Palette } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { api } from '../api';
+import { iniciales, colorAvatar } from '../lib/iniciales';
 import { AREAS_TEMATICAS } from '../constantes';
 
 const vacio = {
@@ -8,9 +9,6 @@ const vacio = {
   disciplina: '', comuna: '', municipio: '', parroquia: '', carnet_patria: '',
   direccion: '', lugar_nacimiento: '', fecha_nacimiento: '', edad: '', trayectoria_anios: 0, organizacion: '',
 };
-
-const iniciales = (nombre) =>
-  (nombre || '').split(/\s+/).map((p) => p[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || '?';
 
 export default function Cultores() {
   const [cultores, setCultores] = useState([]);
@@ -90,7 +88,7 @@ export default function Cultores() {
         {cultores.map((c) => (
           <div className="tarjeta" key={c.id} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span className="avatar">{iniciales(c.nombres_apellidos)}</span>
+              <span className="avatar" style={colorAvatar(c.nombres_apellidos)}>{iniciales(c.nombres_apellidos)}</span>
               <div>
                 <h3 style={{ color: 'var(--azul)', margin: 0, fontSize: 17 }}>{c.nombres_apellidos}</h3>
                 <p style={{ color: 'var(--texto-suave)', fontSize: 13, margin: '2px 0 0' }}>
