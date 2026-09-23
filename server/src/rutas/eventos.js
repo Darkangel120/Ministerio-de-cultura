@@ -104,44 +104,49 @@ router.put('/:id', async (req, res) => {
   const { evento, error } = validarEvento(req.body || {});
   if (error) return res.status(400).json({ error });
   Object.assign(evento, estamparAlcance(req.usuario));
-  const sets = Object.keys(evento).map((c, i) => `${c} = $${i + 3}`);
-  const alc = alcanceEn(req.usuario, 3 + sets.length);
+  const esNac = esNacional(req.usuario);
+  const base = esNac ? 2 : 3;
+  const sets = Object.keys(evento).map((c, i) => `${c} = $${i + base}`);
+  const alc = esNac ? { sql: 'TRUE', params: [] } : alcanceEn(req.usuario, base + sets.length);
+  const prop = esNac ? '' : ' AND correo_usuario = $2';
   const r = await query(
-    `UPDATE eventos SET ${sets.join(', ')}, correo_usuario = $2 WHERE id = $1 AND activo = 1 AND ${alc.sql} RETURNING *`,
-    [id, req.usuario.email, ...Object.keys(evento).map((c) => evento[c]), ...alc.params]
+    `UPDATE eventos SET ${sets.join(', ')} WHERE id = $1 AND activo = 1 AND ${alc.sql}${prop} RETURNING *`,
+    esNac
+      ? [id, ...Object.keys(evento).map((c) => evento[c])]
+      : [id, req.usuario.email, ...Object.keys(evento).map((c) => evento[c]), ...alc.params]
   );
   if (!r.rows.length) return res.status(404).json({ error: 'Evento no encontrado' });
   res.json({ evento: r.rows[0] });
 });
 
-router.post('/:id/ejecutar', async (req, res) => {
+const actualizarEstado = (estado) => async (req, res) => {
   if (!esStaff(req.usuario)) return res.status(403).json({ error: 'No autorizado' });
   const id = Number(req.params.id);
-  const alc = alcanceEn(req.usuario, 2);
+  const esNac = esNacional(req.usuario);
+  const alc = esNac ? { sql: 'TRUE', params: [] } : alcanceEn(req.usuario, 3);
+  const prop = esNac ? '' : ' AND correo_usuario = $2';
   const r = await query(
-    `UPDATE eventos SET estado_ejecucion = 'reportada' WHERE id = $1 AND activo = 1 AND ${alc.sql} RETURNING *`,
-    [id, ...alc.params]
+    `UPDATE eventos SET estado_ejecucion = '${estado}' WHERE id = $1 AND activo = 1 AND ${alc.sql}${prop} RETURNING *`,
+    esNac ? [id] : [id, req.usuario.email, ...alc.params]
   );
   if (!r.rows.length) return res.status(404).json({ error: 'Evento no encontrado' });
   res.json({ evento: r.rows[0] });
-});
+};
+
+router.post('/:id/ejecutar', actualizarEstado('reportada'));
+router.post('/:id/cancelar', actualizarEstado('cancelada'));
 
 router.delete('/:id', async (req, res) => {
+  if (!esStaff(req.usuario)) return res.status(403).json({ error: 'No autorizado' });
   const id = Number(req.params.id);
-  const alc = alcanceEn(req.usuario, 2);
-  const r = await query(`SELECT * FROM eventos WHERE id = $1 AND activo = 1 AND ${alc.sql}`, [id, ...alc.params]);
+  const esNac = esNacional(req.usuario);
+  const alc = esNac ? { sql: 'TRUE', params: [] } : alcanceEn(req.usuario, 3);
+  const prop = esNac ? '' : ' AND correo_usuario = $2';
+  const r = await query(
+    `UPDATE eventos SET activo = 0 WHERE id = $1 AND activo = 1 AND ${alc.sql}${prop} RETURNING id`,
+    esNac ? [id] : [id, req.usuario.email, ...alc.params]
+  );
   if (!r.rows.length) return res.status(404).json({ error: 'Evento no encontrado' });
-  const evento = r.rows[0];
-  if (esNacional(req.usuario)) {
-    await query('UPDATE eventos SET activo = 0 WHERE id = $1', [id]);
-    return res.json({ ok: true });
-  }
-  if (!esStaff(req.usuario)) return res.status(403).json({ error: 'Solo personal autorizado puede eliminar' });
-  const coincide = alc.sql === 'TRUE'
-    || (alc.params[0] === evento.estado && (alc.params.length === 1 || evento.municipio === alc.params[1]))
-    || evento.correo_usuario === req.usuario.email;
-  if (!coincide) return res.status(403).json({ error: 'Fuera de su ámbito' });
-  await query('UPDATE eventos SET activo = 0 WHERE id = $1', [id]);
   res.json({ ok: true });
 });
 

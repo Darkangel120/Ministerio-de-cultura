@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight, MapPin, Landmark } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MapPin, Landmark, Plus, Pencil, Trash2, Flag, XCircle } from 'lucide-react';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { SelectEstado, SelectMunicipio } from '../componentes/SelectUbicacion';
@@ -32,8 +32,10 @@ const DIAS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 export default function Calendario() {
   const { usuario } = useAuth();
   const esStaff = ['admin', 'director_general', 'director_operativo', 'funcionario'].includes(usuario?.tipo);
+  const esNacional = usuario?.tipo === 'admin' || usuario?.tipo === 'director_general';
   const estadoFijo = ['director_operativo', 'funcionario'].includes(usuario?.tipo);
   const municipioFijo = usuario?.tipo === 'funcionario';
+  const puedeEditar = (ev) => esNacional || ev?.correo_usuario === usuario?.email;
   const ahora = new Date();
   const [anio, setAnio] = useState(ahora.getFullYear());
   const [mes, setMes] = useState(ahora.getMonth() + 1);
@@ -88,9 +90,13 @@ export default function Calendario() {
   const ejecutar = async (id) => {
     try { await api(`/api/eventos/${id}/ejecutar`, { method: 'POST' }); cargar(); } catch (err) { setError(err.message); }
   };
+  const cancelar = async (id) => {
+    if (!window.confirm('¿Cancelar esta actividad? Quedará registrada como cancelada.')) return;
+    try { await api(`/api/eventos/${id}/cancelar`, { method: 'POST' }); setAbierto(false); cargar(); } catch (err) { setError(err.message); }
+  };
   const eliminar = async (id) => {
     if (!window.confirm('¿Eliminar esta actividad?')) return;
-    try { await api(`/api/eventos/${id}`, { method: 'DELETE' }); cargar(); } catch (err) { setError(err.message); }
+    try { await api(`/api/eventos/${id}`, { method: 'DELETE' }); setAbierto(false); cargar(); } catch (err) { setError(err.message); }
   };
 
   const cambiarMes = (delta) => {
@@ -108,7 +114,11 @@ export default function Calendario() {
           <h1>Agenda de Eventos Culturales</h1>
           <p className="subtitulo">Actividades culturales del pueblo venezolano, de acceso público.</p>
         </div>
-        {esStaff && <button className="btn btn-sec" type="button" onClick={abrirNuevo}>+ Agregar Actividad</button>}
+        {esStaff && (
+          <button className="btn" type="button" onClick={abrirNuevo} style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+            <Plus size={18} /> Registrar Evento
+          </button>
+        )}
       </div>
       {error && <div className="aviso aviso-error">{error}</div>}
 
@@ -138,8 +148,8 @@ export default function Calendario() {
                 <>
                   <div className="num">{d}</div>
                   {(porDia[d] || []).map((ev) => (
-                    <div key={ev.id} className="cal-evento" title={ev.nombre_actividad}
-                      onClick={() => (esStaff ? abrirEdicion(ev) : setDetalle(ev))}>
+                    <div key={ev.id} className="cal-evento" title={puedeEditar(ev) ? 'Editar actividad' : ev.nombre_actividad}
+                      onClick={() => (puedeEditar(ev) ? abrirEdicion(ev) : setDetalle(ev))}>
                       {ev.nombre_actividad}
                     </div>
                   ))}
@@ -283,11 +293,20 @@ export default function Calendario() {
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 6 }}>
-                  <button className="btn" type="submit">{editandoId ? 'Guardar Cambios' : 'Agregar Actividad'}</button>
+                  <button className="btn" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }} type="submit">
+                    <Pencil size={15} /> {editandoId ? 'Guardar Cambios' : 'Agregar Actividad'}
+                  </button>
                   {editandoId && (
                     <>
-                      <button className="btn btn-sec" type="button" onClick={() => ejecutar(editandoId)}>Marcar como Reportada</button>
-                      <button className="btn btn-bajo" type="button" onClick={() => eliminar(editandoId)}>Eliminar</button>
+                      <button className="btn btn-sec" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }} type="button" onClick={() => ejecutar(editandoId)}>
+                        <Flag size={15} /> Marcar como Reportada
+                      </button>
+                      <button className="btn btn-bajo" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }} type="button" onClick={() => cancelar(editandoId)}>
+                        <XCircle size={15} /> Cancelar Actividad
+                      </button>
+                      <button className="btn btn-bajo" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }} type="button" onClick={() => eliminar(editandoId)}>
+                        <Trash2 size={15} /> Eliminar
+                      </button>
                     </>
                   )}
                 </div>

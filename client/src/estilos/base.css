@@ -109,7 +109,7 @@ nav.menu button.btn-bajo:hover { background: var(--borde); }
 .dropdown-menu-der { right: 0; }
 .dropdown-menu-izq { left: 0; }
 .dropdown-menu a, .dropdown-menu button {
-  display: block; width: 100%; text-align: left; white-space: nowrap;
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; white-space: nowrap;
   padding: 10px 12px; border: none; border-radius: 8px; background: transparent;
   font-size: 14px; font-weight: 600; color: var(--texto); cursor: pointer;
 }

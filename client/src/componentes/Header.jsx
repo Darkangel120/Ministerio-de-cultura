@@ -1,5 +1,5 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ChevronDown } from 'lucide-react';
+import { LayoutDashboard, CalendarDays, Users, UserPlus, FileBarChart, User, LogOut, ChevronDown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import Avatar from './Avatar';
 import Dropdown from './Dropdown';
@@ -32,11 +32,11 @@ export default function Header() {
                   alinear="izq"
                   trigger={<><LayoutDashboard size={15} /> Servicios <ChevronDown size={13} /></>}
                 >
-                  <Link to="/panel">Panel de Gestión</Link>
-                  <Link to="/calendario">Eventos</Link>
-                  <Link to="/cultores">Registro de Cultores</Link>
-                  {puedeCrearUsuario && <Link to="/crear-usuario">Creación de Usuarios</Link>}
-                  <Link to="/reportes">Reportes</Link>
+                  <Link to="/panel"><LayoutDashboard size={16} /> Panel de Gestión</Link>
+                  <Link to="/calendario"><CalendarDays size={16} /> Eventos</Link>
+                  <Link to="/cultores"><Users size={16} /> Registro de Cultores</Link>
+                  {puedeCrearUsuario && <Link to="/crear-usuario"><UserPlus size={16} /> Creación de Usuarios</Link>}
+                  <Link to="/reportes"><FileBarChart size={16} /> Reportes</Link>
                 </Dropdown>
               </li>
             ) : (
@@ -45,8 +45,9 @@ export default function Header() {
             {usuario ? (
               <li>
                 <Dropdown alinear="der" trigger={<Avatar clase="avatar avatar-chico" foto={usuario.foto_url} nombre={usuario.nombre_completo} />}>
-                  <Link to={`/perfil/${usuario.id}`}>Mi Perfil</Link>
-                  <button type="button" className="danger" onClick={salir}>Cerrar Sesión</button>
+                  <Link to={`/perfil/${usuario.id}`}><User size={16} /> Mi Perfil</Link>
+                  <div className="sep"></div>
+                  <button type="button" className="danger" onClick={salir}><LogOut size={16} /> Cerrar Sesión</button>
                 </Dropdown>
               </li>
             ) : (

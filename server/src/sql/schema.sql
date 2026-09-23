@@ -81,7 +81,7 @@ CREATE TABLE eventos (
     adultos_masculinos INTEGER DEFAULT 0,
     adultos_femeninas INTEGER DEFAULT 0,
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    estado_ejecucion VARCHAR(20) DEFAULT 'registrado' CHECK (estado_ejecucion IN ('registrado','ejecutado','reportada')),
+    estado_ejecucion VARCHAR(20) DEFAULT 'registrado' CHECK (estado_ejecucion IN ('registrado','ejecutado','reportada','cancelada')),
     activo SMALLINT DEFAULT 1 CHECK (activo IN (0,1))
 );
 CREATE INDEX idx_eventos_fecha ON eventos (fecha);

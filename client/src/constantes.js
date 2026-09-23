@@ -22,4 +22,4 @@ export const OBJETIVOS_TRANSFORMADORES = [
   'GEOPOLÍTICA: POSICIONAMIENTO DE VENEZUELA EN UN NUEVO ORDEN MUNDIAL MULTIPOLAR',
 ];
 export const TIPOS_USUARIO = { admin: 'Administrador', director_general: 'Director General', director_operativo: 'Director por Estado', funcionario: 'Responsable por Municipio', cultor: 'Cultor', publico: 'Público en general' };
-export const ESTADO_EJECUCION = { registrado: 'Registrado', ejecutado: 'Ejecutado', reportada: 'Reportada' };
+export const ESTADO_EJECUCION = { registrado: 'Registrado', ejecutado: 'Ejecutado', reportada: 'Reportada', cancelada: 'Cancelada' };
