@@ -18,14 +18,8 @@ const hace = (iso) => {
   const d = Math.floor(h / 24);
   if (d === 1) return 'ayer';
   if (d < 7) return `hace ${d} días`;
-  return fechaLarga(iso, false);
+  return new Intl.DateTimeFormat('es-VE', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(iso));
 };
-
-const fechaLarga = (iso, conHora = true) =>
-  new Intl.DateTimeFormat('es-VE',
-    conHora ? { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }
-            : { day: 'numeric', month: 'long', year: 'numeric' }
-  ).format(new Date(iso));
 
 export default function Foro() {
   const { usuario } = useAuth();
@@ -237,7 +231,7 @@ export default function Foro() {
                       <div className="burbuja">
                         <div className="nombre-c">{c.autor_nombre}</div>
                         <p className="m0">{c.comentario}</p>
-                        <div className="pie">{fechaLarga(c.fecha_comentario)}</div>
+                        <div className="pie">{hace(c.fecha_comentario)}</div>
                       </div>
                     </div>
                   ))}
