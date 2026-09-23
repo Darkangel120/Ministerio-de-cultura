@@ -4,7 +4,7 @@ import { query } from '../db.js';
 const router = Router();
 
 router.get('/', async (req, res) => {
-  const esStaff = ['admin', 'director_general', 'director_operativo', 'funcionario'].includes(req.usuario.tipo);
+  const esStaff = ['admin', 'director_general'].includes(req.usuario.tipo);
   let stats = {};
 
   if (esStaff) {

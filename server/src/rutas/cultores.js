@@ -3,7 +3,7 @@ import { query } from '../db.js';
 import { AREAS_TEMATICAS, numeroEntero } from '../validadores.js';
 
 const router = Router();
-const esStaff = (u) => ['admin', 'director_general', 'director_operativo', 'funcionario'].includes(u.tipo);
+const esStaff = (u) => ['admin', 'director_general'].includes(u.tipo);
 
 const validarFicha = (b) => {
   const req = ['nombres_apellidos', 'telefono', 'cedula', 'correo', 'disciplina', 'comuna', 'municipio', 'parroquia', 'carnet_patria', 'direccion', 'lugar_nacimiento', 'fecha_nacimiento'];

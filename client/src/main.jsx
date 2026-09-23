@@ -22,8 +22,7 @@ import Cultores from './paginas/Cultores';
 import Reportes from './paginas/Reportes';
 import CrearUsuario from './paginas/CrearUsuario';
 
-const ROLES_STAFF = ['admin', 'director_general', 'director_operativo', 'funcionario'];
-const ROLES_JEFE = ['admin', 'director_general', 'director_operativo'];
+const ROLES_ADMIN = ['admin', 'director_general'];
 
 function Layout() {
   return (
@@ -54,12 +53,10 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Route path="/foro" element={<Foro />} />
             <Route path="/calendario" element={<Calendario />} />
             <Route path="/perfil/:id" element={<Perfil />} />
-            <Route element={<RequeridoLayout roles={ROLES_STAFF} />}>
+            <Route element={<RequeridoLayout roles={ROLES_ADMIN} />}>
               <Route path="/panel" element={<Panel />} />
               <Route path="/cultores" element={<Cultores />} />
               <Route path="/reportes" element={<Reportes />} />
-            </Route>
-            <Route element={<RequeridoLayout roles={ROLES_JEFE} />}>
               <Route path="/crear-usuario" element={<CrearUsuario />} />
             </Route>
           </Route>

@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { CheckCircle2, Info } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { AREAS_TEMATICAS } from '../constantes';
 
 const destinoSegunRol = (tipo) =>
-  ['admin', 'director_general', 'director_operativo', 'funcionario'].includes(tipo) ? '/panel' : '/foro';
+  ['admin', 'director_general'].includes(tipo) ? '/panel' : '/foro';
 
 const inicial = {
   nombre_completo: '', email: '', telefono: '', tipo_usuario: 'publico',
@@ -16,14 +17,35 @@ const inicial = {
 
 export default function Registro() {
   const { registrar, usuario } = useAuth();
-  const navigate = useNavigate();
   const [form, setForm] = useState(inicial);
   const [error, setError] = useState(null);
   const [cargando, setCargando] = useState(false);
 
   if (usuario) {
-    navigate(destinoSegunRol(usuario.tipo), { replace: true });
-    return null;
+    const mensajes = {
+      publico: ['El Registro Cultural es un servicio dirigido a cultores y cultoras del pueblo venezolano.', 'Tu cuenta de participante está activa. Explora los eventos y el foro comunitario.'],
+      cultor: ['Ya estás registrado en el Registro Cultural', 'Tu ficha de cultor está activa en el portal. Puedes actualizarla desde tu perfil.'],
+    };
+    const [titulo, detalle] = mensajes[usuario.tipo] || ['Cuenta institucional activa', 'El Registro Cultural es un servicio de la comunidad. Tu cuenta del Ministerio ya está registrada.'];
+
+    return (
+      <div className="contenedor max-m">
+        <div className="pagina-titulo">
+          <h1>Registro Cultural</h1>
+          <p className="subtitulo">Únete a la comunidad de cultores y cultoras de la Patria.</p>
+        </div>
+        <div className="tarjeta" style={{ textAlign: 'center', padding: '36px 24px' }}>
+          <CheckCircle2 size={46} color="var(--azul)" style={{ marginBottom: 10 }} />
+          <h3 style={{ color: 'var(--azul)', margin: '0 0 8px' }}>{titulo}</h3>
+          <p style={{ margin: '0 auto 18px', maxWidth: 520, color: 'var(--texto-suave)' }}>{detalle}</p>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Link className="btn" to="/foro"><Info size={15} /> Visitar el Foro</Link>
+            <Link className="btn btn-sec" to="/calendario">Ver Eventos</Link>
+            <Link className="btn btn-bajo" to={`/perfil/${usuario.id}`}>Mi Perfil</Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
@@ -36,7 +58,7 @@ export default function Registro() {
     try {
       const { password_confirm, tipo_usuario, ...datos } = form;
       const r = await registrar({ ...datos, tipo_usuario });
-      navigate(destinoSegunRol(r.usuario.tipo), { replace: true });
+      return r;
     } catch (err) {
       setError(err.message);
     } finally {

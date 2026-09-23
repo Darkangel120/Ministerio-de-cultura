@@ -2,7 +2,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function Header() {
-  const { usuario, logout, esStaff } = useAuth();
+  const { usuario, logout, esAdmin } = useAuth();
   const navigate = useNavigate();
 
   const salir = async () => {
@@ -24,10 +24,10 @@ export default function Header() {
             <li><NavLink to="/" end={true}>Inicio</NavLink></li>
             <li><NavLink to="/foro">Foro</NavLink></li>
             <li><NavLink to="/calendario">Eventos</NavLink></li>
-            {esStaff && <li><NavLink to="/panel">Panel</NavLink></li>}
-            {esStaff && <li><NavLink to="/cultores">Cultores</NavLink></li>}
-            {esStaff && <li><NavLink to="/reportes">Reportes</NavLink></li>}
-            {(usuario?.tipo === 'admin' || usuario?.tipo === 'director_general' || usuario?.tipo === 'director_operativo') && <li><NavLink to="/crear-usuario">Crear Usuario</NavLink></li>}
+            {esAdmin && <li><NavLink to="/panel">Panel</NavLink></li>}
+            {esAdmin && <li><NavLink to="/cultores">Cultores</NavLink></li>}
+            {esAdmin && <li><NavLink to="/reportes">Reportes</NavLink></li>}
+            {esAdmin && <li><NavLink to="/crear-usuario">Crear Usuario</NavLink></li>}
             {usuario ? (
               <>
                 <li><NavLink to={`/perfil/${usuario.id}`}>Mi Perfil</NavLink></li>

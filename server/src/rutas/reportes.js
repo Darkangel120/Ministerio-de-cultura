@@ -46,7 +46,7 @@ router.get('/filtros', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  if (!['admin', 'director_general', 'director_operativo', 'funcionario'].includes(req.usuario.tipo)) {
+  if (!['admin', 'director_general'].includes(req.usuario.tipo)) {
     return res.status(403).json({ error: 'No autorizado' });
   }
   const { tipo = 'eventos', vista = 'detallado', ...filtros } = req.body || {};

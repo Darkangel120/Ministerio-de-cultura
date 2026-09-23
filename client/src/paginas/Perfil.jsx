@@ -1,9 +1,10 @@
-import { Pencil, Heart, MessageCircle, MessageSquare } from 'lucide-react';
+import { Pencil, Heart, MessageCircle, MessageSquare, Camera } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import useDatos from '../hooks/useDatos';
+import { iniciales, colorAvatar } from '../lib/iniciales';
 import { AREAS_TEMATICAS, CATEGORIAS_FORO } from '../constantes';
 import MediaArchivo from '../componentes/MediaArchivo';
 
@@ -45,6 +46,20 @@ export default function Perfil() {
     } catch (err) { setErrEdit(err.message); }
   };
 
+  const subirFoto = async (e) => {
+    const archivo = e.target.files[0];
+    if (!archivo) return;
+    setMsg(null);
+    setErrEdit(null);
+    const fd = new FormData();
+    fd.append('foto', archivo);
+    try {
+      await api('/api/usuarios/me/foto', { method: 'POST', body: fd });
+      setMsg('Foto de perfil actualizada.');
+      window.location.reload();
+    } catch (err) { setErrEdit(err.message); }
+  };
+
   if (error) return <div className="contenedor"><div className="aviso aviso-error">{error}</div></div>;
   if (!datos) return <div className="contenedor">Cargando perfil…</div>;
 
@@ -54,9 +69,24 @@ export default function Perfil() {
     <div className="contenedor" style={{ maxWidth: 860, margin: '0 auto' }}>
       <div className="tarjeta" style={{ padding: 0, overflow: 'hidden' }}>
         <div className="perfil-cab">
-          <h2>{u.nombre_completo}</h2>
-          <div className="metadatos">
-            {u.email} · {u.telefono || 'sin teléfono'} · <span className="badge badge-amarillo">{ROL_LABEL[u.tipo_usuario] || u.tipo_usuario}</span>
+          {u.foto_url ? (
+            <img className="perfil-foto" src={u.foto_url} alt={u.nombre_completo} />
+          ) : (
+            <span className="avatar perfil-avatar" style={colorAvatar(u.nombre_completo)}>{iniciales(u.nombre_completo)}</span>
+          )}
+          <div>
+            <h2>{u.nombre_completo}</h2>
+            <div className="metadatos">
+              {u.email} · {u.telefono || 'sin teléfono'} · <span className="badge badge-amarillo">{ROL_LABEL[u.tipo_usuario] || u.tipo_usuario}</span>
+            </div>
+            {esPropio && (
+              <div className="componer-pie" style={{ marginTop: 14 }}>
+                <label className="adjuntar">
+                  <Camera size={15} /> Cambiar foto
+                  <input type="file" accept=".jpg,.jpeg,.png,.webp,.gif" onChange={subirFoto} />
+                </label>
+              </div>
+            )}
           </div>
         </div>
         <div style={{ padding: '22px 24px' }}>

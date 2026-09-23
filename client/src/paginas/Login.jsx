@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Landmark } from 'lucide-react';
 import Bandera from '../componentes/Bandera';
 import { useAuth } from '../context/AuthContext';
 
 const destinoSegunRol = (tipo) =>
-  ['admin', 'director_general', 'director_operativo', 'funcionario'].includes(tipo) ? '/panel' : '/foro';
+  ['admin', 'director_general'].includes(tipo) ? '/panel' : '/foro';
 
 export default function Login() {
   const { login, usuario } = useAuth();
@@ -15,10 +15,9 @@ export default function Login() {
   const [error, setError] = useState(null);
   const [cargando, setCargando] = useState(false);
 
-  if (usuario) {
-    navigate(destinoSegunRol(usuario.tipo), { replace: true });
-    return null;
-  }
+  useEffect(() => {
+    if (usuario) navigate(destinoSegunRol(usuario.tipo), { replace: true });
+  }, [usuario]);
 
   const enviar = async (e) => {
     e.preventDefault();

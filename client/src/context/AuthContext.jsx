@@ -50,9 +50,10 @@ export function AuthProvider({ children }) {
   };
 
   const esStaff = usuario && ['admin', 'director_general', 'director_operativo', 'funcionario'].includes(usuario.tipo);
+  const esAdmin = usuario && ['admin', 'director_general'].includes(usuario.tipo);
 
   return (
-    <AuthContext.Provider value={{ usuario, cultor, cargando, login, registrar, logout, refrescar, esStaff }}>
+    <AuthContext.Provider value={{ usuario, cultor, cargando, login, registrar, logout, refrescar, esStaff, esAdmin }}>
       {children}
     </AuthContext.Provider>
   );

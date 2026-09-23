@@ -7,6 +7,7 @@ CREATE TABLE usuarios (
     telefono VARCHAR(20),
     tipo_usuario VARCHAR(20) NOT NULL CHECK (tipo_usuario IN ('admin','director_general','director_operativo','funcionario','cultor','publico')),
     password_hash VARCHAR(255) NOT NULL,
+    foto_url VARCHAR(255),
     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     activo SMALLINT DEFAULT 1 CHECK (activo IN (0,1))
 );

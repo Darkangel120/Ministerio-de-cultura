@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { MapPin, Landmark } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MapPin, Landmark } from 'lucide-react';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -89,6 +89,14 @@ export default function Calendario() {
     try { await api(`/api/eventos/${id}`, { method: 'DELETE' }); cargar(); } catch (err) { setError(err.message); }
   };
 
+  const cambiarMes = (delta) => {
+    const m0 = mes + delta;
+    if (m0 === 0) { setMes(12); setAnio(anio - 1); }
+    else if (m0 === 13) { setMes(1); setAnio(anio + 1); }
+    else setMes(m0);
+  };
+  const irHoy = () => { setMes(ahora.getMonth() + 1); setAnio(ahora.getFullYear()); };
+
   return (
     <div className="contenedor">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
@@ -102,10 +110,18 @@ export default function Calendario() {
 
       <div className="tarjeta">
         <div className="cal-cab">
-          <select value={mes} onChange={(e) => setMes(Number(e.target.value))}>
-            {MESES.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
-          </select>
-          <input type="number" value={anio} onChange={(e) => setAnio(Number(e.target.value))} />
+          <div className="cal-nav">
+            <button className="cal-flecha" type="button" onClick={() => cambiarMes(-1)} title="Mes anterior"><ChevronLeft size={20} /></button>
+            <strong className="cal-fecha">{MESES[mes - 1]} {anio}</strong>
+            <button className="cal-flecha" type="button" onClick={() => cambiarMes(1)} title="Mes siguiente"><ChevronRight size={20} /></button>
+          </div>
+          <button className="btn btn-bajo btn-sm" type="button" onClick={irHoy}>Hoy</button>
+          <div className="cal-selecciona">
+            <select aria-label="Mes" value={mes} onChange={(e) => setMes(Number(e.target.value))}>
+              {MESES.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
+            </select>
+            <input type="number" aria-label="Año" value={anio} onChange={(e) => setAnio(Number(e.target.value))} />
+          </div>
           <span style={{ color: 'var(--texto-suave)', fontSize: 14, marginLeft: 'auto' }}>
             {eventos.length} actividad{eventos.length === 1 ? '' : 'es'}
           </span>

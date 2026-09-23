@@ -1,14 +1,30 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
+import multer from 'multer';
+import path from 'node:path';
+import crypto from 'node:crypto';
 import { query } from '../db.js';
 import { esEmail } from '../validadores.js';
 
 const router = Router();
 
+const foto = multer({
+  storage: multer.diskStorage({
+    destination: process.env.UPLOAD_DIR || 'uploads',
+    filename: (_req, file, cb) => cb(null, `foto-${crypto.randomBytes(8).toString('hex')}${path.extname(file.originalname).toLowerCase()}`),
+  }),
+  limits: { fileSize: Number(process.env.MAX_FILE_SIZE) || 5242880 },
+  fileFilter: (_req, file, cb) => {
+    if (!['.jpg', '.jpeg', '.png', '.webp', '.gif'].includes(path.extname(file.originalname).toLowerCase())) {
+      return cb(new Error('Solo se permiten imágenes'));
+    }
+    cb(null, true);
+  },
+});
+
 const JERARQUIA = {
   admin: ['admin', 'director_general', 'director_operativo', 'funcionario'],
   director_general: ['director_operativo', 'funcionario'],
-  director_operativo: ['funcionario'],
 };
 
 router.post('/', async (req, res) => {
@@ -30,17 +46,26 @@ router.post('/', async (req, res) => {
 });
 
 router.get('/me', async (req, res) => {
-  const u = await query('SELECT id, nombre_completo, email, telefono, tipo_usuario, fecha_registro FROM usuarios WHERE id = $1', [req.usuario.id]);
+  const u = await query('SELECT id, nombre_completo, email, telefono, tipo_usuario, foto_url, fecha_registro FROM usuarios WHERE id = $1', [req.usuario.id]);
   if (!u.rows.length) return res.status(404).json({ error: 'Usuario no encontrado' });
   const cultor = await query('SELECT * FROM cultores WHERE correo = $1 AND activo = 1', [u.rows[0].email]);
   res.json({ usuario: u.rows[0], cultor: cultor.rows[0] || null });
+});
+
+router.post('/me/foto', foto.single('foto'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Debes adjuntar una imagen' });
+  const r = await query(
+    'UPDATE usuarios SET foto_url = $1 WHERE id = $2 RETURNING id, nombre_completo, email, telefono, tipo_usuario, foto_url',
+    [`/uploads/${req.file.filename}`, req.usuario.id]
+  );
+  res.json({ usuario: r.rows[0] });
 });
 
 router.put('/me', async (req, res) => {
   const { nombre_completo, telefono } = req.body || {};
   if (!nombre_completo?.trim()) return res.status(400).json({ error: 'Nombre obligatorio' });
   const r = await query(
-    'UPDATE usuarios SET nombre_completo = $1, telefono = $2 WHERE id = $3 RETURNING id, nombre_completo, email, telefono, tipo_usuario',
+    'UPDATE usuarios SET nombre_completo = $1, telefono = $2 WHERE id = $3 RETURNING id, nombre_completo, email, telefono, tipo_usuario, foto_url',
     [nombre_completo.trim(), telefono?.trim() || null, req.usuario.id]
   );
   res.json({ usuario: r.rows[0] });
@@ -49,7 +74,7 @@ router.put('/me', async (req, res) => {
 router.get('/:id', async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isInteger(id)) return res.status(400).json({ error: 'ID inválido' });
-  const u = await query('SELECT id, nombre_completo, email, telefono, tipo_usuario, fecha_registro FROM usuarios WHERE id = $1 AND activo = 1', [id]);
+  const u = await query('SELECT id, nombre_completo, email, telefono, tipo_usuario, foto_url, fecha_registro FROM usuarios WHERE id = $1 AND activo = 1', [id]);
   if (!u.rows.length) return res.status(404).json({ error: 'Perfil no encontrado' });
   const usuario = u.rows[0];
   const [cultor, posts, totalCom, totalLikes, stats] = await Promise.all([
