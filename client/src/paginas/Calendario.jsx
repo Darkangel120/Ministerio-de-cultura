@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight, MapPin, Landmark, Plus, Pencil, Trash2, Flag, XCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MapPin, Landmark, Plus, Pencil, Trash2, Flag, XCircle, X } from 'lucide-react';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
-import { SelectEstado, SelectMunicipio } from '../componentes/SelectUbicacion';
+import { SelectEstado, SelectMunicipio, SelectParroquia } from '../componentes/SelectUbicacion';
 import {
   MESES, CARGOS_RESPONSABLE, TIPOS_ORGANIZACION, TIPOS_ACTIVIDAD,
   DISCIPLINAS_EVENTO, OBJETIVOS_TRANSFORMADORES, ESTADO_EJECUCION,
@@ -165,7 +165,7 @@ export default function Calendario() {
           <div className="tarjeta modal-tarjeta" style={{ marginBottom: 0, maxWidth: 640 }}>
             <div className="modal-cab">
               <h2>{detalle.nombre_actividad}</h2>
-              <button className="btn btn-bajo cerrar" type="button" onClick={() => setDetalle(null)}>Cerrar</button>
+              <button className="icono-btn cerrar" type="button" onClick={() => setDetalle(null)} title="Cerrar"><X size={18} /></button>
             </div>
             <div className="modal-cuerpo">
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
@@ -201,7 +201,7 @@ export default function Calendario() {
           <div className="tarjeta modal-tarjeta" style={{ marginBottom: 0 }}>
             <div className="modal-cab">
               <h2>{editandoId ? 'Editar Actividad' : 'Nueva Actividad — Misión Cultura'}</h2>
-              <button className="btn btn-bajo cerrar" type="button" onClick={() => setAbierto(false)}>Cerrar</button>
+              <button className="icono-btn cerrar" type="button" onClick={() => setAbierto(false)} title="Cerrar"><X size={18} /></button>
             </div>
             <div className="modal-cuerpo">
               <form onSubmit={guardar}>
@@ -215,8 +215,9 @@ export default function Calendario() {
                     <div className="campo"><label>Estado *</label>
                       <SelectEstado value={form.estado} onChange={(v) => setForm({ ...form, estado: v, municipio: municipioFijo ? form.municipio : '' })} disabled={estadoFijo} required /></div>
                     <div className="campo"><label>Municipio *</label>
-                      <SelectMunicipio estado={form.estado} value={form.municipio} onChange={set('municipio')} disabled={municipioFijo} required /></div>
-                    <div className="campo"><label>Parroquia *</label><input value={form.parroquia} onChange={set('parroquia')} required /></div>
+                      <SelectMunicipio estado={form.estado} value={form.municipio} onChange={(v) => setForm({ ...form, municipio: v, parroquia: municipioFijo ? form.parroquia : '' })} disabled={municipioFijo} required /></div>
+                    <div className="campo"><label>Parroquia *</label>
+                      <SelectParroquia estado={form.estado} municipio={form.municipio} value={form.parroquia} onChange={set('parroquia')} required /></div>
                     <div className="campo"><label>Organización *</label><input value={form.organizacion} onChange={set('organizacion')} required /></div>
                     <div className="campo"><label>Identificar si es comunas o circuito comunal</label>
                       <select value={form.tipo_organizacion} onChange={set('tipo_organizacion')}>

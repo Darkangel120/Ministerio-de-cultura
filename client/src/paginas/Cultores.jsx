@@ -1,11 +1,11 @@
-import { Palette } from 'lucide-react';
+import { Palette, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { iniciales, colorAvatar } from '../lib/iniciales';
 import { AREAS_TEMATICAS } from '../constantes';
 import { MUNICIPIOS_POR_ESTADO } from '../datos/ubicaciones';
-import { SelectEstado, SelectMunicipio } from '../componentes/SelectUbicacion';
+import { SelectEstado, SelectMunicipio, SelectParroquia } from '../componentes/SelectUbicacion';
 
 const vacio = {
   nombres_apellidos: '', telefono: '', cedula: '', correo: '', area_tematica: '',
@@ -48,7 +48,7 @@ export default function Cultores() {
   }, []);
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
-  const cambiarEstado = (v) => setForm({ ...form, estado: v, municipio: fijoMunicipio ? form.municipio : '' });
+  const cambiarEstado = (v) => setForm({ ...form, estado: v, municipio: fijoMunicipio ? form.municipio : '', parroquia: fijoMunicipio ? form.parroquia : '' });
 
   const abrirNuevo = () => {
     setForm({ ...vacio, estado: usuario?.estado || '', municipio: fijoMunicipio ? usuario?.municipio || '' : '' });
@@ -148,7 +148,7 @@ export default function Cultores() {
           <div className="tarjeta modal-tarjeta" style={{ marginBottom: 0 }}>
             <div className="modal-cab">
               <h2>{editandoId ? 'Editar Cultor' : 'Registrar Cultor'}</h2>
-              <button className="btn btn-bajo cerrar" type="button" onClick={() => setAbierto(false)}>Cerrar</button>
+              <button className="icono-btn cerrar" type="button" onClick={() => setAbierto(false)} title="Cerrar"><X size={18} /></button>
             </div>
             <div className="modal-cuerpo">
               <form onSubmit={guardar}>
@@ -167,8 +167,9 @@ export default function Cultores() {
                   <div className="campo"><label>Estado *</label>
                     <SelectEstado value={form.estado} onChange={cambiarEstado} disabled={fijoEstado} required /></div>
                   <div className="campo"><label>Municipio *</label>
-                    <SelectMunicipio estado={form.estado} value={form.municipio} onChange={set('municipio')} disabled={fijoMunicipio} required /></div>
-                  <div className="campo"><label>Parroquia *</label><input value={form.parroquia} onChange={set('parroquia')} required /></div>
+                    <SelectMunicipio estado={form.estado} value={form.municipio} onChange={(v) => setForm({ ...form, municipio: v, parroquia: fijoMunicipio ? form.parroquia : '' })} disabled={fijoMunicipio} required /></div>
+                  <div className="campo"><label>Parroquia *</label>
+                    <SelectParroquia estado={form.estado} municipio={form.municipio} value={form.parroquia} onChange={set('parroquia')} required /></div>
                   <div className="campo"><label>Código carnet patria *</label><input value={form.carnet_patria} onChange={set('carnet_patria')} required /></div>
                   <div className="campo"><label>Dirección exacta *</label><input value={form.direccion} onChange={set('direccion')} required /></div>
                   <div className="campo"><label>Lugar de nacimiento *</label><input value={form.lugar_nacimiento} onChange={set('lugar_nacimiento')} required /></div>

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { AREAS_TEMATICAS } from '../constantes';
-import { SelectEstado, SelectMunicipio } from '../componentes/SelectUbicacion';
+import { SelectEstado, SelectMunicipio, SelectParroquia } from '../componentes/SelectUbicacion';
 
 const destinoSegunRol = (tipo) =>
   ['admin', 'director_general', 'director_operativo', 'funcionario'].includes(tipo) ? '/panel' : '/foro';
@@ -111,15 +111,15 @@ export default function Registro() {
                 </div>
                 <div className="campo">
                   <label htmlFor="estado">Estado de residencia *</label>
-                  <SelectEstado id="estado" value={form.estado} onChange={(v) => setForm({ ...form, estado: v, municipio: '' })} required={esCultor} />
+                  <SelectEstado id="estado" value={form.estado} onChange={(v) => setForm({ ...form, estado: v, municipio: '', parroquia: '' })} required={esCultor} />
                 </div>
                 <div className="campo">
                   <label htmlFor="municipio">Municipio *</label>
-                  <SelectMunicipio id="municipio" estado={form.estado} value={form.municipio} onChange={set('municipio')} required={esCultor} />
+                  <SelectMunicipio id="municipio" estado={form.estado} value={form.municipio} onChange={(v) => setForm({ ...form, municipio: v, parroquia: '' })} required={esCultor} />
                 </div>
                 <div className="campo">
                   <label htmlFor="parroquia">Parroquia *</label>
-                  <input id="parroquia" value={form.parroquia} onChange={set('parroquia')} required={esCultor} />
+                  <SelectParroquia id="parroquia" estado={form.estado} municipio={form.municipio} value={form.parroquia} onChange={set('parroquia')} required={esCultor} />
                 </div>
                 <div className="campo">
                   <label htmlFor="carnet_patria">Código Carnet Patria *</label>
