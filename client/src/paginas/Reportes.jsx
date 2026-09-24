@@ -45,7 +45,7 @@ export default function Reportes() {
   };
 
   const descargarPDF = async () => {
-    const payload = { tipo, vista: 'detallado', ...filtros };
+    const payload = { tipo, vista, ...filtros };
     const r = await api('/api/reportes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
     const subtitulo = [
       `Tipo: ${TIPOS[tipo]}`,

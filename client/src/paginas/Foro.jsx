@@ -106,15 +106,17 @@ export default function Foro() {
     e.preventDefault();
     if (!usuario) { setError('Debes iniciar sesión para comentar'); return; }
     const id = e.target.dataset.id;
-    await api(`/api/foro/publicaciones/${id}/comentarios`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ comentario: textoComentario }),
-    });
-    setTextoComentario('');
-    const r = await api(`/api/foro/publicaciones/${id}/comentarios`);
-    setComentarios((prev) => ({ ...prev, [id]: r.comentarios }));
-    setPublicaciones((prev) => prev.map((x) => x.id === id ? { ...x, comments_count: x.comments_count + 1 } : x));
+    try {
+      await api(`/api/foro/publicaciones/${id}/comentarios`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ comentario: textoComentario }),
+      });
+      setTextoComentario('');
+      const r = await api(`/api/foro/publicaciones/${id}/comentarios`);
+      setComentarios((prev) => ({ ...prev, [id]: r.comentarios }));
+      setPublicaciones((prev) => prev.map((x) => x.id === id ? { ...x, comments_count: x.comments_count + 1 } : x));
+    } catch (err) { setError(err.message); }
   };
 
   const nombreComp = usuario ? usuario.nombre_completo : '';

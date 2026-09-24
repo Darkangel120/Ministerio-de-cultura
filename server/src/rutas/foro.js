@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
+import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { query } from '../db.js';
@@ -48,7 +49,7 @@ router.get('/', async (req, res) => {
   let miId = null;
   try {
     const token = req.cookies?.mc_token;
-    if (token) miId = (await import('jsonwebtoken')).verify(token, process.env.JWT_SECRET).id;
+    if (token) miId = (await import('jsonwebtoken')).verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] }).id;
   } catch { /* sesión opcional en vista pública */ }
   const r = await query(`${feedSelect} ORDER BY fp.fecha_publicacion DESC`, [miId ?? -1]);
   res.json({ publicaciones: r.rows });
@@ -73,8 +74,10 @@ router.post('/publicaciones', autenticar, upload.single('archivo'), async (req, 
 });
 
 router.put('/publicaciones/:id', autenticar, upload.single('archivo'), async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) return res.status(400).json({ error: 'ID inválido' });
   const { titulo, categoria, descripcion } = req.body || {};
-  const r = await query('SELECT * FROM foro_publicaciones WHERE id = $1 AND activo = 1', [req.params.id]);
+  const r = await query('SELECT * FROM foro_publicaciones WHERE id = $1 AND activo = 1', [id]);
   const pub = r.rows[0];
   if (!pub) return res.status(404).json({ error: 'Publicación no encontrada' });
   if (pub.usuario_id !== req.usuario.id) return res.status(403).json({ error: 'Solo el autor puede editar' });
@@ -83,22 +86,32 @@ router.put('/publicaciones/:id', autenticar, upload.single('archivo'), async (re
   }
   let archivo_url = pub.archivo_url, tipo_archivo = pub.tipo_archivo;
   if (req.file) {
+    if (pub.archivo_url) {
+      const oldName = path.basename(pub.archivo_url);
+      fs.promises.unlink(path.join(UPLOAD_DIR, oldName)).catch(() => {});
+    }
     archivo_url = `/uploads/${req.file.filename}`;
     tipo_archivo = EXT_TIPO[path.extname(req.file.originalname).toLowerCase()];
   }
   const up = await query(
     'UPDATE foro_publicaciones SET titulo = $1, categoria = $2, descripcion = $3, archivo_url = $4, tipo_archivo = $5 WHERE id = $6 RETURNING *',
-    [titulo.trim(), categoria, descripcion.trim(), archivo_url, tipo_archivo, req.params.id]
+    [titulo.trim(), categoria, descripcion.trim(), archivo_url, tipo_archivo, id]
   );
   res.json({ publicacion: up.rows[0] });
 });
 
 router.delete('/publicaciones/:id', autenticar, async (req, res) => {
-  const r = await query('SELECT * FROM foro_publicaciones WHERE id = $1 AND activo = 1', [req.params.id]);
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) return res.status(400).json({ error: 'ID inválido' });
+  const r = await query('SELECT * FROM foro_publicaciones WHERE id = $1 AND activo = 1', [id]);
   const pub = r.rows[0];
   if (!pub) return res.status(404).json({ error: 'Publicación no encontrada' });
   if (pub.usuario_id !== req.usuario.id) return res.status(403).json({ error: 'Solo el autor puede eliminar' });
-  await query('UPDATE foro_publicaciones SET activo = 0 WHERE id = $1', [req.params.id]);
+  await query('UPDATE foro_publicaciones SET activo = 0 WHERE id = $1', [id]);
+  if (pub.archivo_url) {
+    const name = path.basename(pub.archivo_url);
+    fs.promises.unlink(path.join(UPLOAD_DIR, name)).catch(() => {});
+  }
   res.json({ ok: true });
 });
 

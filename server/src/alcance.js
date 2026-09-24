@@ -4,7 +4,7 @@
 //   funcionario (responsable por municipio)  → solo su municipio
 //   cultor / publico                         → sin ámbito de gestión
 
-export const esStaff = (u) => ['admin', 'director_general', 'director_operativo', 'funcionario'].includes(u.tipo);
+export const esStaff = (u) => !!u && ['admin', 'director_general', 'director_operativo', 'funcionario'].includes(u.tipo);
 export const esNacional = (u) => ['admin', 'director_general'].includes(u.tipo);
 export const esDirectorEstado = (u) => u.tipo === 'director_operativo';
 export const esResponsableMunicipio = (u) => u.tipo === 'funcionario';

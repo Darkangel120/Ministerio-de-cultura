@@ -102,11 +102,11 @@ export default function CrearUsuario() {
           <div className="grilha grilha-2">
             <div className="campo">
               <label htmlFor="password">Contraseña *</label>
-              <input id="password" type="password" minLength={6} value={form.password} onChange={set('password')} required />
+              <input id="password" type="password" minLength={8} value={form.password} onChange={set('password')} required />
             </div>
             <div className="campo">
               <label htmlFor="confirm_password">Confirmar contraseña *</label>
-              <input id="confirm_password" type="password" minLength={6} value={form.confirm_password} onChange={set('confirm_password')} required />
+              <input id="confirm_password" type="password" minLength={8} value={form.confirm_password} onChange={set('confirm_password')} required />
             </div>
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>

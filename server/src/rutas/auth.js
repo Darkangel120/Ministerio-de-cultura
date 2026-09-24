@@ -5,6 +5,32 @@ import { firmarToken, COOKIE_NOMBRE, autenticar } from '../auth.js';
 import { esEmail, numeroEntero, AREAS_TEMATICAS, AREAS_VE } from '../validadores.js';
 
 const router = Router();
+
+// ponytail: limitador en memoria por IP, suficiente para una app con un nodo; sustituir por Redis si se escala
+const INTENTOS_LIMITE = Number(process.env.MAX_LOGIN_ATTEMPTS) || 10;
+const VENTANA_MS = (Number(process.env.RATE_LIMIT_WINDOW) || 15) * 60 * 1000;
+const intentos = new Map();
+const limpiarIntentos = setInterval(() => {
+  const corte = Date.now() - VENTANA_MS;
+  for (const [k, ts] of intentos) {
+    const vivos = ts.filter((t) => t > corte);
+    if (vivos.length) intentos.set(k, vivos);
+    else intentos.delete(k);
+  }
+}, VENTANA_MS);
+limpiarIntentos.unref();
+
+const bloqueadoPor = (clave) => {
+  const ts = intentos.get(clave) || [];
+  const vivos = ts.filter((t) => t > Date.now() - VENTANA_MS);
+  intentos.set(clave, vivos);
+  return vivos.length >= INTENTOS_LIMITE;
+};
+const registrarIntento = (clave) => {
+  const ts = intentos.get(clave) || [];
+  ts.push(Date.now());
+  intentos.set(clave, ts);
+};
 const ROLE_SELF_REGISTRABLES = ['cultor', 'publico'];
 
 const calcularEdad = (fechaNacimiento) => {
@@ -17,6 +43,10 @@ const calcularEdad = (fechaNacimiento) => {
 };
 
 router.post('/registro', async (req, res) => {
+  const clave = `registro:${req.ip}`;
+  if (bloqueadoPor(clave)) {
+    return res.status(429).json({ error: 'Demasiados registros desde esta conexión. Intente más tarde.' });
+  }
   const { nombre_completo, email, telefono, tipo_usuario, password, cedula, area_tematica, disciplina, comuna, estado, municipio, parroquia, carnet_patria, direccion, lugar_nacimiento, fecha_nacimiento, trayectoria_anios, organizacion } = req.body || {};
 
   if (!nombre_completo?.trim() || !esEmail(email)) return res.status(400).json({ error: 'Nombre y correo válidos son obligatorios' });
@@ -62,17 +92,24 @@ router.post('/registro', async (req, res) => {
     secure: process.env.COOKIE_SECURE === 'true',
     maxAge: 12 * 60 * 60 * 1000,
   });
+  registrarIntento(clave);
   res.status(201).json({ ok: true, usuario: { id: usuario.id, nombre: usuario.nombre_completo, email: usuario.email, tipo: usuario.tipo_usuario } });
 });
 
 router.post('/login', async (req, res) => {
+  const clave = `login:${req.ip}`;
+  if (bloqueadoPor(clave)) {
+    return res.status(429).json({ error: 'Demasiados intentos. Intente más tarde.' });
+  }
   const { email, password } = req.body || {};
   if (!esEmail(email) || typeof password !== 'string') return res.status(400).json({ error: 'Credenciales inválidas' });
   const r = await query('SELECT * FROM usuarios WHERE email = $1 AND activo = 1', [email.trim()]);
   const usuario = r.rows[0];
   if (!usuario || !(await bcrypt.compare(password, usuario.password_hash))) {
+    registrarIntento(clave);
     return res.status(401).json({ error: 'Correo o contraseña incorrectos' });
   }
+  intentos.delete(clave);
   res.cookie(COOKIE_NOMBRE, firmarToken(usuario), {
     httpOnly: true,
     sameSite: 'strict',
@@ -83,7 +120,7 @@ router.post('/login', async (req, res) => {
 });
 
 router.post('/logout', (_req, res) => {
-  res.clearCookie(COOKIE_NOMBRE);
+  res.clearCookie(COOKIE_NOMBRE, { httpOnly: true, sameSite: 'strict', secure: process.env.COOKIE_SECURE === 'true' });
   res.json({ ok: true });
 });
 

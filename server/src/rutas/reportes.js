@@ -21,8 +21,8 @@ const APPLY = (condiciones, params, claves, cuerpo) => {
     const val = cuerpo[clave];
     if (!val) continue;
     if (clave === 'responsable') {
-      where.push(`(nombre_actividad ILIKE $${i++} OR nombre_comuna ILIKE $${i++})`);
-      params.push(`%${val}%`, `%${val}%`);
+      where.push(`responsable_nombre ILIKE $${i++}`);
+      params.push(`%${val}%`);
     } else if (clave === 'id_evento') {
       where.push(`id = $${i++}`);
       params.push(Number(val));
@@ -41,6 +41,7 @@ const APPLY = (condiciones, params, claves, cuerpo) => {
 };
 
 router.get('/filtros', async (req, res) => {
+  if (!esStaff(req.usuario)) return res.status(403).json({ error: 'No autorizado' });
   const alc = alcance(req.usuario);
   const base = `activo = 1 AND ${alc.sql}`;
   const [resp, muns, evs, areas] = await Promise.all([
@@ -70,21 +71,14 @@ router.post('/', async (req, res) => {
   if (tipo === 'eventos' || tipo === 'actividad_ejecutada' || tipo === 'actividad_reportada') {
     const where = [`activo = 1 AND ${alc.sql}`];
     if (tipo !== 'eventos') {
-      const estado = tipo === 'actividad_ejecutada' ? 'ejecutado' : 'reportada';
-      params.push(estado);
+      // ponytail: el endpoint /ejecutar marca 'reportada', nunca 'ejecutado'; ambos reportes cubren la misma realidad
+      params.push('reportada');
       where.push(`estado_ejecucion = $${params.length}`);
-    } else {
-      APPLY(condiciones, params, ['responsable', 'municipio', 'id_evento', 'fecha_desde', 'fecha_hasta'], filtros);
-      const extra = condiciones[0] ? condiciones[0].slice(6) : 'TRUE';
-      condiciones[0] = `WHERE ${where.join(' AND ')} AND ${extra}`;
     }
-    if (tipo === 'eventos') {
-      queryStr = `SELECT *, (ninos + ninas + jovenes_masculinos + jovenes_femeninas + adultos_masculinos + adultos_femeninas) AS asistentes
-                  FROM eventos ${condiciones[0]} ORDER BY fecha DESC`;
-    } else {
-      queryStr = `SELECT *, (ninos + ninas + jovenes_masculinos + jovenes_femeninas + adultos_masculinos + adultos_femeninas) AS asistentes
-                  FROM eventos WHERE ${where.join(' AND ')} ORDER BY fecha DESC`;
-    }
+    APPLY(condiciones, params, ['responsable', 'municipio', 'id_evento', 'fecha_desde', 'fecha_hasta'], filtros);
+    const extra = condiciones[0] ? condiciones[0].slice(6) : 'TRUE';
+    queryStr = `SELECT *, (ninos + ninas + jovenes_masculinos + jovenes_femeninas + adultos_masculinos + adultos_femeninas) AS asistentes
+                FROM eventos WHERE ${where.join(' AND ')} AND ${extra} ORDER BY fecha DESC`;
   } else if (tipo === 'cultores') {
     const where = [`activo = 1 AND ${alc.sql}`];
     if (filtros.area_tematica) { params.push(filtros.area_tematica); where.push(`area_tematica = $${params.length}`); }

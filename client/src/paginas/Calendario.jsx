@@ -160,7 +160,7 @@ export default function Calendario() {
         </div>
       </div>
 
-      {detalle && !esStaff && (
+      {detalle && !puedeEditar(detalle) && (
         <div className="modal-fondo" onClick={(e) => { if (e.target === e.currentTarget) setDetalle(null); }}>
           <div className="tarjeta modal-tarjeta" style={{ marginBottom: 0, maxWidth: 640 }}>
             <div className="modal-cab">

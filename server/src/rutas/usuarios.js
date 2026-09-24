@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import multer from 'multer';
+import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { query } from '../db.js';
@@ -16,7 +17,9 @@ const foto = multer({
   limits: { fileSize: Number(process.env.MAX_FILE_SIZE) || 5242880 },
   fileFilter: (_req, file, cb) => {
     if (!['.jpg', '.jpeg', '.png', '.webp', '.gif'].includes(path.extname(file.originalname).toLowerCase())) {
-      return cb(new Error('Solo se permiten imágenes'));
+      const err = new Error('Solo se permiten imágenes');
+      err.code = 'FORMATO_NO_PERMITIDO';
+      return cb(err);
     }
     cb(null, true);
   },
@@ -35,7 +38,7 @@ router.post('/', async (req, res) => {
     return res.status(403).json({ error: 'Tipo de usuario no permitido para su rol' });
   }
   if (!nombre_completo?.trim() || !esEmail(email)) return res.status(400).json({ error: 'Nombre y correo válidos son obligatorios' });
-  if (typeof password !== 'string' || password.length < 6) return res.status(400).json({ error: 'La contraseña debe tener mínimo 6 caracteres' });
+  if (typeof password !== 'string' || password.length < 8) return res.status(400).json({ error: 'La contraseña debe tener mínimo 8 caracteres' });
 
   const esTerritorial = ['director_operativo', 'funcionario'].includes(tipo_usuario);
   const estadoOk = estado?.trim() && AREAS_VE.includes(estado.trim());
@@ -64,10 +67,16 @@ router.get('/me', async (req, res) => {
 
 router.post('/me/foto', foto.single('foto'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Debes adjuntar una imagen' });
+  const prev = await query('SELECT foto_url FROM usuarios WHERE id = $1', [req.usuario.id]);
   const r = await query(
     'UPDATE usuarios SET foto_url = $1 WHERE id = $2 RETURNING id, nombre_completo, email, telefono, tipo_usuario, estado, municipio, foto_url',
     [`/uploads/${req.file.filename}`, req.usuario.id]
   );
+  const antigua = prev.rows[0]?.foto_url;
+  if (antigua) {
+    const name = path.basename(antigua);
+    fs.promises.unlink(path.join(process.env.UPLOAD_DIR || 'uploads', name)).catch(() => {});
+  }
   res.json({ usuario: r.rows[0] });
 });
 
@@ -88,7 +97,7 @@ router.get('/:id', async (req, res) => {
   if (!u.rows.length) return res.status(404).json({ error: 'Perfil no encontrado' });
   const usuario = u.rows[0];
   const [cultor, posts, totalCom, totalLikes, stats] = await Promise.all([
-    query('SELECT * FROM cultores WHERE correo = $1 AND activo = 1', [usuario.email]),
+    query(`SELECT nombres_apellidos, cedula, area_tematica, disciplina, comuna, estado, municipio, parroquia, trayectoria_anios, organizacion FROM cultores WHERE correo = $1 AND activo = 1`, [usuario.email]),
     query(
       `SELECT fp.*, u.nombre_completo AS autor_nombre,
         (SELECT COUNT(*) FROM foro_likes WHERE publicacion_id = fp.id)::int AS likes_count,

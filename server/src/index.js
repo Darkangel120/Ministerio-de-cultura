@@ -16,13 +16,21 @@ import rutasUsuarios from './rutas/usuarios.js';
 import rutasReportes from './rutas/reportes.js';
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
+
+// Headers de seguridad mínimos en todas las respuestas
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  next();
+});
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || 'uploads';
 const uploadsAbs = path.resolve(UPLOAD_DIR);
 fs.mkdirSync(uploadsAbs, { recursive: true });
-app.use('/uploads', express.static(uploadsAbs));
+app.use('/uploads', express.static(uploadsAbs, { setHeaders: (res) => res.setHeader('Content-Disposition', 'inline') }));
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 app.use('/api/auth', rutasAuth);
@@ -41,6 +49,10 @@ app.use((err, _req, res, _next) => {
   console.error(err);
   res.status(500).json({ error: 'Error interno del servidor' });
 });
+
+// ponytail: Express 4 no propaga rechazos de handlers async; si uno se cae, que no tumbe el proceso
+process.on('unhandledRejection', (e) => console.error('Rechazo no manejado:', e));
+process.on('uncaughtException', (e) => console.error('Excepción no capturada:', e));
 
 app.listen(process.env.PORT || 4000, () => {
   console.log(`Servidor en http://localhost:${process.env.PORT || 4000}`);

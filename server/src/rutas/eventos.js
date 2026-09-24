@@ -53,6 +53,11 @@ const validarEvento = (b) => {
 
 const COLUMNAS_VALIDAS_ORDEN = { fecha: 1, nombre_actividad: 1, estado: 1, municipio: 1 };
 
+// El público no necesita cédulas ni teléfonos de voceros/responsables
+const CAMPOS_PUBLICOS_EVENTOS = `id, estado, municipio, parroquia, organizacion, tipo_organizacion,
+  direccion, ubicacion_exacta, nombre_comuna, consejo_comunal, nombre_consejo, vocero_nombre, responsable_nombre,
+  responsable_cargo, tipo_actividad, disciplina, nombre_actividad, objetivo, mes, fecha, hora, duracion, estado_ejecucion`;
+
 // Vista de calendario: el personal de gestión ve solo su ámbito; el público ve todo el país
 const vistaSegunAlcance = (u) => (esStaff(u) ? alcance(u) : { sql: 'TRUE', params: [] });
 
@@ -62,22 +67,23 @@ router.get('/', autenticarOpcional, async (req, res) => {
   const orderBy = COLUMNAS_VALIDAS_ORDEN[req.query.orderBy] ? req.query.orderBy : 'fecha';
   const dir = req.query.dir === 'asc' ? 'ASC' : 'DESC';
   const vista = vistaSegunAlcance(req.usuario);
+  const campos = esStaff(req.usuario) ? '*' : CAMPOS_PUBLICOS_EVENTOS;
   if (mes && MESES.includes(mes) && anio) {
     const r = await query(
-      `SELECT * FROM eventos WHERE activo = 1 AND ${vista.sql} AND mes = $${vista.params.length + 1} AND EXTRACT(YEAR FROM fecha) = $${vista.params.length + 2} ORDER BY fecha ${dir}, hora ASC`,
+      `SELECT ${campos} FROM eventos WHERE activo = 1 AND ${vista.sql} AND mes = $${vista.params.length + 1} AND EXTRACT(YEAR FROM fecha) = $${vista.params.length + 2} ORDER BY fecha ${dir}, hora ASC`,
       [...vista.params, mes, anio]
     );
     return res.json({ eventos: r.rows });
   }
   const r = await query(
-    `SELECT * FROM eventos WHERE activo = 1 AND ${vista.sql} ORDER BY fecha ${dir}, hora ASC`,
+    `SELECT ${campos} FROM eventos WHERE activo = 1 AND ${vista.sql} ORDER BY fecha ${dir}, hora ASC`,
     vista.params
   );
   res.json({ eventos: r.rows });
 });
 
 router.get('/nuevos', autenticarOpcional, async (_req, res) => {
-  const r = await query('SELECT * FROM eventos WHERE activo = 1 AND fecha >= CURRENT_DATE ORDER BY fecha ASC, hora ASC LIMIT 3');
+  const r = await query(`SELECT ${CAMPOS_PUBLICOS_EVENTOS} FROM eventos WHERE activo = 1 AND fecha >= CURRENT_DATE ORDER BY fecha ASC, hora ASC LIMIT 3`);
   res.json({ eventos: r.rows });
 });
 

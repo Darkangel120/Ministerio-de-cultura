@@ -25,7 +25,7 @@ export const autenticar = (req, res, next) => {
   const token = req.cookies?.[COOKIE_NOMBRE];
   if (!token) return res.status(401).json({ error: 'No autenticado' });
   try {
-    const claims = jwt.verify(token, process.env.JWT_SECRET);
+    const claims = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     hidratar(claims)
       .then((u) => {
         if (!u) return res.status(401).json({ error: 'Sesión inválida o expirada' });
@@ -43,7 +43,7 @@ export const autenticarOpcional = (req, _res, next) => {
   const token = req.cookies?.[COOKIE_NOMBRE];
   if (!token) return next();
   try {
-    const claims = jwt.verify(token, process.env.JWT_SECRET);
+    const claims = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     hidratar(claims).then((u) => {
       if (u) req.usuario = u;
       next();

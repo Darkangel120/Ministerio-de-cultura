@@ -3,4 +3,5 @@ server/uploads/*
 !server/uploads/.gitkeep
 .env
 dist/
-*.log
+*.log# claves o configuración local (nunca subirlas)
+OLD/funcional/.env
